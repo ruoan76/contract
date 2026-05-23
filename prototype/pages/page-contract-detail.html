@@ -1,0 +1,128 @@
+<div class="page" id="page-contract-detail">
+      <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="backFromContractDetail()">← 返回</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="showApprovalHistoryFromDetail()">审批历史</button>
+          <button class="btn btn-outline btn-sm" onclick="openAiReviewFromDetail()">AI 审查报告</button>
+          <button class="btn btn-primary btn-sm" onclick="openReviewWorkspaceFromDetail()">进入评审工作台</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:20px">
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title" id="detail-contract-title">CTR-20240115-0001 服务器采购合同</span>
+              <div style="display:flex;gap:8px" id="detail-status-tags">
+                <span class="tag tag-green">已通过</span>
+                <span class="tag tag-yellow">中风险</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
+                <div><div style="font-size:12px;color:var(--gray-500)">合同类型</div><div style="margin-top:4px" id="detail-field-type"><span class="tag tag-blue">采购合同</span></div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">合同金额</div><div style="font-weight:700;font-size:18px;margin-top:4px" id="detail-field-amount">¥ 2,500,000</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">相对方</div><div style="font-weight:600;margin-top:4px" id="detail-field-counterparty">华为技术有限公司</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">开始日期</div><div style="margin-top:4px" id="detail-field-start">2024-02-01</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">结束日期</div><div style="margin-top:4px" id="detail-field-end">2024-12-31</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">创建人</div><div style="margin-top:4px" id="detail-field-creator">张三 · 2024-01-15 09:00</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">信用代码</div><div style="margin-top:4px"><code>91440300279525188X</code></div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">币种 / 税率</div><div style="margin-top:4px">CNY / 13%</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">签署日期</div><div style="margin-top:4px;color:var(--primary);font-weight:500">2024-01-15</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">签署方式</div><div style="margin-top:4px">线下盖章</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">归档日期</div><div style="margin-top:4px">--</div></div>
+                <div><div style="font-size:12px;color:var(--gray-500)">归档位置</div><div style="margin-top:4px">档案室 A-12-03</div></div>
+              </div>
+              <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">📋 合同内容</h3>
+              <div style="background:var(--gray-50);border-radius:8px;padding:16px;font-size:13px;line-height:2;color:var(--gray-700)">
+                <p style="margin-bottom:12px"><strong>第一条 采购内容：</strong>甲方向乙方采购 XX 品牌服务器 50 台，具体配置详见附件一《设备清单》。</p>
+                <p style="margin-bottom:12px"><strong>第三条 付款条件：</strong>甲方在合同签订后 5 个工作日内支付合同总额的 40% 作为预付款。</p>
+                <p style="margin-bottom:12px"><strong>第四条 违约责任：</strong>乙方未按约定时间交付，每逾期一日按合同总额的 0.5% 支付违约金。乙方违约需赔偿甲方一切损失。</p>
+                <p style="margin-bottom:12px"><strong>第五条 保密条款：</strong>保密期限为合同终止后 3 年。</p>
+                <p><strong>第六条 管辖约定：</strong>本合同的争议由乙方所在地人民法院管辖。</p>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-header"><span class="card-title">📎 附件</span></div>
+            <div class="card-body">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--gray-50);border-radius:6px">
+                  <span>📄 服务器采购合同.docx</span><span style="font-size:12px;color:var(--gray-500)">2.3 MB · 2024-01-15</span>
+                  <button class="btn btn-outline btn-sm" onclick="downloadFile(this)">下载</button>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--gray-50);border-radius:6px">
+                  <span>📊 设备清单.xlsx</span><span style="font-size:12px;color:var(--gray-500)">156 KB · 2024-01-15</span>
+                  <button class="btn btn-outline btn-sm" onclick="downloadFile(this)">下载</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-header"><span class="card-title">📜 版本历史</span></div>
+            <div class="card-body">
+              <table>
+                <thead><tr><th>版本</th><th>变更说明</th><th>创建人</th><th>文件</th><th>时间</th></tr></thead>
+                <tbody>
+                  <tr style="background:#dbeafe">
+                    <td><span class="tag tag-blue">v2 (当前)</span></td>
+                    <td>修改第四条违约责任赔偿上限</td>
+                    <td>张三</td>
+                    <td>contract_v2.pdf <span style="font-size:11px;color:var(--gray-400)">MD5: a3f2b8c1</span></td>
+                    <td>2024-01-15 14:00</td>
+                  </tr>
+                  <tr>
+                    <td><span class="tag tag-gray">v1</span></td>
+                    <td>初始版本</td>
+                    <td>张三</td>
+                    <td>contract_v1.pdf <span style="font-size:11px;color:var(--gray-400)">MD5: e7d4a9b2</span></td>
+                    <td>2024-01-15 09:00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">📋 审批流程</span></div>
+            <div class="card-body">
+              <div class="flow-steps" style="flex-direction:column;align-items:flex-start;gap:0">
+                <div class="flow-step completed"><div class="step-dot">✓</div><div class="step-label">起草<span style="font-size:11px;color:var(--gray-400);display:block">张三 · 01-15 09:00</span></div></div>
+                <div style="width:2px;height:16px;background:var(--success);margin-left:13px"></div>
+                <div class="flow-step completed"><div class="step-dot">✓</div><div class="step-label">部门主管<span style="font-size:11px;color:var(--gray-400);display:block">张三 · 01-15 09:05 ✓</span></div></div>
+                <div style="width:2px;height:16px;background:var(--success);margin-left:13px"></div>
+                <div class="flow-step completed"><div class="step-dot">✓</div><div class="step-label">法务审核<span style="font-size:11px;color:var(--gray-400);display:block">法务部 · 01-15 14:30 ✓</span></div></div>
+                <div style="width:2px;height:16px;background:var(--primary);margin-left:13px"></div>
+                <div class="flow-step active"><div class="step-dot">3</div><div class="step-label">财务审核<span style="font-size:11px;color:var(--primary);display:block">待处理</span></div></div>
+                <div style="width:2px;height:16px;background:var(--gray-200);margin-left:13px"></div>
+                <div class="flow-step"><div class="step-dot">4</div><div class="step-label">高管审批</div></div>
+                <div style="width:2px;height:16px;background:var(--gray-200);margin-left:13px"></div>
+                <div class="flow-step"><div class="step-dot">5</div><div class="step-label">用印签署</div></div>
+              </div>
+              <button class="btn btn-outline btn-sm" style="width:100%;margin-top:12px" onclick="showApprovalHistoryFromDetail()">查看完整审批记录 →</button>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-header"><span class="card-title">🤖 AI 审查摘要</span></div>
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <div class="score-ring medium" style="width:60px;height:60px;font-size:18px" id="detail-ai-score">65</div>
+                <div><div style="font-weight:600;color:var(--warning)">中风险</div><div style="font-size:12px;color:var(--gray-500)">2 项高风险 · 1 项中风险</div></div>
+              </div>
+              <button class="btn btn-primary btn-sm" style="width:100%" onclick="openAiReviewFromDetail()">查看完整报告 →</button>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-header"><span class="card-title">📜 操作记录</span></div>
+            <div class="card-body" style="font-size:12px">
+              <div style="padding:8px 0;border-bottom:1px solid var(--gray-100)"><span style="color:var(--gray-500)">01-15 14:30</span> 法务审核通过 · 意见：AI审查发现2项高风险条款</div>
+              <div style="padding:8px 0;border-bottom:1px solid var(--gray-100)"><span style="color:var(--gray-500)">01-15 09:05</span> 部门主管审批通过 · 意见：同意</div>
+              <div style="padding:8px 0"><span style="color:var(--gray-500)">01-15 09:00</span> 张三提交合同 · 触发AI审查</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+
+
+    </div>

@@ -1,0 +1,95 @@
+<div class="page" id="page-counterparties">
+      <div class="search-bar">
+        <input class="form-input" placeholder="搜索名称/信用代码..." style="width:250px" id="cp-search">
+        <select class="form-select">
+          <option value="">全部状态</option>
+          <option value="normal">正常</option>
+          <option value="blacklist">黑名单</option>
+        </select>
+        <button class="btn btn-primary" onclick="filterCounterpartyList()">🔍 查询</button>
+        <button class="btn btn-outline" onclick="showModal('import-counterparty')">📥 批量导入</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">相对方档案 <span style="font-weight:400;color:var(--gray-500)">(共 86 家)</span></span>
+          <button class="btn btn-primary btn-sm" onclick="showNewCounterpartyModal()">+ 新增相对方</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>相对方名称</th>
+                <th>信用代码</th>
+                <th>行业</th>
+                <th>信用评级</th>
+                <th>历史合同</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600">华为技术有限公司</td>
+                <td><code>91440300279525188X</code></td>
+                <td>信息技术</td>
+                <td><span class="tag tag-green">A</span></td>
+                <td>12 份 / ¥28.5M</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('counterparty-detail')">详情</button>
+                  <button class="btn btn-outline btn-sm" onclick="openCounterpartyEdit()">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">阿里云计算有限公司</td>
+                <td><code>91330000MA27XN3B8T</code></td>
+                <td>云计算</td>
+                <td><span class="tag tag-green">A</span></td>
+                <td>8 份 / ¥15.2M</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('counterparty-detail')">详情</button>
+                  <button class="btn btn-outline btn-sm" onclick="openCounterpartyEdit()">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">联想集团有限公司</td>
+                <td><code>9111010860001354X3</code></td>
+                <td>信息技术</td>
+                <td><span class="tag tag-green">A</span></td>
+                <td>5 份 / ¥8.3M</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('counterparty-detail')">详情</button>
+                  <button class="btn btn-outline btn-sm" onclick="openCounterpartyEdit()">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:600">中建装饰集团有限公司</td>
+                <td><code>91110102101646480X</code></td>
+                <td>建筑装饰</td>
+                <td><span class="tag tag-yellow">B</span></td>
+                <td>3 份 / ¥5.6M</td>
+                <td><span class="tag tag-green">正常</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('counterparty-detail')">详情</button>
+                  <button class="btn btn-outline btn-sm" onclick="openCounterpartyEdit()">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;color:var(--danger)">XX 科技有限公司</td>
+                <td><code>91110108MA01XXXX</code></td>
+                <td>信息技术</td>
+                <td><span class="tag tag-red">D</span></td>
+                <td>1 份 / ¥120K</td>
+                <td><span class="tag tag-red">🚫 黑名单</span></td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('counterparty-detail')">详情</button>
+                  <button class="btn btn-danger btn-sm" onclick="removeBlacklist()">移除黑名单</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,94 @@
+<div class="page" id="page-seal">
+      <div class="search-bar">
+        <input class="form-input" placeholder="搜索合同编号/名称..." style="width:250px" id="seal-search">
+        <select class="form-select" id="seal-status-filter">
+          <option value="">全部状态</option>
+          <option value="pending">待用印</option>
+          <option value="approved">已用印</option>
+        </select>
+        <button class="btn btn-primary" onclick="filterSealList()">🔍 查询</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">用印管理 <span style="font-weight:400;color:var(--gray-500);font-size:13px">(待用印 3 份)</span></span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>合同编号</th><th>合同名称</th><th>审批结果</th><th>印章类型</th><th>申请人</th><th>申请时间</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>CTR-20240115-0001</code></td>
+                <td style="font-weight:500">服务器采购合同</td>
+                <td><span class="tag tag-green">已通过</span></td>
+                <td>公章</td>
+                <td>张三</td>
+                <td>2024-01-15 15:00</td>
+                <td><span class="tag tag-yellow">待用印</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="confirmSealAction('CTR-20240115-0001')">✓ 确认用印</button>
+                  <button class="btn btn-outline btn-sm" onclick="showSealDetail()">查看详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code>CTR-20240114-0003</code></td>
+                <td style="font-weight:500">云服务年框协议</td>
+                <td><span class="tag tag-green">已通过</span></td>
+                <td>合同章</td>
+                <td>王五</td>
+                <td>2024-01-14 16:30</td>
+                <td><span class="tag tag-yellow">待用印</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="confirmSealAction()">✓ 确认用印</button>
+                  <button class="btn btn-outline btn-sm" onclick="showSealDetail()">查看详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code>CTR-20240113-0005</code></td>
+                <td style="font-weight:500">办公区装修合同</td>
+                <td><span class="tag tag-green">已通过</span></td>
+                <td>公章 + 法人章</td>
+                <td>赵六</td>
+                <td>2024-01-13 17:00</td>
+                <td><span class="tag tag-yellow">待用印</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="confirmSealAction()">✓ 确认用印</button>
+                  <button class="btn btn-outline btn-sm" onclick="showSealDetail()">查看详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code>CTR-20240110-0010</code></td>
+                <td style="font-weight:500">保密协议（NDA）</td>
+                <td><span class="tag tag-green">已通过</span></td>
+                <td>公章</td>
+                <td>吴九</td>
+                <td>2024-01-10 15:20</td>
+                <td><span class="tag tag-green">已用印</span></td>
+                <td>
+                  <span class="tag tag-gray" style="font-size:11px">记录：操作人 档案管理员 | 2024-01-10 16:00 | 哈希 a3f2...</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><span class="card-title">用印操作日志</span></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>时间</th><th>操作人</th><th>合同编号</th><th>印章类型</th><th>文件哈希</th><th>操作 IP</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2024-01-10 16:00</td><td>档案管理员</td><td>CTR-20240110-0010</td><td>公章</td><td><code>a3f2b8c1...</code></td><td>192.168.1.100</td>
+              </tr>
+              <tr>
+                <td>2024-01-08 14:30</td><td>档案管理员</td><td>CTR-20240108-0005</td><td>合同章</td><td><code>e7d4a9b2...</code></td><td>192.168.1.100</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>

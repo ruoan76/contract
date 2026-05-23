@@ -1,0 +1,691 @@
+<div class="page" id="page-review-workspace">
+      <!-- 阶段切换标签 -->
+      <div class="stage-tabs" id="stage-tabs" style="margin-bottom:12px">
+        <button class="stage-tab completed" onclick="switchStage('ai')" data-stage="ai">🤖 AI 初筛</button>
+        <button class="stage-tab active" onclick="switchStage('legal')" data-stage="legal">⚖️ 法务评审 <span class="stage-badge">4</span></button>
+        <button class="stage-tab" onclick="switchStage('finance')" data-stage="finance">💰 财务评审</button>
+        <button class="stage-tab" onclick="switchStage('executive')" data-stage="executive">👔 高管审批</button>
+      </div>
+      <!-- 阶段面板：法务评审（默认显示） -->
+      <div class="workspace-stage-panel active" id="stage-legal" style="height:calc(100vh - 178px)">
+        <div style="display:grid;grid-template-columns:1fr 400px;gap:0;height:100%">
+        <!-- 左区：合同原文（含条款ID + 风险状态） -->
+        <div id="workspace-left" style="overflow-y:auto;background:#fff;border:1px solid var(--gray-200);border-radius:10px 0 0 10px;padding:24px;position:relative">
+          <div style="font-size:13px;color:var(--gray-500);margin-bottom:4px">
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:20px" id="workspace-contract-meta">版本 2 · 提交人：张三 · 2024-01-15 | 风险评分：65/100（中风险）</div>
+
+          <!-- 第一条（无风险） -->
+          <div style="margin-bottom:6px;display:flex;align-items:center">
+            <span style="font-size:16px;font-weight:700;color:var(--gray-900)">第一条 采购内容</span>
+            <span class="clause-status unreviewed" id="clause-status-1">待审查</span>
+            <span class="clause-id-badge">1:1</span>
+          </div>
+          <div class="clause-text" data-clause="1:1" style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 12px 12px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--gray-200);cursor:pointer;transition:all 0.2s" onclick="highlightClause(this)" onmouseup="showAnnotationToolbar(event, this, '1:1')">
+            1.1 甲方向乙方采购 XX 品牌服务器 50 台，具体配置详见附件一《设备清单》。
+          </div>
+
+          <!-- 第三条（中风险 — 预付款比例） -->
+          <div style="margin-bottom:6px;display:flex;align-items:center">
+            <span style="font-size:16px;font-weight:700;color:var(--gray-900)">第三条 付款条件</span>
+            <span class="clause-status unreviewed" id="clause-status-3">待审查</span>
+            <span class="clause-id-badge">3:1</span>
+          </div>
+          <div class="clause-text" data-clause="3:1" style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 12px 12px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--warning);background:#fffdf5;cursor:pointer;transition:all 0.2s" onclick="scrollToPanel('panel-3-1')" onmouseup="showAnnotationToolbar(event, this, '3:1')">
+            3.1 甲方在合同签订后 5 个工作日内支付合同总额的 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-3-1')">40%</span> 作为预付款。
+            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <span style="display:inline-flex;align-items:center;gap:2px;background:var(--warning);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-3-1')">⚠️ AI 标记 #1</span>
+              <span class="tag tag-yellow" style="font-size:10px">中风险</span>
+              <span style="font-size:10px;color:var(--gray-400)">预付款比例偏高 40% → 建议 ≤30%</span>
+            </div>
+          </div>
+
+          <!-- 第四条（高风险 — 2项AI标记） -->
+          <div style="margin-bottom:6px;display:flex;align-items:center">
+            <span style="font-size:16px;font-weight:700;color:var(--gray-900)">第四条 违约责任</span>
+            <span class="clause-status unreviewed" id="clause-status-4">待审查</span>
+            <span class="clause-id-badge">4:1-2</span>
+            <span style="font-size:11px;color:var(--danger);margin-left:8px">2 项 AI 标记</span>
+          </div>
+          <div class="clause-text" data-clause="4:1" style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 12px 12px 16px;border-radius:6px;margin-bottom:8px;border-left:3px solid var(--danger);background:#fff5f5;cursor:pointer" onclick="scrollToPanel('panel-4-1')" onmouseup="showAnnotationToolbar(event, this, '4:1')">
+            4.1 乙方未按约定时间交付，每逾期一日，按合同总额的 <span style="background:#fee2e2;padding:1px 4px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-4-1')">0.5%</span> 支付违约金。
+            <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+              <span style="display:inline-flex;align-items:center;gap:2px;background:var(--danger);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-4-1')">🔴 AI 标记 #2</span>
+              <span class="tag tag-red" style="font-size:10px">高风险</span>
+              <span style="font-size:10px;color:var(--gray-500)">违约金 0.5%/日 = 年化 182.5%</span>
+            </div>
+          </div>
+          <div class="clause-text" data-clause="4:2" style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 12px 12px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--danger);background:#fff5f5;cursor:pointer" onclick="scrollToPanel('panel-4-2')" onmouseup="showAnnotationToolbar(event, this, '4:2')">
+            4.2 乙方违约需赔偿甲方 <span style="background:#fee2e2;padding:1px 4px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-4-2')">一切损失</span>，包括但不限于直接损失、<span style="background:#fee2e2;padding:1px 4px;border-radius:3px">间接损失</span>、利润损失等。
+            <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+              <span style="display:inline-flex;align-items:center;gap:2px;background:var(--danger);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-4-2')">🔴 AI 标记 #3</span>
+              <span class="tag tag-red" style="font-size:10px">高风险</span>
+              <span style="font-size:10px;color:var(--gray-500)">赔偿无上限 + 含间接损失</span>
+            </div>
+          </div>
+
+          <!-- 第五条（无风险） -->
+          <div style="margin-bottom:6px;display:flex;align-items:center">
+            <span style="font-size:16px;font-weight:700;color:var(--gray-900)">第五条 保密条款</span>
+            <span class="clause-status unreviewed" id="clause-status-5">待审查</span>
+            <span class="clause-id-badge">5:1</span>
+          </div>
+          <div class="clause-text" data-clause="5:1" style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 12px 12px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--gray-200);cursor:pointer;transition:all 0.2s" onclick="highlightClause(this)" onmouseup="showAnnotationToolbar(event, this, '5:1')">
+            5.1 双方对合同履行过程中知悉的对方商业秘密负有保密义务，保密期限为合同终止后 <span style="background:#d1fae5;padding:1px 4px;border-radius:3px">3 年</span>。
+            <div style="margin-top:6px"><span style="display:inline-flex;align-items:center;gap:2px;background:var(--success);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px">✓ 无风险</span></div>
+          </div>
+
+          <!-- 第六条（中风险 — 管辖约定） -->
+          <div style="margin-bottom:6px;display:flex;align-items:center">
+            <span style="font-size:16px;font-weight:700;color:var(--gray-900)">第六条 管辖约定</span>
+            <span class="clause-status unreviewed" id="clause-status-6">待审查</span>
+            <span class="clause-id-badge">6:1</span>
+          </div>
+          <div class="clause-text" data-clause="6:1" style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 12px 12px 16px;border-radius:6px;margin-bottom:16px;border-left:3px solid var(--warning);background:#fffdf5;cursor:pointer" onclick="scrollToPanel('panel-6-1')" onmouseup="showAnnotationToolbar(event, this, '6:1')">
+            6.1 本合同的争议由 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-6-1')">乙方所在地</span> 人民法院管辖。
+            <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+              <span style="display:inline-flex;align-items:center;gap:2px;background:var(--warning);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;cursor:pointer" onclick="event.stopPropagation();scrollToPanel('panel-6-1')">⚠️ AI 标记 #4</span>
+              <span class="tag tag-yellow" style="font-size:10px">中风险</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 批注模式切换 -->
+        <div style="display:flex;gap:6px;margin-bottom:8px;padding:6px 12px;background:var(--gray-50);border-radius:8px;align-items:center">
+          <span style="font-size:11px;color:var(--gray-500);font-weight:600">批注模式：</span>
+          <button class="annotation-mode-btn active" onclick="switchAnnotationMode('inline')" id="ann-inline">📝 原文内嵌</button>
+          <button class="annotation-mode-btn" onclick="switchAnnotationMode('sidebar')" id="ann-sidebar">📋 侧边批注</button>
+          <button class="annotation-mode-btn" onclick="switchAnnotationMode('suggesting')" id="ann-suggesting">✏️ 在线批注</button>
+        </div>
+        <!-- 划选批注工具栏 -->
+        <div class="annotation-toolbar" id="annotation-toolbar">
+          <button onclick="addAnnotation('risk')">🔴 标记风险</button>
+          <button onclick="addAnnotation('comment')">💬 添加批注</button>
+          <button onclick="addAnnotation('suggestion')">✏️ 修改建议</button>
+        </div>
+
+        <!-- 右区：审查面板（增强版） -->
+        <div id="workspace-right" style="overflow-y:auto;background:var(--gray-50);border:1px solid var(--gray-200);border-left:none;border-radius:0 10px 10px 0;padding:20px">
+          <!-- 统计摘要 -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+            <div style="background:#fff;border-radius:6px;padding:8px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--danger)">2</div>
+              <div style="font-size:10px;color:var(--gray-500)">高风险</div>
+            </div>
+            <div style="background:#fff;border-radius:6px;padding:8px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--warning)">2</div>
+              <div style="font-size:10px;color:var(--gray-500)">中风险</div>
+            </div>
+            <div style="background:#fff;border-radius:6px;padding:8px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--success)">0/4</div>
+              <div style="font-size:10px;color:var(--gray-500)">已确认</div>
+            </div>
+            <div style="background:#fff;border-radius:6px;padding:8px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--primary)">65</div>
+              <div style="font-size:10px;color:var(--gray-500)">风险评分</div>
+            </div>
+          </div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+            <span>🔍 AI审查标记 <span style="font-weight:400;color:var(--gray-500);font-size:12px">(4 项)</span></span>
+            <div style="display:flex;gap:4px">
+              <span class="tag tag-blue" style="cursor:pointer;font-size:11px" onclick="filterPanels('all')">全部</span>
+              <span class="tag tag-red" style="cursor:pointer;opacity:0.6;font-size:11px" onclick="filterPanels('high')">高风险 2</span>
+              <span class="tag tag-yellow" style="cursor:pointer;opacity:0.6;font-size:11px" onclick="filterPanels('medium')">中风险 2</span>
+              <span class="tag tag-green" style="cursor:pointer;opacity:0.6;font-size:11px" onclick="filterPanels('low')">低风险 0</span>
+            </div>
+          </div>
+
+          <!-- 标记 1：预付款比例（中风险） -->
+          <div id="panel-3-1" class="review-panel risk-medium" style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200);transition:all 0.3s">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="font-size:11px;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:4px">第三条 · 3.1 款</span>
+              <span class="clause-id-badge">ID:3:1</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--gray-400)">置信度 88% <span style="color:var(--success);font-weight:600">● 高</span></span>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">
+              <span class="tag tag-yellow">中风险</span>
+              ⚠️ 预付款比例偏高 (40%)
+            </div>
+            
+            <!-- 修改建议前后对比 -->
+            <div class="suggestion-compare">
+              <div class="before"><div class="label">🔴 当前文本</div>甲方在合同签订后 5 个工作日内支付合同总额的 <strong>40%</strong> 作为预付款。</div>
+              <div class="after"><div class="label">🟢 AI 建议</div>甲方在合同签订后 5 个工作日内支付合同总额的 <strong>30%</strong> 作为预付款。</div>
+            </div>
+            
+            <div style="font-size:12px;color:var(--gray-600);margin-bottom:8px;line-height:1.6">
+              预付款比例 40%，略高于公司标准的 30%。虽然不算致命风险，但建议适当降低以控制资金风险。
+            </div>
+            <div style="font-size:11px;color:var(--primary);margin-bottom:10px">
+              📖 内部财务制度：预付款比例原则上不超过 30%
+            </div>
+            
+            <!-- 可编辑建议文本 -->
+            <div style="margin-bottom:10px">
+              <label style="font-size:11px;color:var(--gray-500);display:block;margin-bottom:4px">✏️ 修改建议文本（可编辑）</label>
+              <textarea class="form-textarea suggestion-text" data-panel="panel-3-1" style="min-height:40px;font-size:12px" onchange="markDirty(this)">建议将预付款比例从 40% 降至 30%，以符合公司财务制度。</textarea>
+            </div>
+            
+            <div style="margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+              <span class="cuad-risk-tag payment">💳 付款条件</span>
+              <span class="cuad-risk-tag compensation">💰 预付款比例</span>
+              <span style="font-size:10px;color:var(--gray-400)">CUAD-07 | 置信度: 高</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-success btn-sm" onclick="confirmFinding(this,'panel-3-1')">✓ 确认风险</button>
+              <button class="btn btn-outline btn-sm" onclick="openEditModal('panel-3-1')">✏️ 修正</button>
+              <button class="btn btn-outline btn-sm" onclick="ignoreFinding('panel-3-1')">⊘ 忽略</button>
+              <button class="btn btn-outline btn-sm" onclick="openRiskDetail('panel-3-1')">🔍 详情</button>
+<button class="btn btn-outline btn-sm" onclick="openRiskDetail('panel-4-1')">🔍 详情</button>
+<button class="btn btn-outline btn-sm" onclick="openRiskDetail('panel-4-2')">🔍 详情</button>
+<button class="btn btn-outline btn-sm" onclick="openRiskDetail('panel-6-1')">🔍 详情</button>
+<button class="btn btn-primary btn-sm" onclick="applySuggestion('panel-3-1')">📝 应用修改</button>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--gray-400)" class="finding-status">状态：AI 标记</div>
+          </div>
+
+          <!-- 标记 2：逾期违约金（高风险） -->
+          <div id="panel-4-1" class="review-panel risk-high" style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200);transition:all 0.3s">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="font-size:11px;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:4px">第四条 · 4.1 款</span>
+              <span class="clause-id-badge">ID:4:1</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--gray-400)">置信度 94% <span style="color:var(--success);font-weight:600">● 高</span></span>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">
+              <span class="tag tag-red">高风险</span>
+              🔴 逾期违约金比例过高 (0.5%/日)
+            </div>
+            <div class="suggestion-compare">
+              <div class="before"><div class="label">🔴 当前文本</div>每逾期一日，按合同总额的 <strong>0.5%</strong> 支付违约金。</div>
+              <div class="after"><div class="label">🟢 AI 建议</div>每逾期一日，按合同总额的 <strong>0.05%</strong>（不超过 5%）支付违约金。</div>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600);margin-bottom:8px;line-height:1.6">
+              日 0.5% = 月 15% = 年 182.5%，显著超出合理范围，可能被法院认定为过高而调减。
+            </div>
+            <div style="font-size:11px;color:var(--primary);margin-bottom:10px">
+              📖 《民法典》第585条：约定的违约金过分高于造成的损失的，人民法院或者仲裁机构可以根据当事人的请求予以适当减少。
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="font-size:11px;color:var(--gray-500);display:block;margin-bottom:4px">✏️ 修改建议文本（可编辑）</label>
+              <textarea class="form-textarea suggestion-text" data-panel="panel-4-1" style="min-height:40px;font-size:12px" onchange="markDirty(this)">建议将违约金比例从 0.5%/日降至 0.05%/日，并增加上限不超过合同总额的 5%。</textarea>
+            </div>
+            <div style="margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+              <span class="cuad-risk-tag penalty">⚖️ 违约金</span>
+              <span class="cuad-risk-tag indemnity">🛡️ 赔偿责任</span>
+              <span style="font-size:10px;color:var(--gray-400)">CUAD-12 | 置信度: 高</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-success btn-sm" onclick="confirmFinding(this,'panel-4-1')">✓ 确认风险</button>
+              <button class="btn btn-outline btn-sm" onclick="openEditModal('panel-4-1')">✏️ 修正</button>
+              <button class="btn btn-outline btn-sm" onclick="ignoreFinding('panel-4-1')">⊘ 忽略</button>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--gray-400)" class="finding-status">状态：AI 标记</div>
+          </div>
+
+          <!-- 标记 3：赔偿无上限（高风险） -->
+          <div id="panel-4-2" class="review-panel risk-high" style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200);transition:all 0.3s">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="font-size:11px;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:4px">第四条 · 4.2 款</span>
+              <span class="clause-id-badge">ID:4:2</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--gray-400)">置信度 92% <span style="color:var(--success);font-weight:600">● 高</span></span>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">
+              <span class="tag tag-red">高风险</span>
+              🔴 赔偿范围无上限 + 包含间接损失
+            </div>
+            <div class="suggestion-compare">
+              <div class="before"><div class="label">🔴 当前文本</div>乙方违约需赔偿甲方 <strong>一切损失</strong>，包括但不限于直接损失、<strong>间接损失</strong>、利润损失等。</div>
+              <div class="after"><div class="label">🟢 AI 建议</div>乙方违约需赔偿甲方 <strong>直接损失</strong>，赔偿总额不超过合同总额的 <strong>30%</strong>。</div>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600);margin-bottom:8px;line-height:1.6">
+              条款使用"一切损失"、"间接损失"等宽泛表述，未设置赔偿上限，存在无限责任风险。
+            </div>
+            <div style="font-size:11px;color:var(--primary);margin-bottom:10px">
+              📖 《民法典》第584条：损失赔偿额应相当于违约造成的损失，包括合同履行后可获得的利益，但不得超过违约方订立合同时预见到或应当预见到的损失。
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="font-size:11px;color:var(--gray-500);display:block;margin-bottom:4px">✏️ 修改建议文本（可编辑）</label>
+              <textarea class="form-textarea suggestion-text" data-panel="panel-4-2" style="min-height:40px;font-size:12px" onchange="markDirty(this)">建议限定赔偿范围为直接损失，并设置上限不超过合同总额的 30%。</textarea>
+            </div>
+            <div style="margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+              <span class="cuad-risk-tag indemnity">🛡️ 赔偿上限</span>
+              <span class="cuad-risk-tag termination">📋 间接损失</span>
+              <span style="font-size:10px;color:var(--gray-400)">CUAD-13 | 置信度: 高</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-success btn-sm" onclick="confirmFinding(this,'panel-4-2')">✓ 确认风险</button>
+              <button class="btn btn-outline btn-sm" onclick="openEditModal('panel-4-2')">✏️ 修正</button>
+              <button class="btn btn-outline btn-sm" onclick="ignoreFinding('panel-4-2')">⊘ 忽略</button>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--gray-400)" class="finding-status">状态：AI 标记</div>
+          </div>
+
+          <!-- 标记 4：异地管辖（中风险） -->
+          <div id="panel-6-1" class="review-panel risk-medium" style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200);transition:all 0.3s">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="font-size:11px;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:4px">第六条 · 6.1 款</span>
+              <span class="clause-id-badge">ID:6:1</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--gray-400)">置信度 95% <span style="color:var(--success);font-weight:600">● 高</span></span>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">
+              <span class="tag tag-yellow">中风险</span>
+              ⚠️ 约定对方所在地法院管辖
+            </div>
+            <div class="suggestion-compare">
+              <div class="before"><div class="label">🔴 当前文本</div>本合同的争议由 <strong>乙方所在地</strong> 人民法院管辖。</div>
+              <div class="after"><div class="label">🟢 AI 建议</div>本合同的争议由 <strong>甲方所在地</strong> 人民法院管辖。</div>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600);margin-bottom:8px;line-height:1.6">
+              约定乙方所在地法院管辖，增加我方维权成本。建议修改为甲方所在地法院管辖。
+            </div>
+            <div style="font-size:11px;color:var(--primary);margin-bottom:10px">
+              📖 《民事诉讼法》第35条：合同双方可以协议选择与争议有实际联系的地点的人民法院管辖。
+            </div>
+            <div style="margin-bottom:10px">
+              <label style="font-size:11px;color:var(--gray-500);display:block;margin-bottom:4px">✏️ 修改建议文本（可编辑）</label>
+              <textarea class="form-textarea suggestion-text" data-panel="panel-6-1" style="min-height:40px;font-size:12px" onchange="markDirty(this)">建议将管辖法院从乙方所在地修改为甲方所在地。</textarea>
+            </div>
+            <div style="margin-bottom:8px;display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+              <span class="cuad-risk-tag jurisdiction">⚖️ 管辖法院</span>
+              <span class="cuad-risk-tag jurisdiction">📍 争议解决</span>
+              <span style="font-size:10px;color:var(--gray-400)">CUAD-19 | 置信度: 高</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-success btn-sm" onclick="confirmFinding(this,'panel-6-1')">✓ 确认风险</button>
+              <button class="btn btn-outline btn-sm" onclick="openEditModal('panel-6-1')">✏️ 修正</button>
+              <button class="btn btn-outline btn-sm" onclick="ignoreFinding('panel-6-1')">⊘ 忽略</button>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--gray-400)" class="finding-status">状态：AI 标记</div>
+          </div>
+
+          <!-- 新增标记 -->
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px dashed var(--gray-300);text-align:center;cursor:pointer" id="new-finding-area">
+            <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">➕ 新增评审意见</div>
+            <select class="form-select" style="font-size:11px;margin-bottom:6px" id="new-finding-clause">
+              <option value="">关联条款（可选）</option>
+              <option value="1:1">第一条 采购内容</option>
+              <option value="3:1">第三条 付款条件</option>
+              <option value="4:1">第四条 违约责任 4.1</option>
+              <option value="4:2">第四条 违约责任 4.2</option>
+              <option value="5:1">第五条 保密条款</option>
+              <option value="6:1">第六条 管辖约定</option>
+            </select>
+            <textarea style="width:100%;height:60px;border:1px solid var(--gray-300);border-radius:6px;padding:8px;font-size:12px;resize:vertical" placeholder="输入评审意见..." id="new-finding-text"></textarea>
+            <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="addNewFinding()">提交意见</button>
+          </div>
+
+          <!-- AI 合同问答 -->
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--primary);margin-top:12px" id="ai-qa-box">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+              🤖 AI 合同问答 <span style="font-weight:400;font-size:10px;color:var(--gray-400);background:var(--gray-100);padding:2px 6px;border-radius:4px">Qwen3.6-7B</span>
+            </div>
+            <div style="max-height:120px;overflow-y:auto;margin-bottom:8px;font-size:11px;color:var(--gray-600)" id="ai-qa-history">
+              <div style="margin-bottom:6px"><span style="color:var(--primary);font-weight:600">你：</span>这条条款在什么情况下无效？</div>
+              <div style="background:var(--gray-50);padding:8px;border-radius:6px;margin-bottom:8px">
+                <span style="color:var(--success);font-weight:600">AI：</span>该赔偿条款（第四条）存在两处无效风险：① <strong>违约金 0.5%/日</strong>，年化 182.5%，依据《民法典》第 585 条，法院可能认定为"过分高于造成的损失"而调减；② <strong>"一切损失"</strong>表述过于宽泛，《民法典》第 584 条规定赔偿额"不得超过违约一方订立合同时预见到或应当预见到的损失"。建议修改违约金为 0.05%/日并设上限 5%，限定赔偿范围为直接损失。
+              </div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <input style="flex:1;border:1px solid var(--gray-300);border-radius:6px;padding:6px 10px;font-size:12px" placeholder="向 AI 提问条款释义、法条援引..." id="ai-qa-input" onkeypress="if(event.key==='Enter')aiQaAsk()">
+              <button class="btn btn-primary btn-sm" onclick="aiQaAsk()">发送</button>
+            </div>
+            <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">
+              <button class="compare-nav-btn" style="font-size:10px" onclick="aiQaQuick('这条条款的合规风险是什么？')">合规风险</button>
+              <button class="compare-nav-btn" style="font-size:10px" onclick="aiQaQuick('如何修改这条条款？')">修改建议</button>
+              <button class="compare-nav-btn" style="font-size:10px" onclick="aiQaQuick('相关法条有哪些？')">法条援引</button>
+              <button class="compare-nav-btn" style="font-size:10px" onclick="aiQaQuick('行业标准条款是什么？')">行业对标</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部操作栏 -->
+      <div style="background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="font-size:14px;font-weight:600">综合评审结论</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span>处理进度：</span>
+            <span id="workspace-progress" style="font-weight:600;color:var(--warning)">0/4 已确认</span>
+            <div class="progress-bar" style="width:100px"><div id="workspace-progress-bar" class="progress-fill yellow" style="width:0%"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span>风险评分：</span>
+            <span style="font-weight:700;color:var(--warning)">65/100（中风险）</span>
+          </div>
+          <div class="save-indicator" id="save-indicator">💾 已自动保存</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-success" id="btn-approve" disabled onclick="validateAIMarks('stage-legal')">✓ 通过</button>
+          <button class="btn btn-warning" id="btn-conditional" disabled onclick="validateAIMarks('stage-legal')">⚠️ 有条件通过</button>
+          <button class="btn btn-outline" onclick="batchAcceptAll()">📋 一键接受全部</button>
+          <button class="btn btn-danger" onclick="returnToDrafter()">↩️ 退回修改</button>
+          <button class="btn btn-danger" onclick="rejectRedraft()" style="background:#991b1b">🚫 驳回重拟</button>
+          <button class="btn btn-outline" onclick="saveWorkspace()">💾 暂存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 阶段面板：财务评审 ====== -->
+    <div class="workspace-stage-panel" id="stage-finance" style="height:calc(100vh - 178px)">
+      <div style="display:grid;grid-template-columns:1fr 450px;gap:0;height:100%">
+        <!-- 左区：合同原文（复用） -->
+        <div style="overflow-y:auto;background:#fff;border:1px solid var(--gray-200);border-radius:10px 0 0 10px;padding:24px">
+          <div style="font-size:13px;color:var(--gray-500);margin-bottom:4px" id="workspace-contract-head">📄 合同原文 · CTR-20240115-0001 服务器采购合同</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:20px">法务评审已通过 · 进入财务评审阶段 | 合同金额 ¥2,500,000</div>
+          <div style="background:#fef3c7;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px">
+            <strong>⚠️ 法务评审结论：有条件通过</strong><br>
+            <span style="color:var(--gray-600)">法务确认 3 项AI风险为有效，已提供修改建议。合同整体风险评分：65/100（中风险）。</span>
+          </div>
+          <!-- 合同摘要 -->
+          <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:8px">第三条 付款条件</div>
+          <div style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 16px;border-radius:6px;background:#fffdf5;border-left:3px solid var(--warning);margin-bottom:16px">
+            3.1 甲方在合同签订后 5 个工作日内支付合同总额的 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px;font-weight:600">40%</span> 作为预付款。
+          </div>
+          <div style="font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:8px">第二条 合同金额与税率</div>
+          <div style="line-height:2;font-size:14px;color:var(--gray-700);padding:12px 16px;border-radius:6px;background:#fff;border-left:3px solid var(--gray-200);margin-bottom:16px">
+            2.1 合同总金额为人民币 2,500,000 元（含税），税率为 13%。
+          </div>
+        </div>
+        <!-- 右区：财务审查面板 -->
+        <div style="overflow-y:auto;background:var(--gray-50);border:1px solid var(--gray-200);border-left:none;border-radius:0 10px 10px 0;padding:20px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px">💰 财务审查</div>
+          <!-- 预算核对 -->
+          <div style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+              📊 预算核对 <span class="tag tag-yellow" style="font-size:10px">本次占比 83%</span>
+            </div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse">
+              <tr style="border-bottom:1px solid var(--gray-100)"><td style="padding:6px 0;color:var(--gray-500)">申请金额</td><td style="padding:6px 0;text-align:right;font-weight:600">¥ 500,000</td></tr>
+              <tr style="border-bottom:1px solid var(--gray-100)"><td style="padding:6px 0;color:var(--gray-500)">预算额度（采购部 Q1）</td><td style="padding:6px 0;text-align:right;font-weight:600">¥ 600,000</td></tr>
+              <tr style="border-bottom:1px solid var(--gray-100)"><td style="padding:6px 0;color:var(--gray-500)">已用额度</td><td style="padding:6px 0;text-align:right;font-weight:600;color:var(--gray-600)">¥ 120,000</td></tr>
+              <tr style="border-bottom:1px solid var(--gray-100)"><td style="padding:6px 0;color:var(--gray-500)">剩余额度</td><td style="padding:6px 0;text-align:right;font-weight:600;color:var(--warning)">¥ 480,000</td></tr>
+              <tr><td style="padding:6px 0;color:var(--gray-500);font-weight:600">本次占比</td><td style="padding:6px 0;text-align:right;font-weight:700;color:var(--warning)">83%</td></tr>
+            </table>
+            <div style="margin-top:8px;font-size:11px;color:var(--warning);background:#fffbeb;padding:8px;border-radius:4px">⚠️ 接近预算上限，建议关注后续支出计划</div>
+          </div>
+          <!-- 付款条件审查 -->
+          <div style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+              💳 付款条件审查 <span class="tag tag-yellow" style="font-size:10px">需调整</span>
+            </div>
+            <dl style="margin:0;font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+                <dt style="color:var(--gray-500);width:80px">预付款比例</dt>
+                <dd style="margin:0;text-align:right"><span style="color:var(--danger);font-weight:600">40%</span> <span style="color:var(--gray-400)">→ 建议</span> <span style="color:var(--success);font-weight:600">≤30%</span></dd>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+                <dt style="color:var(--gray-500);width:80px">付款节奏</dt>
+                <dd style="margin:0;text-align:right;color:var(--gray-700)">预付款 + 尾款（无进度款）</dd>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+                <dt style="color:var(--gray-500);width:80px">付款条件</dt>
+                <dd style="margin:0;text-align:right;color:var(--gray-700)">合同签订后 5 个工作日</dd>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0">
+                <dt style="color:var(--gray-500);width:80px">质保金</dt>
+                <dd style="margin:0;text-align:right"><span style="color:var(--danger);font-weight:600">未约定</span></dd>
+              </div>
+            </dl>
+          </div>
+          <!-- 税务条款审查 -->
+          <div style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+              🧾 税务条款审查 <span class="tag tag-green" style="font-size:10px">合规</span>
+            </div>
+            <dl style="margin:0;font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+                <dt style="color:var(--gray-500);width:80px">计税方式</dt><dd style="margin:0;text-align:right;color:var(--gray-700)">含税价</dd>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+                <dt style="color:var(--gray-500);width:80px">税率</dt><dd style="margin:0;text-align:right;color:var(--success);font-weight:600">13%（合规）</dd>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0">
+                <dt style="color:var(--gray-500);width:80px">发票类型</dt><dd style="margin:0;text-align:right;color:var(--success);font-weight:600">增值税专用发票 ✅</dd>
+              </div>
+            </dl>
+          </div>
+          <!-- 财务评审意见 -->
+          <div style="background:#fff;border-radius:8px;padding:16px;border:1px solid var(--gray-200);margin-bottom:12px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">📝 财务评审意见</div>
+            <textarea class="form-textarea" style="min-height:60px;font-size:12px;width:100%" placeholder="输入财务评审意见...">建议将预付款比例从 40% 降至 30%，并增加 5% 质保金条款。税收与发票条款合规。</textarea>
+          </div>
+        </div>
+      </div>
+      <!-- 财务底部操作栏 -->
+      <div style="background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="stage-bottom-tag" style="background:#dbeafe;color:var(--primary)">💰 财务评审</span>
+          <span style="font-size:13px;font-weight:600">财务评审结论</span>
+          <span style="font-size:12px;color:var(--gray-500)">合同金额 ¥2,500,000 · 采购部 · Q1 预算</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success" onclick="financeApprove()">✓ 通过</button>
+          <button class="btn btn-warning" onclick="financeConditionalPass()">⚠️ 有条件通过</button>
+          <button class="btn btn-danger" onclick="returnToDrafter()">↩️ 退回修改</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 阶段面板：高管审批 ====== -->
+    <div class="workspace-stage-panel" id="stage-executive" style="height:calc(100vh - 178px)">
+      <div style="display:grid;grid-template-columns:1fr 450px;gap:0;height:100%">
+        <!-- 左区：综合评审意见汇总 -->
+        <div style="overflow-y:auto;background:#fff;border:1px solid var(--gray-200);border-radius:10px 0 0 10px;padding:24px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px">👔 综合评审意见汇总 — CTR-20240115-0001</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+            <div style="background:#f0fdf4;border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px">🤖 AI 初审</div>
+              <div style="font-size:24px;font-weight:700;color:var(--warning)">65</div>
+              <div style="font-size:11px;color:var(--warning)">中风险 · 4项标记</div>
+            </div>
+            <div style="background:#eff6ff;border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px">⚖️ 法务评审</div>
+              <div style="font-size:24px;font-weight:700;color:var(--success)">✓</div>
+              <div style="font-size:11px;color:var(--success)">有条件通过</div>
+            </div>
+            <div style="background:#fffdf5;border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px">💰 财务评审</div>
+              <div style="font-size:24px;font-weight:700;color:var(--success)">✓</div>
+              <div style="font-size:11px;color:var(--success)">通过</div>
+            </div>
+          </div>
+          <!-- AI审查摘要 -->
+          <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">🤖 AI 审查摘要</div>
+            <div style="font-size:12px;color:var(--gray-600);line-height:1.8">
+              <span class="tag tag-red" style="font-size:10px">高风险 2项</span> 违约金0.5%/日（年化182.5%）· 赔偿无上限+含间接损失<br>
+              <span class="tag tag-yellow" style="font-size:10px">中风险 2项</span> 预付款比例40% · 管辖约定乙方所在地
+            </div>
+          </div>
+          <!-- 法务评审摘要 -->
+          <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">⚖️ 法务评审摘要 — 刘法务</div>
+            <div style="font-size:12px;color:var(--gray-600);line-height:1.8">
+              结论：<span style="color:var(--warning);font-weight:600">有条件通过</span><br>
+              确认 AI 标记 3 项有效，忽略 1 项。建议修改：违约金降至 0.05%/日、增加赔偿上限 ≤30%、管辖改为甲方所在地。
+            </div>
+          </div>
+          <!-- 财务评审摘要 -->
+          <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">💰 财务评审摘要 — 王财务</div>
+            <div style="font-size:12px;color:var(--gray-600);line-height:1.8">
+              结论：<span style="color:var(--success);font-weight:600">通过</span><br>
+              预算占比 83%，接近上限。建议预付款降至 30%，增加质保金条款。税收与发票合规。
+            </div>
+          </div>
+        </div>
+        <!-- 右区：终审决策 -->
+        <div style="overflow-y:auto;background:var(--gray-50);border:1px solid var(--gray-200);border-left:none;border-radius:0 10px 10px 0;padding:20px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px">📋 终审决策</div>
+          <div style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200)">
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--gray-500)">合同基本信息</div>
+            <table style="width:100%;font-size:12px">
+              <tr><td style="padding:4px 0;color:var(--gray-500)">合同编号</td><td style="padding:4px 0;font-weight:500">CTR-20240115-0001</td></tr>
+              <tr><td style="padding:4px 0;color:var(--gray-500)">合同金额</td><td style="padding:4px 0;font-weight:700;font-size:14px">¥ 2,500,000</td></tr>
+              <tr><td style="padding:4px 0;color:var(--gray-500)">审批流程</td><td style="padding:4px 0"><span class="tag tag-yellow">标准流程</span></td></tr>
+              <tr><td style="padding:4px 0;color:var(--gray-500)">已耗时</td><td style="padding:4px 0;color:var(--gray-600)">法务 8.5h + 财务 4.2h = 12.7h</td></tr>
+              <tr><td style="padding:4px 0;color:var(--gray-500)">综合风险</td><td style="padding:4px 0"><span style="color:var(--warning);font-weight:600">中风险 · 65/100</span></td></tr>
+            </table>
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid var(--gray-200)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">✍️ 审批意见</div>
+            <textarea class="form-textarea" style="min-height:80px;font-size:12px;width:100%" placeholder="输入审批意见..."></textarea>
+          </div>
+        </div>
+      </div>
+      <!-- 高管底部操作栏 -->
+      <div style="background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <span class="stage-bottom-tag" style="background:#fce7f3;color:#be185d">👔 高管终审</span>
+          <span style="font-size:13px;font-weight:600">最终决策</span>
+          <span style="font-size:12px;color:var(--gray-500)">法务 ✓ · 财务 ✓ · 综合评分 65/100</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success btn-lg" onclick="executiveApprove()">✅ 批准</button>
+          <button class="btn btn-danger btn-lg" onclick="executiveReject()">❌ 拒绝</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 风险详情弹窗（律师级修订标注格式） -->
+    <div class="edit-finding-modal" id="risk-detail-modal">
+      <div class="edit-panel" style="max-width:640px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0">⚖️ 律师级风险详情</h3>
+          <button class="modal-close" onclick="closeRiskDetail()">✕</button>
+        </div>
+        
+        <!-- Step 1: 原文 -->
+        <div class="form-group">
+          <label class="form-label">📄 第一步：原文定位</label>
+          <div style="font-size:13px;color:var(--gray-700);background:#fff5f5;padding:12px;border-radius:6px;border-left:3px solid var(--danger)" id="rd-original">-</div>
+        </div>
+        
+        <!-- Step 2: 问题诊断 -->
+        <div class="form-group">
+          <label class="form-label">🔍 第二步：问题诊断</label>
+          <div style="font-size:13px;color:var(--danger);background:#fff5f5;padding:12px;border-radius:6px" id="rd-diagnosis">-</div>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:4px" id="rd-risk-type">-</div>
+        </div>
+        
+        <!-- Step 3: 法律依据 -->
+        <div class="form-group">
+          <label class="form-label">⚖️ 第三步：法律依据</label>
+          <div style="font-size:13px;color:var(--primary);background:#eff6ff;padding:12px;border-radius:6px" id="rd-legal">-</div>
+        </div>
+        
+        <!-- Step 4: 修改建议 -->
+        <div class="form-group">
+          <label class="form-label">✏️ 第四步：修改建议（律师推荐）</label>
+          <div style="font-size:13px;color:var(--success);background:#f0fdf4;padding:12px;border-radius:6px;border-left:3px solid var(--success)" id="rd-suggestion">
+            <div style="margin-bottom:6px"><span style="color:var(--danger);text-decoration:line-through" id="rd-before">-</span></div>
+            <div><span style="color:var(--success);font-weight:600" id="rd-after">-</span></div>
+          </div>
+        </div>
+        
+        <!-- Step 5: 谈判话术 -->
+        <div class="form-group">
+          <label class="form-label">💬 第五步：谈判话术（与对方沟通）</label>
+          <div style="font-size:13px;color:var(--gray-700);background:var(--gray-50);padding:12px;border-radius:6px;font-style:italic" id="rd-negotiation">-</div>
+        </div>
+        
+        <!-- Step 6: 市场基准 -->
+        <div class="form-group">
+          <label class="form-label">📊 第六步：市场基准对比</label>
+          <div style="font-size:12px;background:var(--gray-50);padding:12px;border-radius:6px" id="rd-benchmark">-</div>
+        </div>
+        
+        <!-- 追溯链 -->
+        <div style="margin-top:12px;padding:10px;background:var(--gray-50);border-radius:6px;font-size:11px;color:var(--gray-600)">
+          <strong>🔗 追溯链：</strong>
+          <span id="rd-trace">AI发现(2024-01-15 14:32) → 法务确认(2024-01-15 15:00) → 等待起草人处理</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="btn btn-outline" onclick="closeRiskDetail()">关闭</button>
+          <button class="btn btn-outline" onclick="copyRiskDetail()">📋 复制详情</button>
+          <button class="btn btn-primary" onclick="markRiskHandled()">✓ 确认处理</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 审核报告模板选择 -->
+    <div class="edit-finding-modal" id="report-template-modal">
+      <div class="edit-panel" style="max-width:680px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h3 style="margin:0">📄 选择审核报告模板</h3>
+          <button class="modal-close" onclick="closeReportModal()">✕</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
+          <div class="kanban-card" style="border:2px solid var(--primary);cursor:pointer;text-align:center;padding:20px" onclick="generateReport('brief')">
+            <div style="font-size:28px;margin-bottom:8px">📋</div>
+            <div style="font-size:14px;font-weight:600">精简版</div>
+            <div style="font-size:11px;color:var(--gray-500);margin-top:4px">核心结论+风险摘要<br>1页A4</div>
+            <div style="font-size:10px;color:var(--gray-400);margin-top:4px">适用：快速决策</div>
+          </div>
+          <div class="kanban-card" style="cursor:pointer;text-align:center;padding:20px" onclick="generateReport('legal')">
+            <div style="font-size:28px;margin-bottom:8px">📑</div>
+            <div style="font-size:14px;font-weight:600">法务完整版</div>
+            <div style="font-size:11px;color:var(--gray-500);margin-top:4px">逐条分析+法律依据<br>5-8页A4</div>
+            <div style="font-size:10px;color:var(--gray-400);margin-top:4px">适用：法务存档</div>
+          </div>
+          <div class="kanban-card" style="cursor:pointer;text-align:center;padding:20px" onclick="generateReport('audit')">
+            <div style="font-size:28px;margin-bottom:8px">🔒</div>
+            <div style="font-size:14px;font-weight:600">合规审计版</div>
+            <div style="font-size:11px;color:var(--gray-500);margin-top:4px">内控标准对照<br>10+页A4</div>
+            <div style="font-size:10px;color:var(--gray-400);margin-top:4px">适用：合规审计</div>
+          </div>
+        </div>
+        <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:16px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px">报告元数据</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:var(--gray-600)">
+            <div>审核模型：<strong>Qwen3.6-7B v3.2</strong></div>
+            <div>审核时长：<strong>18 秒</strong></div>
+            <div>审核维度：<strong>合规性 / 风险条款 / 财务 / 履约 / 异常检测</strong></div>
+            <div>审核人：<strong>AI 引擎（人工复核：刘法务）</strong></div>
+            <div>生成时间：<strong>2024-01-15 14:32</strong></div>
+            <div>审核编号：<strong>AR-20240115-0001</strong></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-outline" onclick="closeReportModal()">取消</button>
+          <button class="btn btn-outline" onclick="shareReport('legal')">📤 发送至法务</button>
+          <button class="btn btn-outline" onclick="shareReport('finance')">📤 发送至财务</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 修正弹窗 -->
+    <div class="edit-finding-modal" id="edit-finding-modal">
+      <div class="edit-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0">修正 AI 审查标记</h3>
+          <button class="modal-close" onclick="closeEditModal()">✕</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">风险等级 *</label>
+          <select class="form-select" id="edit-risk-level">
+            <option value="high">高风险</option>
+            <option value="medium">中风险</option>
+            <option value="low">低风险</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">风险描述</label>
+          <input class="form-input" id="edit-risk-desc" placeholder="描述风险...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">修改建议</label>
+          <textarea class="form-textarea" id="edit-suggestion" style="min-height:80px" placeholder="输入修改建议..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">法律依据</label>
+          <input class="form-input" id="edit-legal-basis" placeholder="引用法规条文...">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+          <button class="btn btn-outline" onclick="closeEditModal()">取消</button>
+          <button class="btn btn-primary" onclick="saveEditFinding()">保存修正</button>
+        </div>
+      </div>
+    </div>
+</div>
+</div>

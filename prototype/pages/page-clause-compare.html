@@ -1,0 +1,127 @@
+<div class="page" id="page-clause-compare">
+      <div style="background:var(--gray-50);border-radius:8px;padding:8px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:600">⚖️ 合同条款智能比对</span>
+        <span style="font-size:12px;color:var(--gray-500)">CTR-20240115-0001 服务器采购合同 vs 标准采购合同模板 PUR-001 v3.2</span>
+        <div class="compare-nav" style="margin:0;margin-left:auto">
+          <button class="compare-nav-btn active" onclick="filterCompare('all')">全部 (<span id="compare-total">8</span>)</button>
+          <button class="compare-nav-btn" onclick="filterCompare('match')" style="color:var(--success);border-color:var(--success)">✓ 匹配 (<span id="compare-match">4</span>)</button>
+          <button class="compare-nav-btn" onclick="filterCompare('conflict')" style="color:var(--danger);border-color:var(--danger)">✗ 冲突 (<span id="compare-conflict">2</span>)</button>
+          <button class="compare-nav-btn" onclick="filterCompare('missing')" style="color:var(--danger);border-color:var(--danger)">⊘ 缺失 (<span id="compare-missing">1</span>)</button>
+          <button class="compare-nav-btn" onclick="filterCompare('extra')" style="color:var(--warning);border-color:var(--warning)">+ 多余 (<span id="compare-extra">1</span>)</button>
+        </div>
+      </div>
+      <div class="compare-container">
+        <!-- 左区：标准模板 -->
+        <div class="compare-pane left" id="compare-left">
+          <div class="compare-header">📋 标准采购合同模板 <span style="font-weight:400;font-size:11px;color:var(--gray-400)">PUR-001 v3.2 · 12 可变字段</span></div>
+          <div class="compare-clause match" data-status="match">
+            <div class="compare-badge match">✓ 匹配</div>
+            <strong>第一条 采购内容</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">甲方向乙方采购 [产品名称] [数量]，具体配置详见附件一《设备清单》。</div>
+          </div>
+          <div class="compare-clause match" data-status="match">
+            <div class="compare-badge match">✓ 匹配</div>
+            <strong>第二条 合同金额与支付方式</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">合同总金额为人民币 [金额] 元（含税），税率为 [税率]%。</div>
+          </div>
+          <div class="compare-clause conflict" data-status="conflict">
+            <div class="compare-badge conflict">✗ 冲突</div>
+            <strong>第三条 付款条件</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">甲方在合同签订后 <span class="diff-highlight">5个工作日内</span> 支付合同总额的 <span class="diff-highlight" style="background:#fee2e2">30%</span> 作为预付款。剩余款项在验收合格后 <span class="diff-highlight">30日内</span> 支付。</div>
+            <div class="clause-action-bar">
+              <button class="btn btn-success btn-sm" onclick="applyTemplateClause(this)">📋 套用标准条款</button>
+              <span style="font-size:11px;color:var(--danger)">上传合同中为 40%，且无进度款</span>
+            </div>
+          </div>
+          <div class="compare-clause conflict" data-status="conflict">
+            <div class="compare-badge conflict">✗ 冲突</div>
+            <strong>第四条 违约责任</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">乙方未按约定时间交付，每逾期一日按合同总额的 <span class="diff-highlight" style="background:#fee2e2">0.05%</span>（不超过 <span class="diff-highlight" style="background:#fee2e2">5%</span>）支付违约金。乙方违约需赔偿甲方 <span class="diff-highlight" style="background:#fee2e2">直接损失</span>，赔偿总额不超过合同总额的 <span class="diff-highlight" style="background:#fee2e2">30%</span>。</div>
+            <div class="clause-action-bar">
+              <button class="btn btn-success btn-sm" onclick="applyTemplateClause(this)">📋 套用标准条款</button>
+              <span style="font-size:11px;color:var(--danger)">上传合同为 0.5%/日无上限、含一切损失</span>
+            </div>
+          </div>
+          <div class="compare-clause match" data-status="match">
+            <div class="compare-badge match">✓ 匹配</div>
+            <strong>第五条 保密条款</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">双方对合同履行过程中知悉的对方商业秘密负有保密义务，保密期限为合同终止后 [年限] 年。</div>
+          </div>
+          <div class="compare-clause conflict" data-status="conflict" style="display:none">
+            <div class="compare-badge conflict">✗ 冲突</div>
+            <strong>第六条 管辖约定</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">本合同的争议由 <span class="diff-highlight" style="background:#fee2e2">甲方所在地</span> 人民法院管辖。</div>
+            <div class="clause-action-bar">
+              <button class="btn btn-success btn-sm" onclick="applyTemplateClause(this)">📋 套用标准条款</button>
+              <span style="font-size:11px;color:var(--danger)">上传合同约定乙方所在地</span>
+            </div>
+          </div>
+          <div class="compare-clause missing" data-status="missing">
+            <div class="compare-badge missing">⊘ 缺失</div>
+            <strong>第七条 质保条款</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">乙方提供 [质保期] 个月的质量保证，质保期内因产品质量问题导致的维修、更换费用由乙方承担。质保金为合同总额的 <span class="diff-highlight" style="background:#d1fae5">5%</span>，质保期满后 30 日内无息退还。</div>
+            <div class="clause-action-bar">
+              <button class="btn btn-primary btn-sm" onclick="aiFillClause(this)">🤖 AI 自动补全</button>
+              <span style="font-size:11px;color:var(--gray-500)">标准模板有此条款，上传合同缺失</span>
+            </div>
+          </div>
+        </div>
+        <!-- 右区：上传合同 -->
+        <div class="compare-pane right" id="compare-right">
+          <div class="compare-header">📄 上传合同 <span style="font-weight:400;font-size:11px;color:var(--gray-400)">CTR-20240115-0001 服务器采购合同 v2</span></div>
+          <div class="compare-clause match" data-status="match">
+            <div class="compare-badge match">✓ 匹配</div>
+            <strong>第一条 采购内容</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">甲方向乙方采购 XX 品牌服务器 50 台，具体配置详见附件一《设备清单》。</div>
+          </div>
+          <div class="compare-clause match" data-status="match">
+            <div class="compare-badge match">✓ 匹配</div>
+            <strong>第二条 合同金额与支付方式</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">合同总金额为人民币 2,500,000 元（含税），税率为 13%。</div>
+          </div>
+          <div class="compare-clause conflict" data-status="conflict">
+            <div class="compare-badge conflict">✗ 冲突</div>
+            <strong>第三条 付款条件</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">甲方在合同签订后 <span class="diff-highlight">5个工作日内</span> 支付合同总额的 <span class="diff-highlight" style="background:#fee2e2">40%</span> 作为预付款。</div>
+            <div style="font-size:11px;color:var(--danger);margin-top:4px">⚠️ 差异：预付款比例 40% vs 标准 30%，且缺少进度款和尾款条款</div>
+          </div>
+          <div class="compare-clause conflict" data-status="conflict">
+            <div class="compare-badge conflict">✗ 冲突</div>
+            <strong>第四条 违约责任</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">乙方未按约定时间交付，每逾期一日按合同总额的 <span class="diff-highlight" style="background:#fee2e2">0.5%</span> 支付违约金。乙方违约需赔偿甲方 <span class="diff-highlight" style="background:#fee2e2">一切损失</span>，包括但不限于直接损失、<span class="diff-highlight" style="background:#fee2e2">间接损失</span>、利润损失等。</div>
+            <div style="font-size:11px;color:var(--danger);margin-top:4px">⚠️ 差异：违约金比例 0.5%/日 vs 标准 0.05%/日；赔偿无上限 vs 标准 ≤30%；含间接损失 vs 标准仅直接损失</div>
+          </div>
+          <div class="compare-clause match" data-status="match">
+            <div class="compare-badge match">✓ 匹配</div>
+            <strong>第五条 保密条款</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">双方对合同履行过程中知悉的对方商业秘密负有保密义务，保密期限为合同终止后 3 年。</div>
+          </div>
+          <div class="compare-clause extra" data-status="extra">
+            <div class="compare-badge extra">+ 多余</div>
+            <strong>第六条 管辖约定</strong>
+            <div style="margin-top:4px;color:var(--gray-700)">本合同的争议由 <span class="diff-highlight" style="background:#fee2e2">乙方所在地</span> 人民法院管辖。</div>
+            <div style="font-size:11px;color:var(--warning);margin-top:4px">⚠️ 此条款不在标准模板中，且约定对方所在地存在履约风险</div>
+          </div>
+          <div class="compare-clause missing" data-status="missing">
+            <div class="compare-badge missing">⊘ 缺失</div>
+            <strong>第七条 质保条款</strong>
+            <div style="margin-top:4px;color:var(--danger);font-size:12px">⚠️ 上传合同中缺少此条款</div>
+          </div>
+        </div>
+      </div>
+      <!-- 底部操作栏 -->
+      <div style="background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <span style="font-size:13px;font-weight:600">比对结果</span>
+          <span class="tag tag-green">✓ 4 项匹配</span>
+          <span class="tag tag-red">✗ 2 项冲突</span>
+          <span class="tag tag-red">⊘ 1 项缺失</span>
+          <span class="tag tag-yellow">+ 1 项多余</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="batchApplyTemplate()">📋 一键套用全部标准条款</button>
+          <button class="btn btn-outline" onclick="aiBatchComplete()">🤖 AI 自动补全缺失条款</button>
+          <button class="btn btn-outline" onclick="exportCompareReport()">📥 导出比对报告</button>
+        </div>
+      </div>
+    </div>

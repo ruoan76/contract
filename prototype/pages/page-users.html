@@ -1,0 +1,41 @@
+<div class="page" id="page-users">
+      <div class="search-bar">
+        <input class="form-input" placeholder="搜索姓名/部门..." style="width:250px">
+        <select class="form-select">
+          <option value="">全部角色</option>
+          <option value="drafter">起草人</option>
+          <option value="approver">审批人</option>
+          <option value="legal">法务</option>
+          <option value="finance">财务</option>
+          <option value="archivist">档案管理员</option>
+          <option value="admin">系统管理员</option>
+        </select>
+        <select class="form-select">
+          <option value="">全部状态</option>
+          <option value="active">正常</option>
+          <option value="disabled">已禁用</option>
+        </select>
+        <button class="btn btn-primary" onclick="filterUsers()">🔍 查询</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">用户管理 <span style="font-weight:400;color:var(--gray-500);font-size:13px">(共 12 人)</span></span>
+          <button class="btn btn-primary btn-sm" onclick="openUserAdd()">+ 新增用户</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>姓名</th><th>工号</th><th>部门</th><th>角色</th><th>手机号</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr><td style="font-weight:600">张三</td><td><code>EMP001</code></td><td>采购部</td><td><span class="tag tag-blue">起草人 / 部门主管</span></td><td>138****0001</td><td><span class="tag tag-green">正常</span></td><td>2024-01-02</td><td><button class="btn btn-outline btn-sm" onclick="openUserEdit()">编辑</button><button class="btn btn-outline btn-sm" onclick="toggleUserStatus(this, 'disable')">禁用</button></td></tr>
+              <tr><td style="font-weight:600">李四</td><td><code>EMP002</code></td><td>采购部</td><td><span class="tag tag-blue">起草人</span></td><td>138****0002</td><td><span class="tag tag-green">正常</span></td><td>2024-01-02</td><td><button class="btn btn-outline btn-sm" onclick="openUserEdit()">编辑</button><button class="btn btn-outline btn-sm" onclick="toggleUserStatus(this, 'disable')">禁用</button></td></tr>
+              <tr><td style="font-weight:600">刘法务</td><td><code>EMP003</code></td><td>法务部</td><td><span class="tag tag-blue">法务专员</span></td><td>138****0003</td><td><span class="tag tag-green">正常</span></td><td>2024-01-03</td><td><button class="btn btn-outline btn-sm" onclick="openUserEdit()">编辑</button><button class="btn btn-outline btn-sm" onclick="toggleUserStatus(this, 'disable')">禁用</button></td></tr>
+              <tr><td style="font-weight:600">王财务</td><td><code>EMP004</code></td><td>财务部</td><td><span class="tag tag-blue">财务专员</span></td><td>138****0004</td><td><span class="tag tag-green">正常</span></td><td>2024-01-03</td><td><button class="btn btn-outline btn-sm" onclick="openUserEdit()">编辑</button><button class="btn btn-outline btn-sm" onclick="toggleUserStatus(this, 'disable')">禁用</button></td></tr>
+              <tr><td style="font-weight:600">陈档案</td><td><code>EMP005</code></td><td>综合部</td><td><span class="tag tag-blue">档案管理员</span></td><td>138****0005</td><td><span class="tag tag-green">正常</span></td><td>2024-01-04</td><td><button class="btn btn-outline btn-sm" onclick="openUserEdit()">编辑</button><button class="btn btn-outline btn-sm" onclick="toggleUserStatus(this, 'disable')">禁用</button></td></tr>
+              <tr><td style="font-weight:600;color:var(--danger)">赵六（已离职）</td><td><code>EMP006</code></td><td>采购部</td><td><span class="tag tag-gray">起草人</span></td><td>138****0006</td><td><span class="tag tag-red">已禁用</span></td><td>2024-01-05</td><td><button class="btn btn-outline btn-sm">编辑</button><button class="btn btn-success btn-sm" onclick="toggleUserStatus(this, 'enable')">启用</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>

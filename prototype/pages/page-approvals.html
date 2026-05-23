@@ -1,0 +1,120 @@
+<div class="page" id="page-approvals">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">待办审批 <span style="font-weight:400;color:var(--warning)">(5 份待处理)</span></span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-success btn-sm" onclick="batchApprove()">✅ 批量通过</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px"><input type="checkbox" id="select-all"></th>
+                <th>合同编号</th>
+                <th>合同名称</th>
+                <th>类型</th>
+                <th>金额</th>
+                <th>提交人</th>
+                <th>当前节点</th>
+                <th>提交时间</th>
+                <th>紧急程度</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox" class="approval-check"></td>
+                <td><code>CTR-20240115-0002</code></td>
+                <td>网络设备采购合同</td>
+                <td><span class="tag tag-blue">采购</span></td>
+                <td style="font-weight:600">¥ 850,000</td>
+                <td>李四</td>
+                <td><span class="tag tag-yellow">部门主管审批</span></td>
+                <td>2024-01-15 10:30</td>
+                <td><span class="tag tag-red">🔴 紧急</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="approveItem(this,'approve')">✅ 通过</button>
+                  <button class="btn btn-danger btn-sm" onclick="approveItem(this,'reject')">❌ 拒绝</button>
+                  <button class="btn btn-warning btn-sm" onclick="approveItem(this,'return')">↩️ 退回</button>
+                  <button class="btn btn-outline btn-sm" onclick="delegateApproval(this)">👤 委托</button>
+                  <button class="btn btn-outline btn-sm" onclick="showApprovalDetail()">📄 详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="approval-check"></td>
+                <td><code>CTR-20240114-0004</code></td>
+                <td>年度 IT 运维服务合同</td>
+                <td><span class="tag tag-blue">采购</span></td>
+                <td style="font-weight:600">¥ 320,000</td>
+                <td>王五</td>
+                <td><span class="tag tag-yellow">部门主管审批</span></td>
+                <td>2024-01-14 16:20</td>
+                <td><span class="tag tag-gray">普通</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="approveItem(this,'approve')">✅ 通过</button>
+                  <button class="btn btn-danger btn-sm" onclick="approveItem(this,'reject')">❌ 拒绝</button>
+                  <button class="btn btn-warning btn-sm" onclick="approveItem(this,'return')">↩️ 退回</button>
+                  <button class="btn btn-outline btn-sm" onclick="delegateApproval(this)">👤 委托</button>
+                  <button class="btn btn-outline btn-sm" onclick="showApprovalDetail()">📄 详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="approval-check"></td>
+                <td><code>CTR-20240113-0006</code></td>
+                <td>软件授权许可协议</td>
+                <td><span class="tag tag-blue">其他</span></td>
+                <td style="font-weight:600">¥ 150,000</td>
+                <td>赵六</td>
+                <td><span class="tag tag-blue">法务审核</span></td>
+                <td>2024-01-13 09:15</td>
+                <td><span class="tag tag-gray">普通</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="approveItem(this,'approve')">✅ 通过</button>
+                  <button class="btn btn-danger btn-sm" onclick="approveItem(this,'reject')">❌ 拒绝</button>
+                  <button class="btn btn-warning btn-sm" onclick="approveItem(this,'return')">↩️ 退回</button>
+                  <button class="btn btn-outline btn-sm" onclick="delegateApproval(this)">👤 委托</button>
+                  <button class="btn btn-outline btn-sm" onclick="showApprovalDetail()">📄 详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="approval-check"></td>
+                <td><code>CTR-20240112-0007</code></td>
+                <td>数据中心租赁合同</td>
+                <td><span class="tag tag-blue">采购</span></td>
+                <td style="font-weight:600">¥ 2,400,000</td>
+                <td>孙七</td>
+                <td><span class="tag tag-red">高管审批</span></td>
+                <td>2024-01-12 14:00</td>
+                <td><span class="tag tag-red">🔴 紧急</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="approveItem(this,'approve')">✅ 通过</button>
+                  <button class="btn btn-danger btn-sm" onclick="approveItem(this,'reject')">❌ 拒绝</button>
+                  <button class="btn btn-warning btn-sm" onclick="approveItem(this,'return')">↩️ 退回</button>
+                  <button class="btn btn-outline btn-sm" onclick="delegateApproval(this)">👤 委托</button>
+                  <button class="btn btn-outline btn-sm" onclick="showApprovalDetail()">📄 详情</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="approval-check"></td>
+                <td><code>CTR-20240111-0009</code></td>
+                <td>员工体检服务合同</td>
+                <td><span class="tag tag-blue">劳务</span></td>
+                <td style="font-weight:600">¥ 85,000</td>
+                <td>周八</td>
+                <td><span class="tag tag-yellow">部门主管审批</span></td>
+                <td>2024-01-11 11:30</td>
+                <td><span class="tag tag-gray">普通</span></td>
+                <td>
+                  <button class="btn btn-success btn-sm" onclick="approveItem(this,'approve')">✅ 通过</button>
+                  <button class="btn btn-danger btn-sm" onclick="approveItem(this,'reject')">❌ 拒绝</button>
+                  <button class="btn btn-warning btn-sm" onclick="approveItem(this,'return')">↩️ 退回</button>
+                  <button class="btn btn-outline btn-sm" onclick="delegateApproval(this)">👤 委托</button>
+                  <button class="btn btn-outline btn-sm" onclick="showApprovalDetail()">📄 详情</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>

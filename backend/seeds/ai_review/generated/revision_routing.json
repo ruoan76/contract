@@ -1,0 +1,153 @@
+{
+  "version": "crp-v3.0",
+  "count": 21,
+  "items": [
+    {
+      "issue_type": "错别字/笔误",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "raw XML 文本替换"
+    },
+    {
+      "issue_type": "标点错误",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "raw XML 文本替换"
+    },
+    {
+      "issue_type": "日期格式错误",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "raw XML 文本替换"
+    },
+    {
+      "issue_type": "法律名称过时",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "如合同法→民法典"
+    },
+    {
+      "issue_type": "银行名称或公司名称错误",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "直接修订"
+    },
+    {
+      "issue_type": "实现债权费用条款缺失",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "所有合同必查"
+    },
+    {
+      "issue_type": "送达确认条款缺失",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "正式合同原则上应有"
+    },
+    {
+      "issue_type": "签章生效条款不完整",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "公司间合同重点核查"
+    },
+    {
+      "issue_type": "声明与保证条款缺失",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "涉及公司主体或关联关系时"
+    },
+    {
+      "issue_type": "限制收款方式条款缺失",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "采购承揽服务合同"
+    },
+    {
+      "issue_type": "反商业贿赂条款缺失",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "采购承揽服务工程合同"
+    },
+    {
+      "issue_type": "独立关系声明缺失",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "承揽委托劳务中介合同"
+    },
+    {
+      "issue_type": "一人公司补充条款缺失",
+      "default_method": "track_changes",
+      "auto_applicable": true,
+      "self_check_questions": "",
+      "notes": "对方为一人有限责任公司时"
+    },
+    {
+      "issue_type": "条款矛盾或文本不一致",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "2,3",
+      "notes": "指出矛盾位置给出倾向性建议"
+    },
+    {
+      "issue_type": "验收标准重构",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "2,4",
+      "notes": "给出完整建议文本多个方案"
+    },
+    {
+      "issue_type": "违约金数额调整",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "2,3,4",
+      "notes": "列出方案客户选择"
+    },
+    {
+      "issue_type": "知识产权归属重大调整",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "2,4",
+      "notes": "列出方案标注倾向"
+    },
+    {
+      "issue_type": "付款比例调整",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "2,3",
+      "notes": "说明风险客户决定"
+    },
+    {
+      "issue_type": "默示同意条款修改",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "2,3",
+      "notes": "说明风险和建议"
+    },
+    {
+      "issue_type": "事实待核实",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "",
+      "notes": "标注待核实事项"
+    },
+    {
+      "issue_type": "多方案需客户选择",
+      "default_method": "comment",
+      "auto_applicable": false,
+      "self_check_questions": "4",
+      "notes": "列出方案标注倾向"
+    }
+  ]
+}

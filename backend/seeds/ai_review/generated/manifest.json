@@ -1,0 +1,12 @@
+{
+  "source": "https://github.com/CSlawyer1985/contract-review-pro",
+  "license": "MIT",
+  "upstream_tag": "crp-v3.0",
+  "generated_by": "import_contract_review_pro.py",
+  "counts": {
+    "risk_labels": 15,
+    "revision_routing": 21,
+    "review_checklists": 53,
+    "risk_templates_purchase": 14
+  }
+}

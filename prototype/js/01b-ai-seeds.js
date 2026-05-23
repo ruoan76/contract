@@ -1,0 +1,108 @@
+/** 风险标签种子（来自 contract-review-pro，见 backend/seeds） */
+const AI_RISK_LABELS = [
+  {
+    "id": "L01",
+    "name": "合同效力",
+    "category": "效力与合规类",
+    "gate_id": "gate_validity",
+    "color": "#DC2626"
+  },
+  {
+    "id": "L02",
+    "name": "格式条款",
+    "category": "效力与合规类",
+    "gate_id": "gate_validity",
+    "color": "#EA580C"
+  },
+  {
+    "id": "L03",
+    "name": "主体授权",
+    "category": "效力与合规类",
+    "gate_id": "gate_subject",
+    "color": "#F59E0B"
+  },
+  {
+    "id": "L04",
+    "name": "关联交易",
+    "category": "效力与合规类",
+    "gate_id": "gate_validity",
+    "color": "#D97706"
+  },
+  {
+    "id": "L05",
+    "name": "合规审查",
+    "category": "效力与合规类",
+    "gate_id": "gate_validity",
+    "color": "#7C3AED"
+  },
+  {
+    "id": "L06",
+    "name": "价款与支付",
+    "category": "交易结构与履行类",
+    "gate_id": "gate_clause",
+    "color": "#2563EB"
+  },
+  {
+    "id": "L07",
+    "name": "交付与验收",
+    "category": "交易结构与履行类",
+    "gate_id": "gate_clause",
+    "color": "#0891B2"
+  },
+  {
+    "id": "L08",
+    "name": "违约责任",
+    "category": "交易结构与履行类",
+    "gate_id": "gate_clause",
+    "color": "#DC2626"
+  },
+  {
+    "id": "L09",
+    "name": "解除与终止",
+    "category": "交易结构与履行类",
+    "gate_id": "gate_clause",
+    "color": "#BE123C"
+  },
+  {
+    "id": "L10",
+    "name": "担保与增信",
+    "category": "交易结构与履行类",
+    "gate_id": "gate_clause",
+    "color": "#B45309"
+  },
+  {
+    "id": "L11",
+    "name": "争议解决",
+    "category": "争议解决与文本类",
+    "gate_id": "gate_clause",
+    "color": "#4F46E5"
+  },
+  {
+    "id": "L12",
+    "name": "知识产权与保密",
+    "category": "争议解决与文本类",
+    "gate_id": "gate_clause",
+    "color": "#7C3AED"
+  },
+  {
+    "id": "L13",
+    "name": "定义与附件",
+    "category": "争议解决与文本类",
+    "gate_id": "gate_consistency",
+    "color": "#6B7280"
+  },
+  {
+    "id": "L14",
+    "name": "文本一致性",
+    "category": "争议解决与文本类",
+    "gate_id": "gate_consistency",
+    "color": "#9CA3AF"
+  },
+  {
+    "id": "L15",
+    "name": "文字与格式",
+    "category": "争议解决与文本类",
+    "gate_id": "gate_consistency",
+    "color": "#D1D5DB"
+  }
+];

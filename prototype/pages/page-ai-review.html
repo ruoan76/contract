@@ -1,0 +1,233 @@
+<div class="page" id="page-ai-review">
+      <!-- 效力门禁摘要（contract-review-pro gate_* 示意） -->
+      <div class="card" style="margin-bottom:16px" id="ai-gate-summary">
+        <div class="card-body" style="padding:14px 16px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px">效力与门禁（审查优先顺序）</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:11px">
+            <div style="padding:8px;border-radius:6px;background:#ecfdf5;border:1px solid #a7f3d0">
+              <div style="color:var(--gray-500)">效力</div>
+              <div style="font-weight:600;color:var(--success)">通过</div>
+            </div>
+            <div style="padding:8px;border-radius:6px;background:#ecfdf5;border:1px solid #a7f3d0">
+              <div style="color:var(--gray-500)">主体</div>
+              <div style="font-weight:600;color:var(--success)">通过</div>
+            </div>
+            <div style="padding:8px;border-radius:6px;background:#fffbeb;border:1px solid #fde68a">
+              <div style="color:var(--gray-500)">条款</div>
+              <div style="font-weight:600;color:var(--warning)">4 项待处理</div>
+            </div>
+            <div style="padding:8px;border-radius:6px;background:#ecfdf5;border:1px solid #a7f3d0">
+              <div style="color:var(--gray-500)">一致性</div>
+              <div style="font-weight:600;color:var(--success)">通过</div>
+            </div>
+            <div style="padding:8px;border-radius:6px;background:var(--gray-50);border:1px solid var(--gray-200)">
+              <div style="color:var(--gray-500)">输出</div>
+              <div style="font-weight:600;color:var(--gray-600)">待确认</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <select class="form-select" id="review-risk-label" style="width:200px" title="15 风险标签">
+          <option value="">全部风险标签</option>
+        </select>
+        <select class="form-select" id="review-risk-level" style="width:160px">
+          <option value="">全部风险等级</option>
+          <option value="high">高风险</option>
+          <option value="medium">中风险</option>
+          <option value="low">低风险</option>
+        </select>
+        <select class="form-select" id="review-risk-type" style="width:180px">
+          <option value="">全部 CUAD 类型</option>
+          <option value="payment">💳 付款条件</option>
+          <option value="penalty">⚖️ 违约金</option>
+          <option value="indemnity">🛡️ 赔偿上限</option>
+          <option value="jurisdiction">⚖️ 管辖法院</option>
+          <option value="confidentiality">🔒 保密条款</option>
+          <option value="termination">📋 终止条款</option>
+          <option value="warranty">🛡️ 质保条款</option>
+        </select>
+        <button class="btn btn-primary" onclick="filterReviewReport()">🔍 筛选</button>
+        <button class="btn btn-outline" onclick="resetReviewFilter()">↻ 重置</button>
+        <span id="review-filter-count" style="font-size:12px;color:var(--gray-500);margin-left:auto"></span>
+      </div>
+
+      <p style="font-size:12px;color:var(--gray-500);margin:0 0 12px">本页为 AI 初筛只读报告；确认后提交法务，在「评审工作台」处理条款风险。</p>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" id="ai-review-title">AI审查报告 - CTR-20240115-0001 服务器采购合同</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:11px;color:var(--gray-400)">模型：Qwen3.6-7B v3.2</span>
+            <span class="tag tag-blue" style="font-size:10px" id="ai-review-type-tag">采购合同</span>
+            <span class="tag tag-yellow" style="font-size:10px" id="ai-review-flow-tag">标准流程</span>
+            <button class="btn btn-outline btn-sm" onclick="reReview()">🔄 重新审查</button>
+            <button class="btn btn-outline btn-sm" onclick="showReportModal()">📥 导出 PDF</button>
+            <button class="btn btn-primary btn-sm" onclick="confirmAIReview()">提交法务评审 →</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- 总体评分 -->
+          <div style="display:flex;align-items:center;gap:24px;margin-bottom:24px;padding:20px;background:var(--gray-50);border-radius:10px">
+            <div class="score-ring medium">65</div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:600;margin-bottom:4px">中风险 - 建议修改关键条款后签署</div>
+              <div style="font-size:13px;color:var(--gray-500);margin-bottom:8px">审查时间：2024-01-15 14:32 | 模型：Qwen3.6-7B v3.2 | 耗时：18 秒</div>
+              <div style="font-size:12px;color:var(--gray-600);background:var(--gray-50);padding:8px 12px;border-radius:6px">
+                <strong>🔗 条款追溯链：</strong>AI 发现(4项) → 法务确认(3项) → 法务修正(1项) → 起草人接受(2项) → 起草人拒绝(1项) → 最终版本(v2)
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+              <div style="text-align:center">
+                <div style="font-size:11px;color:var(--gray-500)">合规性</div>
+                <div style="font-size:18px;font-weight:700;color:var(--success)">85 <span style="font-size:11px;color:var(--success)">↑3</span></div>
+              </div>
+                <div style="text-align:center">
+                  <div style="font-size:11px;color:var(--gray-500)">风险条款</div>
+                  <div style="font-size:18px;font-weight:700;color:var(--danger)">42</div>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:11px;color:var(--gray-500)">财务条款</div>
+                  <div style="font-size:18px;font-weight:700;color:var(--warning)">68</div>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:11px;color:var(--gray-500)">履约能力</div>
+                  <div style="font-size:18px;font-weight:700;color:var(--success)">78</div>
+                </div>
+                <div style="text-align:center">
+                  <div style="font-size:11px;color:var(--gray-500)">异常检测</div>
+                  <div style="font-size:18px;font-weight:700;color:var(--success)">90</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 风险条款详情 -->
+          <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">🔍 风险条款详情</h3>
+          <div class="risk-panel">
+            <div class="risk-item high" data-label-id="L08" data-cuad-type="indemnity">
+              <div class="risk-title">⚠️ 第四条 违约责任 - 赔偿无上限</div>
+              <div class="risk-desc">条款未设置赔偿上限，存在无限责任风险。建议增加赔偿上限条款，不超过合同总额的 30%。</div>
+              <div class="risk-law">📖 《民法典》第 584 条：违约损失赔偿额不得超过违约一方订立合同时预见到或者应当预见到的因违约可能造成的损失。</div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span class="tag tag-red">高风险</span>
+                <span class="tag" style="background:#fee2e2;color:#991b1b">L08 违约责任</span>
+                <span class="tag tag-gray">置信度 92%</span>
+                <span class="cuad-risk-tag indemnity">CUAD-13 赔偿上限</span>
+              </div>
+              <div style="margin-top:8px;font-size:11px;color:var(--gray-500);background:var(--gray-50);padding:6px 10px;border-radius:4px">
+                📊 行业基准：赔偿上限 20%-50%（平均 30%）| 当前：无上限 | <span style="color:var(--danger);font-weight:600">偏离度：无限</span>
+              </div>
+            </div>
+            <div class="risk-item high" data-label-id="L11" data-cuad-type="jurisdiction">
+              <div class="risk-title">⚠️ 第六条 管辖约定 - 异地管辖</div>
+              <div class="risk-desc">约定对方所在地法院管辖，增加维权成本。建议修改为甲方（我方）所在地法院管辖。</div>
+              <div class="risk-law">📖 《民事诉讼法》第 35 条：合同双方可以协议选择被告住所地、合同履行地、合同签订地、原告住所地、标的物所在地等与争议有实际联系的地点的法院管辖。</div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span class="tag tag-red">高风险</span>
+                <span class="tag" style="background:#e0e7ff;color:#3730a3">L11 争议解决</span>
+                <span class="tag tag-gray">置信度 95%</span>
+                <span class="cuad-risk-tag jurisdiction">CUAD-19 管辖法院</span>
+              </div>
+              <div style="margin-top:8px;font-size:11px;color:var(--gray-500);background:var(--gray-50);padding:6px 10px;border-radius:4px">
+                📊 行业基准：甲方所在地管辖（占 78%）| 当前：乙方所在地 | <span style="color:var(--danger);font-weight:600">偏离度：高</span>
+              </div>
+            </div>
+            <div class="risk-item medium" data-label-id="L06" data-cuad-type="payment">
+              <div class="risk-title">⚠️ 第三条 付款条件 - 预付款比例偏高</div>
+              <div class="risk-desc">预付款比例 40%，建议控制在 30% 以内，降低资金风险。</div>
+              <div class="risk-law">📖 内部财务制度：预付款比例原则上不超过合同总额的 30%。</div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span class="tag tag-yellow">中风险</span>
+                <span class="tag" style="background:#dbeafe;color:#1e40af">L06 价款与支付</span>
+                <span class="tag tag-gray">置信度 88%</span>
+              </div>
+            </div>
+            <div class="risk-item medium" data-label-id="L07" data-confidence="suspected">
+              <div class="risk-title">⚠️ 第七条 验收标准 - 表述模糊</div>
+              <div class="risk-desc">验收条件未量化，易产生履约争议。建议补充可量化验收指标。</div>
+              <div class="risk-law">📖 《民法典》第 510 条：约定不明确时可协议补充。</div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span class="tag tag-yellow">疑似风险</span>
+                <span class="tag" style="background:#cffafe;color:#0e7490">L07 交付与验收</span>
+                <span class="tag" style="background:#ffedd5;color:#c2410c">置信度 65% · 需人工复核</span>
+              </div>
+              <div style="margin-top:8px;display:flex;gap:6px">
+                <button class="btn btn-outline btn-sm" onclick="markAiFeedback('false_positive', this)">标记 AI 误报</button>
+                <button class="btn btn-outline btn-sm" onclick="markAiFeedback('false_negative', this)">标记 AI 漏报</button>
+              </div>
+            </div>
+            <div class="risk-item medium" data-label-id="L12" data-confidence="uncertain">
+              <div class="risk-title">⚠️ 第八条 知识产权归属 - 约定不明</div>
+              <div class="risk-desc">知识产权归属约定不明，建议法务重点复核。</div>
+              <div class="risk-law">📖 《民法典》第 123 条：民事主体依法享有知识产权。</div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span class="tag tag-yellow">需人工复核</span>
+                <span class="tag" style="background:#ede9fe;color:#5b21b6">L12 知识产权与保密</span>
+                <span class="tag tag-red">置信度 52% · 不确定</span>
+              </div>
+              <div style="margin-top:8px;display:flex;gap:6px">
+                <button class="btn btn-outline btn-sm" onclick="markAiFeedback('false_positive', this)">标记 AI 误报</button>
+                <button class="btn btn-outline btn-sm" onclick="markAiFeedback('false_negative', this)">标记 AI 漏报</button>
+              </div>
+            </div>
+            
+            <div class="risk-item low" data-label-id="L12" data-cuad-type="confidentiality">
+              <div class="risk-title">✅ 第五条 保密条款 - 条款完整</div>
+              <div class="risk-desc">保密期限 3 年，范围明确，符合行业标准。建议保持。</div>
+              <div class="risk-law">📖 《反不正当竞争法》第 9 条：商业秘密是指不为公众所知悉、具有商业价值并经权利人采取相应保密措施的技术信息、经营信息等商业信息。</div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <span class="tag tag-green">低风险</span>
+                <span class="tag" style="background:#ede9fe;color:#5b21b6">L12 知识产权与保密</span>
+                <span class="tag tag-gray">置信度 96%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 合同类型自适应审查规则 -->
+          <h3 style="font-size:14px;font-weight:600;margin:20px 0 12px">🎯 采购合同专属审查规则</h3>
+          <div style="background:var(--gray-50);border-radius:8px;padding:12px;margin-bottom:16px">
+            <div style="font-size:12px;color:var(--gray-600);line-height:1.8">
+              <div>✅ 供应商资质审查：已验证（营业执照/资质证书）</div>
+              <div>✅ 交货期条款：已包含（逾期违约金）</div>
+              <div>✅ 验收标准：已包含（设备清单附件）</div>
+              <div>⚠️ 预付款比例：40%（采购合同标准 ≤30%）</div>
+              <div>⚠️ 质保条款：缺失（采购合同建议包含）</div>
+              <div>⚠️ 违约金比例：0.5%/日（采购合同标准 0.05%/日）</div>
+            </div>
+          </div>
+          
+          <!-- 规则引擎检测结果 -->
+          <h3 style="font-size:14px;font-weight:600;margin:20px 0 12px">🔧 规则引擎检测</h3>
+          <div style="background:var(--gray-50);border-radius:8px;padding:16px">
+            <table>
+              <thead>
+                <tr><th>规则</th><th>检测结果</th><th>风险等级</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>违约金上限 ≤30%</td>
+                  <td><span style="color:var(--danger)">❌ 未设置上限</span></td>
+                  <td><span class="tag tag-red">高</span></td>
+                </tr>
+                <tr>
+                  <td>管辖法院 = 甲方所在地</td>
+                  <td><span style="color:var(--danger)">❌ 约定乙方所在地</span></td>
+                  <td><span class="tag tag-red">高</span></td>
+                </tr>
+                <tr>
+                  <td>预付款比例 ≤50%</td>
+                  <td><span style="color:var(--warning)">⚠️ 40%（建议≤30%）</span></td>
+                  <td><span class="tag tag-yellow">中</span></td>
+                </tr>
+                <tr>
+                  <td>保密期限 ≤5 年</td>
+                  <td><span style="color:var(--success)">✅ 3 年</span></td>
+                  <td><span class="tag tag-green">低</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,102 @@
+<div class="page" id="page-templates">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">标准模板库</span>
+          <button class="btn btn-primary btn-sm" onclick="showModal('template-create')">+ 创建模板</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>模板编码</th>
+                <th>模板名称</th>
+                <th>分类</th>
+                <th>版本</th>
+                <th>状态</th>
+                <th>可变字段数</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>PUR-001</code></td>
+                <td>标准采购合同</td>
+                <td><span class="tag tag-blue">采购</span></td>
+                <td>v3.2</td>
+                <td><span class="tag tag-green">已发布</span></td>
+                <td>12</td>
+                <td>2024-01-10</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-preview')">预览</button>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-edit')">编辑</button>
+                  <button class="btn btn-danger btn-sm" onclick="archiveTemplate('PUR-001')">废止</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code>PUR-002</code></td>
+                <td>服务采购合同</td>
+                <td><span class="tag tag-blue">采购</span></td>
+                <td>v2.1</td>
+                <td><span class="tag tag-green">已发布</span></td>
+                <td>10</td>
+                <td>2024-01-08</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-preview')">预览</button>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-edit')">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code>SAL-001</code></td>
+                <td>标准销售合同</td>
+                <td><span class="tag tag-blue">销售</span></td>
+                <td>v2.0</td>
+                <td><span class="tag tag-green">已发布</span></td>
+                <td>11</td>
+                <td>2024-01-05</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-preview')">预览</button>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-edit')">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code>NDA-001</code></td>
+                <td>标准保密协议</td>
+                <td><span class="tag tag-blue">保密</span></td>
+                <td>v1.5</td>
+                <td><span class="tag tag-green">已发布</span></td>
+                <td>5</td>
+                <td>2023-12-20</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-preview')">预览</button>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-edit')">编辑</button>
+                </td>
+              </tr>
+              <tr>
+                <td><code>SAL-002</code></td>
+                <td>框架销售协议</td>
+                <td><span class="tag tag-blue">销售</span></td>
+                <td>v1.0</td>
+                <td><span class="tag tag-yellow">待发布审批</span></td>
+                <td>6</td>
+                <td>2024-03-01</td>
+                <td><button class="btn btn-outline btn-sm" onclick="showModal('template-preview')">预览</button></td>
+              </tr>
+              <tr>
+                <td><code>LAB-001</code></td>
+                <td>标准劳务合同</td>
+                <td><span class="tag tag-blue">劳务</span></td>
+                <td>v1.0</td>
+                <td><span class="tag tag-yellow">草稿</span></td>
+                <td>8</td>
+                <td>2024-01-12</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="showModal('template-preview')">预览</button>
+                  <button class="btn btn-primary btn-sm" onclick="publishTemplate()">提交发布</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>

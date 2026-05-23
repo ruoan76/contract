@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: contract-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-contract_db}
+      MYSQL_USER: ${MYSQL_USER:-contract_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-contract_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - contract-network
+    restart: unless-stopped
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: contract-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - contract-network
+    restart: unless-stopped
+
+  # MinIO 文件存储
+  minio:
+    image: minio/minio:latest
+    container_name: contract-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - contract-network
+    restart: unless-stopped
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: contract-backend
+    environment:
+      DATABASE_URL: mysql+asyncmy://${MYSQL_USER:-contract_user}:${MYSQL_PASSWORD:-contract_password}@mysql:3306/${MYSQL_DATABASE:-contract_db}
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - contract_files:/data/contract-files
+    depends_on:
+      - mysql
+      - redis
+      - minio
+    networks:
+      - contract-network
+    restart: unless-stopped
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: contract-celery
+    command: celery -A app.celery_app worker -l info
+    environment:
+      DATABASE_URL: mysql+asyncmy://${MYSQL_USER:-contract_user}:${MYSQL_PASSWORD:-contract_password}@mysql:3306/${MYSQL_DATABASE:-contract_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    volumes:
+      - ./backend:/app
+      - contract_files:/data/contract-files
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - contract-network
+    restart: unless-stopped
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: contract-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - contract-network
+    restart: unless-stopped
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: contract-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - contract-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
+  minio_data:
+  contract_files:
+
+networks:
+  contract-network:
+    driver: bridge

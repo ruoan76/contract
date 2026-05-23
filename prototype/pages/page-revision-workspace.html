@@ -1,0 +1,119 @@
+<div class="page" id="page-revision-workspace">
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:0;height:calc(100vh - 130px)">
+        <!-- 左区：合同原文 + 修订标记 -->
+        <div style="overflow-y:auto;background:#fff;border:1px solid var(--gray-200);border-radius:10px 0 0 10px;padding:24px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">📝 合同修订工作台</div>
+          <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px" id="revision-contract-head">CTR-20240115-0001 服务器采购合同 · v1 → v2</div>
+          <div style="font-size:11px;color:var(--danger);margin-bottom:20px">⚠️ 3 条必须修改 · 1 条建议修改 · 退回原因：赔偿条款存在重大风险</div>
+
+          <!-- 第四条（2项修改建议） -->
+          <div style="margin-bottom:6px;font-size:16px;font-weight:700;color:var(--gray-900)">第四条 违约责任 <span style="font-size:11px;color:var(--danger)">2 项修订</span></div>
+          
+          <!-- 4.1 修订 -->
+          <div class="revision-item-card" style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:14px;margin-bottom:12px;border-left:3px solid var(--danger)">
+            <div style="font-size:12px;color:var(--danger);font-weight:600;margin-bottom:8px">🔴 必须修改 · 来源：法务-刘法务</div>
+            <div style="font-size:13px;line-height:2;color:var(--gray-700);margin-bottom:8px">
+              4.1 乙方未按约定时间交付，每逾期一日，按合同总额的 
+              <del style="background:#fee2e2;padding:1px 4px;border-radius:3px;text-decoration:line-through;color:var(--danger)">0.5%</del> 
+              <ins style="background:#d1fae5;padding:1px 4px;border-radius:3px;text-decoration:none;color:var(--success);font-weight:600">0.05%（不超过5%）</ins> 
+              支付违约金。
+            </div>
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px">📖 《民法典》第585条：违约金过分高于损失可调减</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-success btn-sm" onclick="acceptRevision(this)">✓ 接受</button>
+              <button class="btn btn-outline btn-sm" onclick="rejectRevision(this)">✗ 拒绝</button>
+              <button class="btn btn-outline btn-sm" onclick="enableInlineEdit(this)">✏️ 自行修改</button>
+            </div>
+          </div>
+          
+          <!-- 4.2 修订 -->
+          <div style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:14px;margin-bottom:16px;border-left:3px solid var(--danger)" class="revision-item-card">
+            <div style="font-size:12px;color:var(--danger);font-weight:600;margin-bottom:8px">🔴 必须修改 · 来源：法务-刘法务</div>
+            <div style="font-size:13px;line-height:2;color:var(--gray-700);margin-bottom:8px">
+              4.2 乙方违约需赔偿甲方 
+              <del style="background:#fee2e2;padding:1px 4px;border-radius:3px;text-decoration:line-through;color:var(--danger)">一切损失，包括但不限于直接损失、间接损失、利润损失等</del>
+              <ins style="background:#d1fae5;padding:1px 4px;border-radius:3px;text-decoration:none;color:var(--success);font-weight:600">直接损失，赔偿总额不超过合同总额的 30%</ins>。
+            </div>
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px">📖 《民法典》第584条：赔偿额不得超过预见损失</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-success btn-sm" onclick="acceptRevision(this)">✓ 接受</button>
+              <button class="btn btn-outline btn-sm" onclick="rejectRevision(this)">✗ 拒绝</button>
+              <button class="btn btn-outline btn-sm" onclick="enableInlineEdit(this)">✏️ 自行修改</button>
+            </div>
+          </div>
+
+          <!-- 第六条（建议修改） -->
+          <div style="margin-bottom:6px;font-size:16px;font-weight:700;color:var(--gray-900)">第六条 管辖约定 <span style="font-size:11px;color:var(--warning)">1 项修订</span></div>
+          <div class="revision-item-card" style="background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:14px;margin-bottom:16px;border-left:3px solid var(--warning)">
+            <div style="font-size:12px;color:var(--warning);font-weight:600;margin-bottom:8px">🟡 建议修改 · 来源：法务-刘法务</div>
+            <div style="font-size:13px;line-height:2;color:var(--gray-700);margin-bottom:8px">
+              6.1 本合同的争议由 
+              <del style="background:#fee2e2;padding:1px 4px;border-radius:3px;text-decoration:line-through;color:var(--danger)">乙方所在地</del> 
+              <ins style="background:#d1fae5;padding:1px 4px;border-radius:3px;text-decoration:none;color:var(--success);font-weight:600">甲方所在地</ins> 
+              人民法院管辖。
+            </div>
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px">📖 《民事诉讼法》第35条：可协议选择管辖法院</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-success btn-sm" onclick="acceptRevision(this)">✓ 接受</button>
+              <button class="btn btn-outline btn-sm" onclick="rejectRevision(this)">✗ 拒绝（附原因）</button>
+              <button class="btn btn-outline btn-sm" onclick="enableInlineEdit(this)">✏️ 自行修改</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右区：修改建议列表 -->
+        <div style="overflow-y:auto;background:var(--gray-50);border:1px solid var(--gray-200);border-left:none;border-radius:0 10px 10px 0;padding:20px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px">📋 修改建议列表 <span style="font-weight:400;color:var(--gray-500);font-size:12px">(4 条)</span></div>
+          
+          <div style="background:#fff;border-radius:8px;padding:14px;margin-bottom:10px;border:1px solid var(--gray-200)">
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px">第四条 · 4.1 款 · ID:4:1</div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:6px"><span class="tag tag-red">必须修改</span> 违约金比例</div>
+            <div style="font-size:11px;color:var(--gray-600);margin-bottom:8px">法务建议：0.5%/日 → 0.05%/日（上限 5%）</div>
+            <div style="font-size:11px;color:var(--success)">✓ 已接受</div>
+          </div>
+          
+          <div style="background:#fff;border-radius:8px;padding:14px;margin-bottom:10px;border:1px solid var(--gray-200)">
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px">第四条 · 4.2 款 · ID:4:2</div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:6px"><span class="tag tag-red">必须修改</span> 赔偿范围</div>
+            <div style="font-size:11px;color:var(--gray-600);margin-bottom:8px">法务建议：删除间接损失，赔偿上限 ≤30%</div>
+            <div style="font-size:11px;color:var(--danger)">待处理</div>
+          </div>
+          
+          <div style="background:#fff;border-radius:8px;padding:14px;margin-bottom:10px;border:1px solid var(--gray-200)">
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px">第六条 · 6.1 款 · ID:6:1</div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:6px"><span class="tag tag-yellow">建议修改</span> 管辖法院</div>
+            <div style="font-size:11px;color:var(--gray-600);margin-bottom:8px">法务建议：乙方所在地 → 甲方所在地</div>
+            <div style="font-size:11px;color:var(--danger)">待处理</div>
+          </div>
+          
+          <div style="background:#fff;border-radius:8px;padding:14px;margin-bottom:10px;border:1px solid var(--gray-200)">
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px">第三条 · 3.1 款 · ID:3:1</div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:6px"><span class="tag tag-green">可选</span> 预付款比例</div>
+            <div style="font-size:11px;color:var(--gray-600);margin-bottom:8px">财务建议：40% → 30%</div>
+            <div style="font-size:11px;color:var(--gray-500)">✗ 已拒绝 · 原因：供应商要求分阶段付款</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">修订说明 *</label>
+        <textarea class="form-input" id="revision-summary" rows="3" placeholder="请说明本次修订要点…"></textarea>
+      </div>
+
+      <!-- 底部操作栏 -->
+      <div style="background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="font-size:14px;font-weight:600">修订进度</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:600;color:var(--primary)" id="revision-progress-text">0/3 已处理</span>
+            <div class="progress-bar" style="width:100px"><div class="progress-fill blue" style="width:0%" id="revision-progress-fill"></div></div>
+          </div>
+          <span style="font-size:12px;color:var(--gray-500)" id="revision-progress-summary">0 已处理 · 3 待处理</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="saveDraftRevision()">💾 保存草稿</button>
+          <button class="btn btn-primary" onclick="submitRevision()">📤 重新提交评审</button>
+          <button class="btn btn-outline" onclick="showRevisionRecord()">📋 查看修订记录</button>
+        </div>
+      </div>
+    </div>

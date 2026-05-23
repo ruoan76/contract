@@ -1,0 +1,115 @@
+{
+  "info": {
+    "name": "合同平台 Demo 01-05",
+    "description": "DEMO 脚本最小联调集合。需先 `python scripts/seed_dev.py` 并登录各角色获取 Bearer Token，填入 collection 变量。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "token_drafter", "value": ""},
+    {"key": "token_approver", "value": ""},
+    {"key": "token_legal", "value": ""},
+    {"key": "token_admin", "value": ""},
+    {"key": "contract_id", "value": ""},
+    {"key": "flow_id", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "DEMO-01 简易全链路",
+      "item": [
+        {
+          "name": "1 创建合同",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token_drafter}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"简易流程合同\",\n  \"contract_type\": \"purchase\",\n  \"counterparty_name\": \"供应商A\",\n  \"amount\": 80000,\n  \"content\": \"采购合同内容\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/contracts/"
+          }
+        },
+        {
+          "name": "2 提交审批",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token_drafter}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contract_id\": {{contract_id}},\n  \"flow_type\": \"simple\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/approvals/submit"
+          }
+        },
+        {
+          "name": "3 部门审批",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token_approver}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"comment\": \"通过\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/approvals/{{flow_id}}/approve"
+          }
+        },
+        {
+          "name": "4 AI 审查",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token_drafter}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contract_id\": {{contract_id}}\n}"
+            },
+            "url": "{{base_url}}/api/v1/ai-review/review"
+          }
+        },
+        {
+          "name": "5 法务评审",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token_legal}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"legal\",\n  \"action\": \"approve\",\n  \"comment\": \"法务通过\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/reviews/contracts/{{contract_id}}/opinions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "系统登录",
+      "item": [
+        {
+          "name": "登录 drafter1",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"drafter1\",\n  \"password\": \"drafter123\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/system/login"
+          }
+        }
+      ]
+    }
+  ]
+}

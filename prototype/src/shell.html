@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合同审批管理平台 - V1 原型</title>
+<link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+<!-- 侧边栏 -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">C</div>
+    <div>
+      <div class="title">合同审批平台</div>
+      <div class="subtitle">Contract Management v1.0</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-title">概览</div>
+      <div class="nav-item active" onclick="switchPage('dashboard')">
+        <span class="icon">📊</span> 状态看板
+      </div>
+      <div class="nav-item" onclick="switchPage('messages')">
+        <span class="icon">🔔</span> 消息中心
+        <span class="badge">12</span>
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">起草</div>
+      <div class="nav-item" onclick="switchPage('create')">
+        <span class="icon">✏️</span> 新建合同
+      </div>
+      <div class="nav-item" onclick="switchPage('contracts')">
+        <span class="icon">📄</span> 合同列表
+      </div>
+      <div class="nav-item" onclick="switchPage('templates')">
+        <span class="icon">📋</span> 模板管理
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">AI审查</div>
+      <div class="nav-item" onclick="switchPage('ai-review')">
+        <span class="icon">🤖</span> 审查报告
+      </div>
+      <div class="nav-item" onclick="switchPage('clause-compare')">
+        <span class="icon">⚖️</span> 条款比对
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">评审</div>
+      <div class="nav-item" onclick="switchPage('review-center')">
+        <span class="icon">🔍</span> 评审中心
+        <span class="badge">2</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('review-workspace')">
+        <span class="icon">📝</span> 评审工作台
+      </div>
+      <div class="nav-item" onclick="switchPage('review-history')" data-page="review-history">
+        <span class="icon">📜</span> 评审历史
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">审批</div>
+      <div class="nav-item" onclick="switchPage('approvals')">
+        <span class="icon">✅</span> 待办审批
+        <span class="badge">5</span>
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">签署归档</div>
+      <div class="nav-item" onclick="switchPage('seal')">
+        <span class="icon">🔏</span> 用印管理
+      </div>
+      <div class="nav-item" onclick="switchPage('archives')">
+        <span class="icon">🗄️</span> 归档台账
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">基础数据</div>
+      <div class="nav-item" onclick="switchPage('counterparties')">
+        <span class="icon">🏢</span> 相对方管理
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">系统</div>
+      <div class="nav-item" onclick="switchPage('config')">
+        <span class="icon">⚙️</span> 审批配置
+      </div>
+      <div class="nav-item" onclick="switchPage('users')">
+        <span class="icon">👥</span> 用户管理
+      </div>
+      <div class="nav-item" onclick="switchPage('audit')">
+        <span class="icon">📋</span> 审计日志
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar">张</div>
+    <div class="user-info">
+      <div class="user-name">张三</div>
+      <div class="user-role">采购部 · 部门主管</div>
+    </div>
+  </div>
+</aside>
+
+<!-- 主内容 -->
+<div class="main">
+  <header class="header">
+    <div class="header-left">
+      <span class="header-title" id="page-title">状态看板</span>
+      <span style="font-size:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:8px">🤖 AI 智能审核 v2.0</span>
+      <span class="header-breadcrumb" id="page-breadcrumb">概览 / 状态看板</span>
+    </div>
+    <div class="header-right">
+      <label class="header-rbac-toggle" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-600);cursor:pointer;margin-right:8px" title="开启后隐藏无权限侧栏（模拟正式 RBAC）">
+        <input type="checkbox" id="strict-rbac-toggle" onchange="toggleStrictRbacMode(this.checked)">
+        严格权限
+      </label>
+      <select class="role-selector" id="role-select" onchange="switchRole(this.value)">
+        <option value="drafter">👤 起草人</option>
+        <option value="approver" selected>👤 部门主管</option>
+        <option value="legal">⚖️ 法务专员</option>
+        <option value="finance">💰 财务专员</option>
+        <option value="archivist">📁 档案管理员</option>
+        <option value="admin">⚙️ 系统管理员</option>
+      </select>
+      <button class="header-btn" onclick="switchPage('create')">✏️ 新建合同</button>
+      <button class="header-btn" onclick="switchPage('messages')">🔔 <span id="notif-count">5</span></button>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- PAGES -->
+
+    <!-- MODALS -->
+  </div>
+
+<!-- Toast 提示 -->
+<div id="toast" style="display:none;position:fixed;top:20px;right:20px;background:var(--success);color:#fff;padding:12px 24px;border-radius:8px;font-size:13px;font-weight:500;z-index:400;box-shadow:0 4px 20px rgba(0,0,0,0.2)">
+  <span id="toast-text"></span>
+</div>
+
+<!-- 操作引导提示 -->
+<div class="tour-hint" id="tour-hint" style="display:none">
+  <span>💡 提示：先选择起草方式，然后填写基本信息，最后保存草稿或提交审批。</span>
+  <button class="hint-close" onclick="closeTour()">✕</button>
+</div>
+
+</div>
+
+<!-- SCRIPTS -->
+</body>
+</html>

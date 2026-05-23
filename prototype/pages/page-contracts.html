@@ -1,0 +1,58 @@
+<div class="page" id="page-contracts">
+      <div class="search-bar">
+        <input class="form-input" placeholder="搜索合同编号/名称..." id="contract-search">
+        <select class="form-select" id="contract-type-filter">
+          <option value="">全部类型</option>
+          <option value="purchase">采购合同</option>
+          <option value="sales">销售合同</option>
+          <option value="labor">劳务合同</option>
+          <option value="nda">保密协议</option>
+        </select>
+        <select class="form-select" id="contract-status-filter">
+          <option value="">全部状态</option>
+          <option value="draft">草稿</option>
+          <option value="pending">待审批</option>
+          <option value="approved">已通过</option>
+          <option value="signed">已签署</option>
+          <option value="executing">执行中</option>
+          <option value="terminated">已终止</option>
+          <option value="archived">已归档</option>
+        </select>
+        <select class="form-select" id="contract-risk-filter">
+          <option value="">全部风险</option>
+          <option value="high">高风险</option>
+          <option value="medium">中风险</option>
+          <option value="low">低风险</option>
+        </select>
+        <button class="btn btn-primary" onclick="filterContracts()">🔍 查询</button>
+        <button class="btn btn-outline" onclick="resetFilters()">↻ 重置</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">合同列表 <span style="font-weight:400;color:var(--gray-500);font-size:13px" id="contract-count">(共 156 份)</span></span>
+          <button class="btn btn-primary btn-sm" onclick="switchPage('create')">+ 新建合同</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>合同编号</th>
+                <th>合同名称</th>
+                <th>类型</th>
+                <th>相对方</th>
+                <th>金额</th>
+                <th>状态</th>
+                <th>审批状态</th>
+                <th>风险等级</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="contract-table-body">
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="contract-pagination"></div>
+      </div>
+    </div>

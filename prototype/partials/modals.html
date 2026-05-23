@@ -1,0 +1,512 @@
+<!-- 模板选择器由 JS 动态创建，历史选择器使用下部 modal-overlay -->
+    <div id="modal-template-selector"></div>
+    <!-- 新建相对方 -->
+    <div class="modal-overlay" id="modal-new-counterparty">
+      <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+          <span class="modal-title">+ 新建相对方</span>
+          <button class="modal-close" onclick="hideModal('new-counterparty')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">相对方名称 *</label>
+            <input class="form-input" id="new-counterparty-name" placeholder="请输入相对方全称">
+          </div>
+          <div class="form-group">
+            <label class="form-label">统一社会信用代码</label>
+            <input class="form-input" id="new-counterparty-credit" placeholder="18 位信用代码" oninput="validateCreditCode(this.value)">
+            <div id="new-counterparty-credit-info" style="display:none;margin-top:4px;font-size:11px"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('new-counterparty')">取消</button>
+          <button class="btn btn-primary" onclick="saveNewCounterparty()">保存</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 历史合同引用选择器 -->
+    <div class="modal-overlay" id="modal-history-selector">
+      <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+          <span class="modal-title">📚 引用历史合同</span>
+          <button class="modal-close" onclick="hideModal('history-selector')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="margin-bottom:12px">
+            <input class="form-input" placeholder="搜索合同编号/名称..." id="history-search-input" oninput="filterHistoryContracts()" style="width:100%">
+          </div>
+          <div id="history-contract-list">
+            <div id="history-list-content"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('history-selector')">取消</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-overlay" id="modal-edit-config">
+      <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+          <span class="modal-title" id="config-modal-title">编辑配置</span>
+          <button class="modal-close" onclick="hideModal('edit-config')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">配置名称</label><input class="form-input" id="edit-config-name" placeholder="输入配置名称"></div>
+          <div class="form-group"><label class="form-label">配置值</label><input class="form-input" id="edit-config-value" placeholder="输入配置值"></div>
+          <div class="form-group"><label class="form-label">描述</label><textarea class="form-textarea" id="edit-config-desc" style="min-height:60px"></textarea></div>
+          <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="edit-config-status"><option>启用</option><option>禁用</option></select></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('edit-config')">取消</button>
+          <button class="btn btn-primary" onclick="saveConfigEdit()">保存</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 归档详情模态框 -->
+    <div class="modal-overlay" id="modal-archive-detail">
+      <div class="modal" style="max-width:640px">
+        <div class="modal-header">
+          <span class="modal-title">归档详情</span>
+          <button class="modal-close" onclick="hideModal('archive-detail')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+            <div><div style="color:var(--gray-500);font-size:11px">合同编号</div><div style="margin-top:2px;font-weight:600">CTR-20240115-0001</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">合同名称</div><div style="margin-top:2px;font-weight:600">服务器采购合同</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">相对方</div><div style="margin-top:2px">华为技术有限公司</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">合同金额</div><div style="margin-top:2px;font-weight:700">¥ 2,500,000</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">签署日期</div><div style="margin-top:2px">2024-01-15</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">归档日期</div><div style="margin-top:2px">2024-01-20</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">归档位置</div><div style="margin-top:2px">档案室 A-12-03</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">归档人</div><div style="margin-top:2px">陈档案</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">审批流程</div><div style="margin-top:2px"><span class="tag tag-green">标准流程 · 全部通过</span></div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">用印状态</div><div style="margin-top:2px"><span class="tag tag-green">已用印</span></div></div>
+          </div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--gray-200)">
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px">审批流程</div>
+            <div style="font-size:12px;color:var(--gray-600)">张三提交 → AI审查(18s) → 刘法务通过(2h) → 王财务通过(4h) → 赵总批准(2h) → 用印完成</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('archive-detail')">关闭</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 用印详情模态框 -->
+    <div class="modal-overlay" id="modal-seal-detail">
+      <div class="modal" style="max-width:560px">
+        <div class="modal-header">
+          <span class="modal-title">用印详情</span>
+          <button class="modal-close" onclick="hideModal('seal-detail')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
+            <div><div style="color:var(--gray-500);font-size:11px">合同编号</div><div style="margin-top:2px;font-weight:600">CTR-20240115-0001</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">印章类型</div><div style="margin-top:2px">公章</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">申请人</div><div style="margin-top:2px">张三</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">申请时间</div><div style="margin-top:2px">2024-01-15 15:00</div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">审批结果</div><div style="margin-top:2px"><span class="tag tag-green">已通过</span></div></div>
+            <div><div style="color:var(--gray-500);font-size:11px">当前状态</div><div style="margin-top:2px"><span class="tag tag-yellow">待用印</span></div></div>
+          </div>
+          <div style="margin-top:16px;padding:12px;background:var(--gray-50);border-radius:8px">
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px">用印操作记录</div>
+            <div style="font-size:12px;color:var(--gray-600)">等待档案管理员确认用印。用印后将记录操作人、时间、文件哈希。</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('seal-detail')">关闭</button>
+          <button class="btn btn-success" onclick="confirmSeal()">✓ 确认用印</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 用户编辑模态框 -->
+    <div class="modal-overlay" id="modal-edit-user">
+      <div class="modal" style="max-width:520px">
+        <div class="modal-header">
+          <span class="modal-title" id="user-modal-title">编辑用户</span>
+          <button class="modal-close" onclick="hideModal('edit-user')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">姓名</label><input class="form-input" id="edit-user-name" value="张三"></div>
+          <div class="form-group"><label class="form-label">工号</label><input class="form-input" id="edit-user-empid" value="EMP001" readonly style="background:var(--gray-50)"></div>
+          <div class="form-group"><label class="form-label">部门</label><select class="form-select" id="edit-user-dept"><option>采购部</option><option>法务部</option><option>财务部</option><option>综合部</option><option>信息部</option></select></div>
+          <div class="form-group"><label class="form-label">角色</label><select class="form-select" id="edit-user-role"><option>起草人</option><option>审批人</option><option>法务专员</option><option>财务专员</option><option>档案管理员</option><option>系统管理员</option></select></div>
+          <div class="form-group"><label class="form-label">手机号</label><input class="form-input" id="edit-user-phone" value="13800138000"></div>
+          <div class="form-group"><label class="form-label">状态</label><select class="form-select" id="edit-user-status"><option>正常</option><option>已禁用</option></select></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('edit-user')">取消</button>
+          <button class="btn btn-primary" onclick="saveUserEdit()">保存</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 修订记录模态框 -->
+    <div class="modal-overlay" id="modal-revision-record">
+      <div class="modal" style="max-width:600px">
+        <div class="modal-header">
+          <span class="modal-title">修订记录</span>
+          <button class="modal-close" onclick="hideModal('revision-record')">✕</button>
+        </div>
+        <div class="modal-body">
+          <table>
+            <thead><tr><th>版本</th><th>修订内容</th><th>操作人</th><th>时间</th></tr></thead>
+            <tbody>
+              <tr style="background:#dbeafe"><td><span class="tag tag-blue">v2</span></td><td>接受法务建议：修改违约金上限、赔偿范围、管辖法院</td><td>张三</td><td>2024-01-15 14:00</td></tr>
+              <tr><td><span class="tag tag-gray">v1</span></td><td>初始版本</td><td>张三</td><td>2024-01-15 09:00</td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:16px;padding:12px;background:var(--gray-50);border-radius:8px">
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px">v1 → v2 变更摘要</div>
+            <div style="font-size:12px;line-height:1.8">
+              <div>🔴 违约金：0.5%/日 → 0.05%/日（上限5%）<span class="tag tag-green" style="font-size:10px">已接受</span></div>
+              <div>🔴 赔偿范围：一切损失 → 直接损失≤30%<span class="tag tag-green" style="font-size:10px">已接受</span></div>
+              <div>🟡 管辖法院：乙方所在地 → 甲方所在地<span class="tag tag-yellow" style="font-size:10px">待处理</span></div>
+              <div>🟢 预付款比例：40% → 30%<span class="tag tag-red" style="font-size:10px">已拒绝</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('revision-record')">关闭</button>
+        </div>
+      </div>
+    </div>
+
+<!-- 审批意见模态框 -->
+<div class="modal-overlay" id="modal-approval">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="approval-modal-title">审批意见</span>
+      <button class="modal-close" onclick="hideModal('approval')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">审批动作</label>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success" id="modal-action-approve" onclick="setModalAction('approve')">✅ 通过</button>
+          <button class="btn btn-danger" id="modal-action-reject" onclick="setModalAction('reject')">❌ 拒绝</button>
+          <button class="btn btn-warning" id="modal-action-return" onclick="setModalAction('return')">↩️ 退回</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">审批意见 *</label>
+        <textarea class="form-textarea" placeholder="请输入审批意见..." id="approval-comment"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">快捷意见</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="tag tag-gray" style="cursor:pointer" onclick="setComment('同意，注意履约风险')">同意，注意履约风险</span>
+          <span class="tag tag-gray" style="cursor:pointer" onclick="setComment('同意，条款无异议')">同意，条款无异议</span>
+          <span class="tag tag-gray" style="cursor:pointer" onclick="setComment('金额过高，需重新评估')">金额过高，需重新评估</span>
+          <span class="tag tag-gray" style="cursor:pointer" onclick="setComment('条款需法务进一步审核')">条款需法务进一步审核</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('approval')">取消</button>
+      <button class="btn btn-primary" onclick="confirmApproval()">确认提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增相对方模态框 -->
+<div class="modal-overlay" id="modal-add-counterparty">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">新增相对方</span>
+      <button class="modal-close" onclick="hideModal('add-counterparty')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">相对方名称 *</label>
+        <input class="form-input" id="add-cp-name" placeholder="请输入企业全称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">统一社会信用代码 *</label>
+        <input class="form-input" placeholder="18位信用代码" maxlength="18">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">法定代表人</label>
+          <input class="form-input" placeholder="请输入法人姓名">
+        </div>
+        <div class="form-group">
+          <label class="form-label">行业分类</label>
+          <select class="form-select">
+            <option value="">请选择</option>
+            <option>信息技术</option>
+            <option>制造业</option>
+            <option>建筑业</option>
+            <option>金融业</option>
+            <option>其他</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">联系人</label>
+          <input class="form-input" placeholder="请输入联系人姓名">
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系电话</label>
+          <input class="form-input" placeholder="请输入联系电话">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">注册地址</label>
+        <input class="form-input" placeholder="请输入注册地址">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('add-counterparty')">取消</button>
+      <button class="btn btn-primary" onclick="createCounterparty()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模板创建模态框 -->
+<div class="modal-overlay" id="modal-template-create">
+  <div class="modal" style="width:650px">
+    <div class="modal-header">
+      <span class="modal-title">创建模板</span>
+      <button class="modal-close" onclick="hideModal('template-create')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">模板名称 *</label><input class="form-input" placeholder="如：标准采购合同模板"></div>
+        <div class="form-group"><label class="form-label">模板分类 *</label><select class="form-select"><option value="">请选择</option><option value="purchase">采购</option><option value="sales">销售</option><option value="labor">劳务</option><option value="nda">保密</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">模板描述</label><textarea class="form-textarea" placeholder="请描述模板适用场景..." style="min-height:60px"></textarea></div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px">模板内容 <span style="font-size:11px;color:var(--gray-500);font-weight:400">可用 {'{金额}'} {'{日期}'} {'{相对方}'} 标记可变字段</span></label>
+        <textarea class="form-textarea" placeholder="请输入标准合同模板内容..." style="min-height:150px"></textarea>
+      </div>
+      <div class="form-group"><label class="form-label">上传文件（可选）</label><div style="border:2px dashed var(--gray-300);border-radius:8px;padding:20px;text-align:center;color:var(--gray-400);cursor:pointer"><div>📎 点击上传 Word/PDF 文件</div></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('template-create')">取消</button>
+      <button class="btn btn-outline" onclick="createTemplate()">保存草稿</button>
+      <button class="btn btn-primary" onclick="createTemplate()">提交发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模板编辑模态框 -->
+<div class="modal-overlay" id="modal-template-edit">
+  <div class="modal" style="width:650px">
+    <div class="modal-header">
+      <span class="modal-title">编辑模板 - PUR-001 标准采购合同</span>
+      <button class="modal-close" onclick="hideModal('template-edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fff3cd;border-radius:6px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px">⚠️ 当前版本 v3.2，修改后将创建新版本 v3.3，需重新审批后生效。</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">模板名称 *</label><input class="form-input" value="标准采购合同"></div>
+        <div class="form-group"><label class="form-label">模板分类 *</label><select class="form-select"><option value="purchase" selected>采购</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">模板内容 <span style="font-size:11px;color:var(--gray-500);font-weight:400">12 个可变字段</span></label><textarea class="form-textarea" style="min-height:150px">甲方向 {'{相对方}'} 采购 XX 产品，合同金额为 {'{金额}'}，交付日期为 {'{日期}'}...</textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('template-edit')">取消</button>
+      <button class="btn btn-primary" onclick="saveTemplateEdit()">保存并提交审批</button>
+    </div>
+  </div>
+</div>
+
+<!-- 模板预览模态框 -->
+<div class="modal-overlay" id="modal-template-preview">
+  <div class="modal" style="width:700px">
+    <div class="modal-header">
+      <span class="modal-title">模板预览 - PUR-001 标准采购合同 v3.2</span>
+      <button class="modal-close" onclick="hideModal('template-preview')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--gray-50);border-radius:8px;padding:20px;font-size:13px;line-height:2;color:var(--gray-700)">
+        <p style="margin-bottom:12px"><strong>第一条 采购内容：</strong>甲方向 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px">乙方（{'{}'}相对方{'{}'}）</span> 采购 XX 品牌服务器，合同总金额 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px">{金额}</span> 元。</p>
+        <p style="margin-bottom:12px"><strong>第三条 付款条件：</strong>甲方在合同签订后 5 个工作日内支付 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px">{预付款比例}</span> 作为预付款。</p>
+        <p style="margin-bottom:12px"><strong>第四条 违约责任：</strong>逾期违约金比例为每日 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px">{违约金比例}</span>。</p>
+        <p><strong>第六条 管辖约定：</strong>争议由 <span style="background:#fef3c7;padding:1px 4px;border-radius:3px">{管辖法院}</span> 管辖。</p>
+      </div>
+      <div style="margin-top:16px;font-size:12px;color:var(--gray-500)">可变字段：12 个 | 状态：已发布 | 创建人：刘法务 | 最后更新：2024-01-10</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('template-preview')">关闭</button>
+      <button class="btn btn-primary" onclick="hideModal('template-preview');switchPage('create')">从该模板创建合同</button>
+    </div>
+  </div>
+</div>
+
+<!-- 批量导入相对方模态框 -->
+<div class="modal-overlay" id="modal-import-counterparty">
+  <div class="modal" style="width:600px">
+    <div class="modal-header">
+      <span class="modal-title">批量导入相对方</span>
+      <button class="modal-close" onclick="hideModal('import-counterparty')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--gray-50);border-radius:8px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--gray-600)">
+        <strong>模板格式：</strong>Excel (.xlsx) | 必填列：名称、信用代码、联系人、联系电话<br>
+        可选列：法定代表人、行业、企业类型、注册资本、邮箱、地址
+      </div>
+      <div style="border:2px dashed var(--primary);border-radius:10px;padding:30px;text-align:center;background:#eff6ff;cursor:pointer;margin-bottom:16px">
+        <div style="font-size:32px;margin-bottom:8px">📥</div>
+        <div style="font-weight:600;color:var(--primary-dark)">点击上传或拖拽 Excel 文件</div>
+        <div style="font-size:12px;color:var(--gray-500);margin-top:4px">支持 .xlsx / .xls 格式，最大 10MB</div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:14px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">📋 预览导入数据 (5 条)</div>
+        <table>
+          <thead><tr><th>名称</th><th>信用代码</th><th>联系人</th><th>校验</th></tr></thead>
+          <tbody>
+            <tr><td>腾讯科技有限公司</td><td><code>91440300708461136T</code></td><td>陈经理</td><td><span class="tag tag-green">✓ 通过</span></td></tr>
+            <tr><td>比亚迪股份有限公司</td><td><code>91440300MA5DF5J32Q</code></td><td>林经理</td><td><span class="tag tag-green">✓ 通过</span></td></tr>
+            <tr><td>XX 商贸公司</td><td><code>123456789012345678</code></td><td>--</td><td><span class="tag tag-red">✗ 校验位错误</span></td></tr>
+            <tr><td>YY 科技有限公司</td><td><code>91110108MA01XXXXX</code></td><td>王经理</td><td><span class="tag tag-yellow">⚠ 需确认</span></td></tr>
+            <tr><td>ZZ 集团</td><td><code>91310000MA1FLXXXX</code></td><td>赵经理</td><td><span class="tag tag-green">✓ 通过</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('import-counterparty')">取消</button>
+      <button class="btn btn-primary" onclick="importCounterparties()">确认导入 (4/5)</button>
+    </div>
+  </div>
+</div>
+
+
+    <!-- 相对方编辑模态框 -->
+    <div class="modal-overlay" id="modal-edit-counterparty">
+      <div class="modal" style="max-width:560px">
+        <div class="modal-header">
+          <span class="modal-title">编辑相对方</span>
+          <button class="modal-close" onclick="hideModal('edit-counterparty')">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">相对方名称 *</label><input class="form-input" id="edit-cnt-name" value="华为技术有限公司"></div>
+          <div class="form-group"><label class="form-label">信用代码</label><input class="form-input" id="edit-cnt-credit" value="91440300279525188X"></div>
+          <div class="form-group"><label class="form-label">行业</label><select class="form-select" id="edit-cnt-industry"><option>信息技术</option><option>制造业</option><option>服务业</option></select></div>
+          <div class="form-group"><label class="form-label">信用评级</label><select class="form-select" id="edit-cnt-rating"><option>AAA</option><option>AA</option><option>A</option></select></div>
+          <div class="form-group"><label class="form-label">联系人</label><input class="form-input" id="edit-cnt-contact" value="李经理"></div>
+          <div class="form-group"><label class="form-label">联系电话</label><input class="form-input" id="edit-cnt-phone" value="13800138000"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="hideModal('edit-counterparty')">取消</button>
+          <button class="btn btn-primary" onclick="saveCounterpartyEdit()">保存修改</button>
+        </div>
+      </div>
+    </div>
+
+<!-- 相对方详情模态框 -->
+<div class="modal-overlay" id="modal-counterparty-detail">
+  <div class="modal" style="width:700px">
+    <div class="modal-header">
+      <span class="modal-title">相对方详情</span>
+      <button class="modal-close" onclick="hideModal('counterparty-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px">
+        <div><div style="font-size:12px;color:var(--gray-500)">企业名称</div><div style="font-weight:600;margin-top:4px">华为技术有限公司</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">信用代码</div><div style="margin-top:4px"><code>91440300279525188X</code></div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">法定代表人</div><div style="margin-top:4px">任正非</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">行业分类</div><div style="margin-top:4px">信息技术</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">联系人</div><div style="margin-top:4px">王经理</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">联系电话</div><div style="margin-top:4px">0755-2878****</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">企业类型</div><div style="margin-top:4px">民营企业</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">注册资本</div><div style="margin-top:4px">¥ 40,307 万</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">成立日期</div><div style="margin-top:4px">1987-09-15</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">经营范围</div><div style="margin-top:4px;font-size:12px;color:var(--gray-600)">通信设备、信息技术...</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">联系邮箱</div><div style="margin-top:4px">contact@huawei.com</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">注册地址</div><div style="margin-top:4px;font-size:12px;color:var(--gray-600)">深圳市龙岗区坂田华为总部</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">数据来源</div><div style="margin-top:4px"><span class="tag tag-blue">手动录入</span> <span style="font-size:11px;color:var(--gray-400)">核验: 2024-01-10</span></div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">信用评级</div><div style="margin-top:4px"><span class="tag tag-green">A</span></div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">状态</div><div style="margin-top:4px"><span class="tag tag-green">正常</span></div></div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">📊 合作统计</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center">
+          <div><div style="font-size:11px;color:var(--gray-500)">历史合同</div><div style="font-size:20px;font-weight:700;color:var(--primary);margin-top:4px">12 份</div></div>
+          <div><div style="font-size:11px;color:var(--gray-500)">累计金额</div><div style="font-size:20px;font-weight:700;color:var(--gray-900);margin-top:4px">¥ 28.5M</div></div>
+          <div><div style="font-size:11px;color:var(--gray-500)">违约次数</div><div style="font-size:20px;font-weight:700;color:var(--success);margin-top:4px">0</div></div>
+        </div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">📋 近期合同</div>
+        <table>
+          <thead><tr><th>合同编号</th><th>名称</th><th>金额</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td><code>CTR-20240115-0001</code></td><td>服务器采购合同</td><td>¥ 2,500,000</td><td><span class="tag tag-green">执行中</span></td></tr>
+            <tr><td><code>CTR-20231101-0003</code></td><td>网络设备采购</td><td>¥ 3,200,000</td><td><span class="tag tag-gray">已归档</span></td></tr>
+            <tr><td><code>CTR-20230601-0008</code></td><td>IT 维保服务</td><td>¥ 1,800,000</td><td><span class="tag tag-gray">已归档</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('counterparty-detail')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 合同详情：统一为下钻页 page-contract-detail（showContractDetail；showModal 已重定向） -->
+
+<!-- 审批详情模态框 -->
+<div class="modal-overlay" id="modal-approval-detail">
+  <div class="modal" style="width:700px">
+    <div class="modal-header">
+      <span class="modal-title">审批详情</span>
+      <button class="modal-close" onclick="hideModal('approval-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px">
+        <div><div style="font-size:12px;color:var(--gray-500)">合同编号</div><div style="font-weight:600;margin-top:4px">CTR-20240115-0002</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">合同名称</div><div style="font-weight:600;margin-top:4px">网络设备采购合同</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">合同金额</div><div style="font-weight:700;font-size:18px;margin-top:4px;color:var(--gray-900)">¥ 850,000</div></div>
+        <div><div style="font-size:12px;color:var(--gray-500)">匹配流程</div><div style="margin-top:4px"><span class="tag tag-blue">标准流程</span></div></div>
+      </div>
+      <div style="background:var(--gray-50);border-radius:8px;padding:16px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">📋 审批流程</div>
+        <div class="flow-steps" style="margin:0">
+          <div class="flow-step completed"><div class="step-dot">✓</div><div class="step-label">起草</div></div>
+          <div class="flow-step-line completed"></div>
+          <div class="flow-step active"><div class="step-dot">1</div><div class="step-label">部门主管审批</div></div>
+          <div class="flow-step-line"></div>
+          <div class="flow-step"><div class="step-dot">2</div><div class="step-label">法务审核</div></div>
+          <div class="flow-step-line"></div>
+          <div class="flow-step"><div class="step-dot">3</div><div class="step-label">财务审核</div></div>
+          <div class="flow-step-line"></div>
+          <div class="flow-step"><div class="step-dot">4</div><div class="step-label">高管审批</div></div>
+        </div>
+      </div>
+      <div style="background:#fff3cd;border-radius:8px;padding:12px 16px;font-size:13px;color:#92400e">
+        ⚠️ AI 审查提示：该合同存在 1 项中风险条款（预付款比例偏高），建议关注。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('approval-detail')">关闭</button>
+      <button class="btn btn-outline" onclick="hideModal('approval-detail');showApprovalHistory('CTR-20240115-0002')">审批历史</button>
+      <button class="btn btn-primary" onclick="hideModal('approval-detail');showModal('approval')">执行审批</button>
+    </div>
+  </div>
+</div>
+
+<!-- 流程匹配弹窗 -->
+<div class="modal-overlay" id="modal-flow-match">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><span class="modal-title">提交成功 · 流程匹配</span><button class="modal-close" onclick="hideModal('flow-match')">✕</button></div>
+    <div class="modal-body" id="flow-match-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="hideModal('flow-match')">关闭</button>
+      <button class="btn btn-primary" onclick="hideModal('flow-match');switchPage('ai-review')">查看 AI 审查</button>
+    </div>
+  </div>
+</div>

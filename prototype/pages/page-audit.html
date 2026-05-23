@@ -1,0 +1,42 @@
+<div class="page" id="page-audit">
+      <div class="search-bar">
+        <input class="form-input" placeholder="搜索用户/操作..." style="width:200px" id="audit-search">
+        <select class="form-select" id="audit-action-filter">
+          <option value="">全部操作</option>
+          <option value="create">创建</option>
+          <option value="update">修改</option>
+          <option value="delete">删除</option>
+          <option value="approve">审批</option>
+        </select>
+        <select class="form-select">
+          <option value="">全部资源</option>
+          <option value="contract">合同</option>
+          <option value="template">模板</option>
+          <option value="counterparty">相对方</option>
+          <option value="user">用户</option>
+        </select>
+        <button class="btn btn-primary" onclick="filterAuditLog()">🔍 查询</button>
+        <button class="btn btn-outline" onclick="exportAuditLog()">📥 导出日志</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">操作审计日志 <span style="font-weight:400;color:var(--gray-500);font-size:13px" id="audit-log-count">(共 1,256 条)</span></span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>时间</th><th>操作人</th><th>操作</th><th>资源类型</th><th>资源名称</th><th>IP 地址</th><th>状态</th></tr>
+            </thead>
+            <tbody id="audit-log-body">
+              <tr><td>2024-01-15 14:30</td><td>刘法务</td><td><span class="tag tag-green">审批通过</span></td><td>合同</td><td>CTR-20240115-0001</td><td>192.168.1.50</td><td><span class="tag tag-green">成功</span></td></tr>
+              <tr><td>2024-01-15 14:00</td><td>张三</td><td><span class="tag tag-blue">修改</span></td><td>合同</td><td>CTR-20240115-0001</td><td>192.168.1.30</td><td><span class="tag tag-green">成功</span></td></tr>
+              <tr><td>2024-01-15 10:30</td><td>李四</td><td><span class="tag tag-blue">创建</span></td><td>合同</td><td>CTR-20240115-0002</td><td>192.168.1.40</td><td><span class="tag tag-green">成功</span></td></tr>
+              <tr><td>2024-01-15 09:00</td><td>张三</td><td><span class="tag tag-blue">提交审批</span></td><td>合同</td><td>CTR-20240115-0001</td><td>192.168.1.30</td><td><span class="tag tag-green">成功</span></td></tr>
+              <tr><td>2024-01-14 16:30</td><td>管理员</td><td><span class="tag tag-yellow">禁用用户</span></td><td>用户</td><td>赵六 (EMP006)</td><td>192.168.1.10</td><td><span class="tag tag-green">成功</span></td></tr>
+              <tr><td>2024-01-14 15:00</td><td>刘法务</td><td><span class="tag tag-blue">创建模板</span></td><td>模板</td><td>NDA-001</td><td>192.168.1.50</td><td><span class="tag tag-green">成功</span></td></tr>
+              <tr><td>2024-01-14 10:20</td><td>王五</td><td><span class="tag tag-danger">删除合同</span></td><td>合同</td><td>CTR-20231220-0015</td><td>192.168.1.45</td><td><span class="tag tag-red">成功（已软删除）</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,170 @@
+<div class="page" id="page-create">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">新建合同</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="draft-badge" style="display:none"></span>
+            <button class="btn btn-outline btn-sm" onclick="showTour()">💡 操作引导</button>
+            <button class="btn btn-outline btn-sm" id="btn-restore-draft" style="display:none" onclick="recoverDraft()">📂 恢复草稿</button>
+            <button class="btn btn-outline btn-sm" id="btn-clear-draft" style="display:none" onclick="clearDraft();document.getElementById('btn-clear-draft').style.display='none';document.getElementById('btn-restore-draft').style.display='none'">🗑️ 清除草稿</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- 起草方式选择 -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px">
+            <div class="kanban-card create-mode-card" style="text-align:center;border:2px solid var(--primary);cursor:pointer" onclick="selectCreateMode('blank')" data-mode="blank">
+              <div style="font-size:32px;margin-bottom:8px">📝</div>
+              <div style="font-size:14px;font-weight:600">空白起草</div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px">手动填写所有信息</div>
+            </div>
+            <div class="kanban-card create-mode-card" style="text-align:center;cursor:pointer" onclick="selectCreateMode('template')" data-mode="template">
+              <div style="font-size:32px;margin-bottom:8px">📋</div>
+              <div style="font-size:14px;font-weight:600">模板起草</div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px">从标准模板快速创建</div>
+            </div>
+            <div class="kanban-card create-mode-card" style="text-align:center;cursor:pointer" onclick="selectCreateMode('history')" data-mode="history">
+              <div style="font-size:32px;margin-bottom:8px">📚</div>
+              <div style="font-size:14px;font-weight:600">历史引用</div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px">引用已归档合同</div>
+            </div>
+            <div class="kanban-card create-mode-card" style="text-align:center;border:2px dashed var(--primary);cursor:pointer" onclick="selectCreateMode('ai-parse')" data-mode="ai-parse">
+              <div style="font-size:32px;margin-bottom:8px">🤖</div>
+              <div style="font-size:14px;font-weight:600">智能起草</div>
+              <div style="font-size:12px;color:var(--gray-500);margin-top:4px">上传合同AI自动解析</div>
+            </div>
+          </div>
+
+          <!-- 模式状态指示器 -->
+          <div id="create-mode-indicator" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;margin-bottom:16px;font-size:13px;background:#eff6ff;border:1px solid var(--primary-light);color:var(--primary)">
+            <span>📌 当前模式：</span>
+            <span id="mode-indicator-text" style="font-weight:600">空白起草</span>
+            <span id="mode-indicator-detail" style="font-size:12px;color:var(--gray-500)">— 手动填写所有字段</span>
+            <span id="mode-reset-btn" style="display:none;margin-left:auto;font-size:11px;color:var(--danger);cursor:pointer" onclick="resetCreateMode()">✕ 切换模式</span>
+          </div>
+
+          <div style="border-top:1px solid var(--gray-200);padding-top:20px">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">基本信息</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">合同名称 *</label>
+                <input class="form-input" placeholder="请输入合同名称" id="new-contract-title">
+              </div>
+              <div class="form-group">
+                <label class="form-label">合同类型 *</label>
+                <select class="form-select" id="new-contract-type">
+                  <option value="">请选择</option>
+                  <option value="purchase">采购合同</option>
+                  <option value="sales">销售合同</option>
+                  <option value="labor">劳务合同</option>
+                  <option value="nda">保密协议</option>
+                  <option value="cooperation">合作合同</option>
+                  <option value="legal-standard">法务制式合同</option>
+                  <option value="other">其他</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">相对方 *</label>
+                <div style="display:flex;gap:8px">
+                  <div style="position:relative;flex:1">
+                    <input class="form-input" id="new-contract-counterparty" placeholder="搜索或输入相对方名称" oninput="filterCounterparties()" onfocus="showCounterpartyDropdown()" autocomplete="off">
+                    <div id="counterparty-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--gray-300);border-radius:6px;max-height:200px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+                      <div id="counterparty-dropdown-content"></div>
+                      <div style="padding:8px 12px;border-top:1px solid var(--gray-200);display:flex;gap:8px">
+                        <button class="btn btn-outline btn-sm" style="flex:1;font-size:11px" onclick="showNewCounterpartyModal();event.stopPropagation();">+ 新建相对方</button>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="btn btn-outline btn-sm" onclick="showNewCounterpartyModal()">+ 新建</button>
+                </div>
+                <div id="counterparty-credit-info" style="display:none;margin-top:4px;font-size:11px;padding:4px 8px;border-radius:4px"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">合同金额 (元) *</label>
+                <input class="form-input" type="number" placeholder="请输入合同金额" id="new-contract-amount">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">开始日期</label>
+                <input class="form-input" type="date" id="new-contract-start">
+              </div>
+              <div class="form-group">
+                <label class="form-label">结束日期</label>
+                <input class="form-input" type="date" id="new-contract-end">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">合同内容 / 备注</label>
+              <textarea class="form-textarea" placeholder="请输入合同主要内容或备注信息..." id="new-contract-content" style="min-height:120px"></textarea>
+            </div>
+
+            <!-- 模板变量提示区 -->
+            <div id="template-variable-hints" style="display:none;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;margin-top:8px">
+              <div style="font-size:13px;font-weight:600;color:#f59e0b;margin-bottom:6px">⚡ 请填写以下模板变量</div>
+              <div id="template-vars-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+              <div style="font-size:11px;color:var(--gray-500);margin-top:6px">已预填字段（名称、类型）为只读，如需修改请切换至空白起草模式</div>
+            </div>
+
+            <!-- 历史引用提示区 -->
+            <div id="history-ref-note" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:12px 16px;margin-top:8px">
+              <div style="font-size:13px;font-weight:600;color:#2e7d32;margin-bottom:4px">📚 已引用历史合同</div>
+              <div style="font-size:12px;color:var(--gray-600)"><span id="history-ref-contract-no"></span></div>
+              <div style="font-size:12px;color:var(--gray-600);margin-top:4px">💰 合同金额已清空，请根据当前业务重新填写</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">📤 上传合同文件（AI 智能解析）</label>
+              <div id="upload-zone" style="border:2px dashed var(--gray-300);border-radius:10px;padding:24px;text-align:center;color:var(--gray-400);cursor:pointer;transition:all 0.3s" onclick="document.getElementById('file-upload').click()" ondragover="this.style.borderColor='var(--primary)';this.style.background='#eff6ff'" ondragleave="this.style.borderColor='var(--gray-300)';this.style.background=''" ondrop="event.preventDefault();this.style.borderColor='var(--gray-300)';this.style.background='';handleFileDrop(event)">
+                <div style="font-size:28px;margin-bottom:8px">📎</div>
+                <div>点击上传或拖拽文件到此处</div>
+                <div style="font-size:12px;margin-top:4px">支持 PDF / Word / 图片 / 扫描件，单文件最大 50MB，支持批量</div>
+                <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                  <span style="font-size:10px;background:var(--gray-100);padding:2px 8px;border-radius:4px">📄 PDF</span>
+                  <span style="font-size:10px;background:var(--gray-100);padding:2px 8px;border-radius:4px">📝 Word</span>
+                  <span style="font-size:10px;background:var(--gray-100);padding:2px 8px;border-radius:4px">🖼️ 图片</span>
+                  <span style="font-size:10px;background:var(--gray-100);padding:2px 8px;border-radius:4px">📑 扫描件</span>
+                </div>
+                <input type="file" id="file-upload" style="display:none" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.tiff,.bmp" onchange="handleFileSelect(this)">
+              </div>
+              <!-- 上传文件列表 -->
+              <div id="upload-file-list" style="margin-top:8px"></div>
+              <!-- AI 预处理进度（上传后展示） -->
+              <div id="preprocess-panel" style="display:none;background:var(--gray-50);border-radius:10px;padding:16px;margin-top:12px;border:1px solid var(--gray-200)">
+                <div style="font-size:13px;font-weight:600;margin-bottom:12px">🤖 AI 智能预处理</div>
+                <div id="preprocess-steps">
+                  <div class="preprocess-step active" data-step="1">
+                    <span class="step-icon">📝</span>
+                    <span>文本解析</span>
+                    <span class="step-status">进行中...</span>
+                  </div>
+                  <div class="preprocess-step" data-step="2">
+                    <span class="step-icon">📐</span>
+                    <span>版式还原</span>
+                    <span class="step-status">等待中</span>
+                  </div>
+                  <div class="preprocess-step" data-step="3">
+                    <span class="step-icon">🔍</span>
+                    <span>错别字初筛</span>
+                    <span class="step-status">等待中</span>
+                  </div>
+                  <div class="preprocess-step" data-step="4">
+                    <span class="step-icon">📋</span>
+                    <span>格式规整</span>
+                    <span class="step-status">等待中</span>
+                  </div>
+                </div>
+                <div class="progress-bar" style="margin-top:8px"><div id="preprocess-bar" class="progress-fill blue" style="width:0%"></div></div>
+                <div style="font-size:11px;color:var(--gray-500);margin-top:4px">全局进度：<span id="preprocess-pct">0%</span></div>
+              </div>
+              <!-- OCR 状态提示 -->
+              <div id="ocr-status" style="display:none;margin-top:8px;font-size:12px;padding:8px 12px;border-radius:6px"></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+              <button class="btn btn-outline" onclick="saveDraft()">💾 保存草稿</button>
+              <button class="btn btn-primary" onclick="submitContract()">📤 提交审批</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,60 @@
+{
+  "version": "crp-v3.0",
+  "platform_mapping": [
+    {
+      "contract_type": "purchase",
+      "ai_profile_key": "买卖合同",
+      "aliases": [
+        "商品房买卖合同",
+        "仓储合同",
+        "承揽合同"
+      ]
+    },
+    {
+      "contract_type": "sales",
+      "ai_profile_key": "买卖合同",
+      "aliases": [
+        "产品代理销售合同"
+      ],
+      "notes": "销售方视角，侧重价款与交付"
+    },
+    {
+      "contract_type": "labor",
+      "ai_profile_key": "劳动合同",
+      "aliases": [
+        "劳务派遣合同",
+        "竞业限制协议"
+      ]
+    },
+    {
+      "contract_type": "nda",
+      "ai_profile_key": "技术转让合同",
+      "aliases": [
+        "保密协议",
+        "技术开发合同"
+      ]
+    },
+    {
+      "contract_type": "cooperation",
+      "ai_profile_key": "服务合同",
+      "aliases": [
+        "合伙合同",
+        "特许经营合同",
+        "中介合同"
+      ]
+    },
+    {
+      "contract_type": "legal-standard",
+      "ai_profile_key": "服务合同",
+      "aliases": [
+        "法务制式合同"
+      ]
+    },
+    {
+      "contract_type": "other",
+      "ai_profile_key": "服务合同",
+      "aliases": [],
+      "notes": "通用兜底，可人工覆盖 ai_profile_key"
+    }
+  ]
+}

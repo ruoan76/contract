@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "description": "15 风险标签与 CUAD 对照（双轨展示，手工维护）",
+  "items": [
+    { "label_id": "L06", "cuad_codes": ["CUAD-07"], "note": "价款与支付" },
+    { "label_id": "L07", "cuad_codes": ["CUAD-12"], "note": "交付与验收" },
+    { "label_id": "L08", "cuad_codes": ["CUAD-04", "CUAD-13"], "note": "违约责任/赔偿上限" },
+    { "label_id": "L09", "cuad_codes": ["CUAD-01"], "note": "解除与终止" },
+    { "label_id": "L11", "cuad_codes": ["CUAD-19"], "note": "争议解决/管辖" },
+    { "label_id": "L12", "cuad_codes": ["CUAD-15", "CUAD-16"], "note": "知识产权与保密" },
+    { "label_id": "L14", "cuad_codes": [], "note": "文本一致性，无单一 CUAD" }
+  ]
+}

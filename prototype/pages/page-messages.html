@@ -1,0 +1,79 @@
+<div class="page" id="page-messages">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">消息中心 <span style="font-weight:400;color:var(--gray-500);font-size:13px" id="msg-unread-label">(2 条未读)</span></span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select class="form-select" id="msg-type-filter" style="width:140px;font-size:12px" onchange="filterMessages()">
+              <option value="">全部类型</option>
+              <option value="approval">审批通知</option>
+              <option value="ai">AI审查</option>
+              <option value="system">系统通知</option>
+              <option value="warning">预警提醒</option>
+            </select>
+            <select class="form-select" id="msg-status-filter" style="width:100px;font-size:12px" onchange="filterMessages()">
+              <option value="">全部状态</option>
+              <option value="unread">未读</option>
+              <option value="read">已读</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="markAllMessagesRead()">全部标为已读</button>
+          </div>
+        </div>
+        <div class="card-body" style="font-size:13px" id="message-list">
+          <div class="msg-item" data-unread="true" data-type="system" data-contract="CTR-20240112-0007" onclick="openMessageDetail(this)" style="padding:12px;background:#eff6ff;border-left:3px solid var(--primary);margin-bottom:8px;border-radius:4px;cursor:pointer;transition:all 0.15s">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-weight:600">🔔 审批超时提醒</span>
+              <span style="font-size:11px;color:var(--gray-500)">2 分钟前</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600)">CTR-20240112-0007 数据中心租赁合同已超时 48 小时未审批，已自动升级至高管。</div>
+            <div style="margin-top:4px;font-size:11px;color:var(--gray-400);display:flex;justify-content:space-between;align-items:center">
+              <span>来源：系统自动 | 渠道：飞书通知</span>
+              <span class="tag tag-red" style="font-size:10px">未读</span>
+            </div>
+          </div>
+          <div class="msg-item" data-unread="true" data-type="approval" data-contract="CTR-20240115-0002" onclick="openMessageDetail(this)" style="padding:12px;background:#eff6ff;border-left:3px solid var(--primary);margin-bottom:8px;border-radius:4px;cursor:pointer;transition:all 0.15s">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-weight:600">✏️ 新审批待办</span>
+              <span style="font-size:11px;color:var(--gray-500)">15 分钟前</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600)">CTR-20240115-0002 网络设备采购合同提交至您审批。金额 ¥850,000 · 标准流程。</div>
+            <div style="margin-top:4px;font-size:11px;color:var(--gray-400);display:flex;justify-content:space-between;align-items:center">
+              <span>来源：系统自动 | 渠道：飞书卡片 + 企微通知</span>
+              <span class="tag tag-red" style="font-size:10px">未读</span>
+            </div>
+          </div>
+          <div class="msg-item" data-unread="false" data-type="warning" data-contract="CTR-20240108-0011" onclick="openMessageDetail(this)" style="padding:12px;background:#fff;border-left:3px solid var(--gray-200);margin-bottom:8px;border-radius:4px;cursor:pointer;transition:all 0.15s">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-weight:600">📋 合同到期预警</span>
+              <span style="font-size:11px;color:var(--gray-500)">1 小时前</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600)">CTR-20240108-0011 年度安保合同将于 30 天后到期，请评估续签。</div>
+            <div style="margin-top:4px;font-size:11px;color:var(--gray-400);display:flex;justify-content:space-between;align-items:center">
+              <span>来源：系统自动 | 已提醒 2 次</span>
+              <span class="tag tag-gray" style="font-size:10px">已读</span>
+            </div>
+          </div>
+          <div class="msg-item" data-unread="false" data-type="approval" data-contract="CTR-20240111-0008" onclick="openMessageDetail(this)" style="padding:12px;background:#fff;border-left:3px solid var(--gray-200);margin-bottom:8px;border-radius:4px;cursor:pointer;transition:all 0.15s">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-weight:600">✅ 审批通过通知</span>
+              <span style="font-size:11px;color:var(--gray-500)">2 小时前</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600)">CTR-20240111-0008 产品代理销售合同 法务审核已通过，进入财务审核节点。</div>
+            <div style="margin-top:4px;font-size:11px;color:var(--gray-400);display:flex;justify-content:space-between;align-items:center">
+              <span>来源：系统自动</span>
+              <span class="tag tag-gray" style="font-size:10px">已读</span>
+            </div>
+          </div>
+          <div class="msg-item" data-unread="false" data-type="ai" data-contract="CTR-20240115-0001" onclick="openMessageDetail(this)" style="padding:12px;background:#fff;border-left:3px solid var(--gray-200);margin-bottom:8px;border-radius:4px;cursor:pointer;transition:all 0.15s">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-weight:600">🤖 AI审查完成</span>
+              <span style="font-size:11px;color:var(--gray-500)">3 小时前</span>
+            </div>
+            <div style="font-size:12px;color:var(--gray-600)">CTR-20240115-0001 服务器采购合同 AI审查完成，风险评分 65/100（中风险），2 项高风险条款。</div>
+            <div style="margin-top:4px;font-size:11px;color:var(--gray-400);display:flex;justify-content:space-between;align-items:center">
+              <span>来源：AI 引擎 | 模型：Qwen3.6-7B | 耗时：18s</span>
+              <span class="tag tag-gray" style="font-size:10px">已读</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

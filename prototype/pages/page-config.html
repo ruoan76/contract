@@ -1,0 +1,105 @@
+<div class="page" id="page-config">
+      <div class="tabs">
+        <div class="tab active" onclick="switchConfigTab(this, 'thresholds')">金额阈值配置</div>
+        <div class="tab" onclick="switchConfigTab(this, 'approvers')">审批人配置</div>
+      </div>
+
+      <div id="config-thresholds">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">审批金额阈值</span>
+            <button class="btn btn-primary btn-sm" onclick="openConfigAdd()">+ 新增配置</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>合同类型</th><th>金额区间</th><th>匹配流程</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="tag tag-blue">采购合同</span></td>
+                  <td>¥0 - ¥100,000</td>
+                  <td>简易流程（部门主管→法务→用印）</td>
+                  <td><span class="tag tag-green">启用</span></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-blue">采购合同</span></td>
+                  <td>¥100,000 - ¥1,000,000</td>
+                  <td>标准流程（部门主管→法务→财务→高管→用印）</td>
+                  <td><span class="tag tag-green">启用</span></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-blue">采购合同</span></td>
+                  <td>¥1,000,000 以上</td>
+                  <td>特殊流程（+董事会审批）</td>
+                  <td><span class="tag tag-green">启用</span></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-green">销售合同</span></td>
+                  <td>¥0 - ¥500,000</td>
+                  <td>简易流程</td>
+                  <td><span class="tag tag-green">启用</span></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+                <tr>
+                  <td><span class="tag tag-green">销售合同</span></td>
+                  <td>¥500,000 以上</td>
+                  <td>标准流程</td>
+                  <td><span class="tag tag-green">启用</span></td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="config-approvers" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">审批节点人员配置</span>
+            <button class="btn btn-primary btn-sm" onclick="openConfigAdd()">+ 新增配置</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>流程模板</th><th>节点</th><th>审批人类型</th><th>具体值</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>标准流程</td>
+                  <td>部门主管审批</td>
+                  <td><span class="tag tag-gray">dept_head</span></td>
+                  <td>合同创建人所属部门主管</td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>标准流程</td>
+                  <td>法务审核</td>
+                  <td><span class="tag tag-gray">role_code</span></td>
+                  <td>role_legal（法务角色）</td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>标准流程</td>
+                  <td>财务审核</td>
+                  <td><span class="tag tag-gray">role_code</span></td>
+                  <td>role_finance（财务角色）</td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>标准流程</td>
+                  <td>高管审批</td>
+                  <td><span class="tag tag-gray">role_code</span></td>
+                  <td>role_executive（高管角色）</td>
+                  <td><button class="btn btn-outline btn-sm" onclick="openConfigEdit()">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>

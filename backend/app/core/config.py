@@ -1,0 +1,80 @@
+"""
+应用配置
+"""
+from pydantic_settings import BaseSettings
+from typing import List
+
+
+class Settings(BaseSettings):
+    """应用配置"""
+    
+    # 基础配置
+    APP_NAME: str = "合同审批管理平台"
+    APP_VERSION: str = "1.0.0"
+    DEBUG: bool = True
+    ENVIRONMENT: str = "development"
+    
+    # 服务器配置
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+    
+    # 数据库配置
+    DATABASE_URL: str = "mysql+asyncmy://root:password@localhost:3306/contract_db"
+    DATABASE_POOL_SIZE: int = 20
+    DATABASE_MAX_OVERFLOW: int = 10
+    
+    # Redis 配置
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
+    # JWT 配置
+    SECRET_KEY: str = "your-secret-key-change-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 小时
+    
+    # AI 配置
+    AI_MODEL: str = "mlx-community/Qwen3.6-35B-A3B-4bit"
+    AI_REVIEW_MOCK: bool = True
+    AI_BASE_URL: str = "http://localhost:8000/v1"
+    AI_API_KEY: str = "local"
+    AI_TEMPERATURE: float = 0.1
+    AI_MAX_TOKENS: int = 4096
+    
+    # 文件存储配置
+    FILE_STORAGE_PATH: str = "/data/contract-files"
+    MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
+    ALLOWED_FILE_TYPES: List[str] = ["pdf", "doc", "docx", "jpg", "png"]
+    
+    # MinIO 配置（可选）
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin"
+    MINIO_BUCKET: str = "contract-files"
+    
+    # Celery 配置
+    CELERY_BROKER_URL: str = "redis://localhost:6379/1"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
+    
+    # CORS 配置
+    ALLOWED_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:8080",
+    ]
+    
+    # 安全配置
+    BCRYPT_ROUNDS: int = 12
+    PASSWORD_MIN_LENGTH: int = 8
+    
+    # 审批配置
+    DEFAULT_APPROVAL_TIMEOUT_HOURS: int = 24
+    AUTO_APPROVE_ENABLED: bool = False
+    
+    # 日志配置
+    LOG_LEVEL: str = "INFO"
+    LOG_FILE: str = "/data/logs/contract.log"
+    
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+
+settings = Settings()

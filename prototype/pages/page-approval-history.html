@@ -1,0 +1,27 @@
+<div class="page" id="page-approval-history">
+      <div style="margin-bottom:16px">
+        <button class="btn btn-outline btn-sm" onclick="backFromApprovalHistory()">← 返回</button>
+      </div>
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <span class="card-title">审批历史</span>
+          <span class="tag tag-blue" id="approval-history-flow-tag" style="font-size:11px">标准流程</span>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom:20px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:4px" id="approval-history-title">—</div>
+            <div style="font-size:12px;color:var(--gray-500)" id="approval-history-meta">—</div>
+          </div>
+          <div class="flow-steps" id="approval-history-steps"></div>
+          <h3 style="font-size:14px;font-weight:600;margin:20px 0 12px">审批意见记录</h3>
+          <div style="background:var(--gray-50);border-radius:8px;padding:16px">
+            <table>
+              <thead>
+                <tr><th>节点</th><th>审批人</th><th>动作</th><th>意见</th><th>时间</th><th>耗时</th></tr>
+              </thead>
+              <tbody id="approval-history-records"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>

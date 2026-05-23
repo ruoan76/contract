@@ -1,0 +1,228 @@
+{
+  "main": {
+    "id": "855d26c6d5f1b074",
+    "type": "split",
+    "children": [
+      {
+        "id": "7408ec0998882db8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ee13c9e75c07c203",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/plans/design-freeze-improvement-plan.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "design-freeze-improvement-plan"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b0d66e9df67c1084",
+    "type": "split",
+    "children": [
+      {
+        "id": "11a592c9578b97c3",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c0c04b55f79048ac",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "c852c675791f135b",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "4768c4264f7453dc",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "cb8abad09f9e6722",
+    "type": "split",
+    "children": [
+      {
+        "id": "65e6c81cbb54e53e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e82398febee79609",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "README.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "README 的反向链接列表"
+            }
+          },
+          {
+            "id": "ed9cc9f7a5d7fa0a",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "README.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "README 的出链列表"
+            }
+          },
+          {
+            "id": "07dacefa066a2705",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "b90e3dd32d653d16",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "813658c6bf9c492d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "README.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "README 的大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "ee13c9e75c07c203",
+  "lastOpenFiles": [
+    "graphify-out/cache/ast/cec154d7e7d086c91c8de3a06b785af8c5c2f8d3723ba108586ee2cdf8610227.json",
+    "graphify-out/cache/ast/4427fe6a8b548ada98669e1787270e3d7e0c3ba8e646faf0cb00ffd2dafb18f3.json",
+    "graphify-out/cache/ast/d4a51508d435a5b531865fc5632a267ade57f04c02382d1b0d0ebfc44118a3c4.json",
+    "graphify-out/cache/ast/01d44caab1d9b3ff411cf72136a1ff7d3b3df274190bb94abf8ced28ec149abe.json",
+    "graphify-out/cache/ast/8766117dbd968d8653b3b0e795b7094694851a0f9c205164e5e31cf1a1567e02.json",
+    "graphify-out/cache/ast/5b52c54a8a0d4960bded7c6158f440ff597f35bc4c7ded3a7a7429bccabee723.json",
+    "graphify-out/cache/ast/b13087938b751adc974e4f0ed1e299d0307c0ee97fc6c35b4fe1b2a9f40ca315.json",
+    "graphify-out/cache/ast/1c5c29e72efccd51844b9c5a46a7894c99406fbc00d847029fad0d588a377d98.json",
+    "graphify-out/cache/ast/218baaad8dd0f8024989b367768545d97537f917ca4d2db4f9beed1384f30096.json",
+    "graphify-out/cache/ast/e2f10335772e39766ed4adf24a71e7a60f686dde69127f13f7a4feaa51a561f9.json",
+    "graphify-out/cache/ast/a1bfaa75e49c68660cc68c2438b2c6e6ee93b909261e327e9ccceaccf37396a9.json",
+    "docs/plans/frontend-api-integration-checklist.md",
+    "docs/plans/backend-hardening-plan.md",
+    "backend/tests/README.md",
+    "docs/plans/doc-code-alignment-2026-05-23.md",
+    "docs/design/design-review-2026-05-23.md",
+    "contract-diagrams/lifecycle-dataflow.svg",
+    "contract-diagrams/execution-sequence.svg",
+    "contract-diagrams/system-architecture.svg",
+    "docs/design/review-2026-05-23.md",
+    "docs/plans/ai-review-sprint2-plan.md",
+    "docs/plans/ai-review-sprint-plan.md",
+    "docs/plans/prototype-p0-p1-checklist.md",
+    "backend/seeds/ai_review/README.md",
+    "backend/seeds/ai_review/SOURCE.md",
+    "docs/reference/contract-review-pro-seeds.md",
+    "docs/archive/README.md",
+    "docs/reference/README.md",
+    "docs/design/README.md",
+    "docs/README.md",
+    "docs/archive/review-design-audit-report.md",
+    "docs/archive/prototype-review.md",
+    "docs/archive/prototype-review-comprehensive.md",
+    "docs/archive/prototype-completeness-audit.md",
+    "docs/archive/p0-p1-completion-report.md",
+    "docs/archive/design-alignment-report.md",
+    "docs/archive/design-alignment-audit.md",
+    "docs/archive/deep-completeness-audit.md",
+    "docs/archive/create-page-analysis.md"
+  ]
+}

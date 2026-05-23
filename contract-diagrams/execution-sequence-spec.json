@@ -1,0 +1,60 @@
+{
+  "title": "合同审批平台 — 执行序列",
+  "classification": "Confidential",
+  "version": "1.0",
+  "date": "2026-05-23",
+  "author": "Sisyphus",
+  "page": "A2-landscape",
+  "zones": [
+    {"id": "default", "label": "", "color": "internal", "x": 10, "y": 0, "w": 2300, "h": 1600}
+  ],
+  "nodes": [
+    {"id": "user", "zone": "default", "icon": "azure/general/Users", "label": "起草人", "x": 30, "y": 10, "w": 44, "h": 40},
+    {"id": "nginx", "zone": "default", "icon": "cisco/LoadBalancer", "label": "Nginx", "x": 230, "y": 10, "w": 40, "h": 40},
+    {"id": "api", "zone": "default", "icon": "k8s/Pod", "label": "FastAPI", "x": 430, "y": 10, "w": 44, "h": 40},
+    {"id": "db", "zone": "default", "icon": "aws/db/RDS", "label": "MySQL", "x": 630, "y": 10, "w": 44, "h": 40},
+    {"id": "celery", "zone": "default", "icon": "k8s/Deployment", "label": "Celery", "x": 830, "y": 10, "w": 44, "h": 40},
+    {"id": "ai", "zone": "default", "icon": "azure/ai/OpenAI", "label": "Qwen3.6", "x": 1030, "y": 10, "w": 44, "h": 40},
+    {"id": "approval", "zone": "default", "icon": "k8s/Service", "label": "审批流", "x": 1230, "y": 10, "w": 44, "h": 40},
+    {"id": "seal", "zone": "default", "icon": "k8s/Service", "label": "用印", "x": 1430, "y": 10, "w": 44, "h": 40},
+    {"id": "archive", "zone": "default", "icon": "aws/storage/S3", "label": "归档", "x": 1630, "y": 10, "w": 44, "h": 40}
+  ],
+  "edges": [
+    {"from": "user", "to": "nginx", "label": "1. POST /contracts (起草)", "step": 1, "exit": [0, 0.5], "entry": [0, 0.5]},
+    {"from": "nginx", "to": "api", "label": "2. proxy :8000", "step": 2, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "api", "to": "db", "label": "3. INSERT contracts", "step": 3, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "db", "to": "api", "label": "4. return Contract", "step": 4, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "api", "to": "user", "label": "5. 201 Created (contract_id)", "step": 5, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "user", "to": "api", "label": "6. POST /ai-review/review", "step": 6, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "api", "to": "db", "label": "7. INSERT ai_reviews", "step": 7, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "db", "to": "api", "label": "8. review_id=REV-XX", "step": 8, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "api", "to": "celery", "label": "9. BackgroundTask _execute_review", "step": 9, "exit": [1, 0.5], "entry": [0, 0.5], "dashed": true},
+    {"from": "api", "to": "user", "label": "10. 200 OK (review_id)", "step": 10, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "celery", "to": "db", "label": "11. SELECT content", "step": 11, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "celery", "to": "ai", "label": "12. TextExtractor→ClauseParser→LLM", "step": 12, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "ai", "to": "celery", "label": "13. review result (clause+violation)", "step": 13, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "celery", "to": "db", "label": "14. UPDATE ai_reviews reviewed", "step": 14, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "user", "to": "api", "label": "15. GET /ai-review/{id}/result (poll)", "step": 15, "exit": [1, 0.5], "entry": [0, 0.5], "dashed": true},
+    {"from": "api", "to": "db", "label": "16. SELECT ai_reviews", "step": 16, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "db", "to": "api", "label": "17. review_data JSON", "step": 17, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "api", "to": "user", "label": "18. risk_level + recommendation", "step": 18, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "user", "to": "approval", "label": "19. POST /approvals/submit", "step": 19, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "approval", "to": "db", "label": "20. INSERT approval_flows + UPDATE status", "step": 20, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "db", "to": "approval", "label": "21. flow_id", "step": 21, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "approval", "to": "user", "label": "22. next_approvers", "step": 22, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "user", "to": "approval", "label": "23. POST /{id}/approve (action)", "step": 23, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "approval", "to": "db", "label": "24. INSERT approval_steps + UPDATE step", "step": 24, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "db", "to": "approval", "label": "25. all approved?", "step": 25, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "approval", "to": "user", "label": "26. 审批成功", "step": 26, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "user", "to": "seal", "label": "27. POST /seals (用印申请)", "step": 27, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "seal", "to": "db", "label": "28. INSERT seal_records", "step": 28, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "seal", "to": "user", "label": "29. seal_record_id", "step": 29, "exit": [0, 0.5], "entry": [1, 0.5]},
+    {"from": "user", "to": "archive", "label": "30. POST /archives (归档)", "step": 30, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "archive", "to": "db", "label": "31. UPDATE contracts + ledger refresh", "step": 31, "exit": [1, 0.5], "entry": [0, 0.5]},
+    {"from": "db", "to": "archive", "label": "32. OK", "step": 32, "exit": [0, 0.5], "entry": [1, 0.5]}
+  ],
+  "legend": [
+    {"kind": "line", "style": "solid", "meaning": "Synchronous API / DB call"},
+    {"kind": "line", "style": "dashed", "meaning": "Async / polling"}
+  ]
+}
