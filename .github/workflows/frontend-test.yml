@@ -98,9 +98,14 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          npm run dev &
+          npm run build
+          npm run preview -- --host 127.0.0.1 --port 8080 &
           for i in $(seq 1 30); do
             curl -sf http://127.0.0.1:8080 >/dev/null && break
             sleep 2
           done
+          if ! curl -sf http://127.0.0.1:8080 >/dev/null; then
+            echo "Frontend preview 未在 :8080 就绪"
+            exit 1
+          fi
           npm run test:e2e -- --grep "DEMO-0[1-5]"
