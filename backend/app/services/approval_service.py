@@ -262,6 +262,10 @@ async def submit_approval(
         detail={"username": username, "resource_name": contract.title},
     )
 
+    from app.services.notification_events import notify_approval_pending
+
+    await notify_approval_pending(db, approver_id, contract.id, contract.title)
+
     await db.refresh(flow)
     return flow
 
@@ -316,6 +320,25 @@ async def approve_step(
         .limit(1)
     )
     step_record = pending_result.scalar_one_or_none()
+
+    from app.models.contract import Role
+
+    role_row = await db.execute(
+        select(Role.code)
+        .join(User, User.role_id == Role.id)
+        .where(User.id == user_id)
+    )
+    actor_role = role_row.scalar_one_or_none()
+
+    if action == "approve" and step_record and step_record.approver_id and actor_role is not None:
+        required_role = NODE_TO_ROLE_CODE.get(current_node["node_id"])
+        allowed = (
+            step_record.approver_id == user_id
+            or actor_role == "admin"
+            or (required_role and actor_role == required_role)
+        )
+        if not allowed:
+            raise HTTPException(status_code=403, detail="非当前步骤审批人，无权操作")
 
     if step_record:
         step_record.approver_id = user_id
@@ -386,6 +409,18 @@ async def approve_step(
                         status="pending",
                         start_time=datetime.now(timezone.utc),
                     )
+                )
+                from app.services.notification_events import notify_approval_pending
+
+                contract_result2 = await db.execute(
+                    select(Contract).where(Contract.id == flow.contract_id)
+                )
+                c2 = contract_result2.scalar_one_or_none()
+                await notify_approval_pending(
+                    db,
+                    next_approver_id,
+                    flow.contract_id,
+                    c2.title if c2 else f"#{flow.contract_id}",
                 )
 
     elif action == "reject":

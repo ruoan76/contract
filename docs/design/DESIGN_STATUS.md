@@ -1,6 +1,6 @@
 # 设计状态 — 单一真相源（DESIGN STATUS）
 
-> **版本**：0.6.0 | **日期**：2026-05-19 | **阶段**：设计冻结 + 后端 V1 完善 DoD 达标  
+> **版本**：1.0.0-final | **日期**：2026-05-19 | **阶段**：V1 全路线交付（17/17 侧栏 + Stretch 基线）  
 > **维护规则**：任何影响范围/页面/状态/流程的变更，须更新本文版本号与变更日志。  
 > **执行方案**：[design-freeze-improvement-plan.md](../plans/design-freeze-improvement-plan.md) V1.1
 
@@ -10,6 +10,11 @@
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
+| 1.0.0-final | 2026-05-19 | V1 全路线：17/17 页、通知事件、模板/条款比对 MVP、E2E CI |
+| 1.0.0 | 2026-05-19 | Vue3 Phase 3：review-history、列表分页筛选、高管角色、审批历史时间线、Playwright CI |
+| 0.9.0 | 2026-05-19 | Vue3 Phase 2：messages/audit/users、D10 详情、AI 报告、Playwright E2E |
+| 0.8.0 | 2026-05-19 | Vue3 前端启动：Vite+Element Plus；DEMO-01~05 页面；Docker/CI |
+| 0.7.0 | 2026-05-19 | V1 联调就绪：原型 api 层 + DEMO-01~05 实机；MySQL IT 10/10；GitHub CI；Vue3 延后 V1.1 |
 | 0.6.0 | 2026-05-19 | 后端：Phase A–D 完成；165 pytest + 10 integration；RBAC/OpenAPI 就绪 |
 | 0.5.3 | 2026-05-19 | 原型：P0/P1/P2 主路径闭环；合同详情统一为下钻页（D10）；严格权限开关 |
 | 0.5.2 | 2026-05-18 | AI 种子落地：`backend/seeds/ai_review/` + import 脚本与 generated JSON |
@@ -45,7 +50,7 @@
 
 **后端实现度（2026-05-19）：** Sprint 0–5 + Phase A–D 完成；`backend/` 约 **85% V1 功能**（RBAC、Alembic、集成测、OpenAPI 已就绪；Stretch：MinIO/Celery/通知事件）。
 
-**前端：** `frontend/` Vue3 工程未启动；联调以 `prototype/` + `backend/openapi.json` 为准。
+**前端：** `frontend/` Vue3 **V1 完成**（17/17 侧栏实装含 templates/clause-compare MVP）；`prototype/` 冻结为设计参考。
 
 **AI 范围**：`ai-review-design.md` = 开发蓝图（含 contract-review-pro V3.0 结合 §2.3）；种子数据见 `reference/contract-review-pro-seeds.md`；V1 原型 = 报告 + 置信度 + 误报漏报。
 
@@ -158,7 +163,7 @@ MySQL 8 · Redis 7 · MinIO · FastAPI · Vue3（规划）· Qwen（规划）
 | Phase B 原型 P0 | ✅ 已完成 |
 | Phase D 交接文档 | ✅ 已完成 |
 | Phase C 预评审材料 | ✅ 已完成（design-freeze-pre-review.md） |
-| Phase C 正式会签字 | ⏳ 待办（design-freeze-confirmation.md） |
+| Phase C 正式会签字 | 材料就绪，待四方现场签字（见 design-freeze-confirmation.md） |
 
 ---
 

@@ -658,11 +658,32 @@ async def save_contract_upload(
         raise BusinessError(f"Contract {contract_id} not found")
 
     file_hash = hashlib.sha256(content).hexdigest()
-    storage_dir = os.path.join(settings.FILE_STORAGE_PATH, "contracts", contract.contract_no)
-    os.makedirs(storage_dir, exist_ok=True)
-    local_path = os.path.join(storage_dir, filename)
-    with open(local_path, "wb") as f:
-        f.write(content)
+
+    if settings.FILE_STORAGE == "minio":
+        from app.utils.storage import get_storage
+        from io import BytesIO
+
+        storage = get_storage()
+        object_name = f"contracts/{contract.contract_no}/{filename}"
+        try:
+            await storage.ensure_bucket()
+            await storage._run_in_executor(
+                storage.client.put_object,
+                storage.bucket,
+                object_name,
+                BytesIO(content),
+                len(content),
+                content_type=content_type or "application/octet-stream",
+            )
+            local_path = f"minio://{storage.bucket}/{object_name}"
+        except Exception as exc:
+            raise BusinessError(f"MinIO 上传失败: {exc}") from exc
+    else:
+        storage_dir = os.path.join(settings.FILE_STORAGE_PATH, "contracts", contract.contract_no)
+        os.makedirs(storage_dir, exist_ok=True)
+        local_path = os.path.join(storage_dir, filename)
+        with open(local_path, "wb") as f:
+            f.write(content)
 
     ver_result = await db.execute(
         select(ContractVersion)

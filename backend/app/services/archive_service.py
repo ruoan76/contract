@@ -68,6 +68,10 @@ async def archive_contract(
         from app.services.contract_state import transition_contract
         await transition_contract(session, contract, "archived", approval_status="done")
         await session.flush()
+
+        from app.services.notification_events import notify_archived
+
+        await notify_archived(session, contract.creator_id, contract.id, location)
         
         await session.refresh(contract)
         

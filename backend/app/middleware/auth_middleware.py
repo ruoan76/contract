@@ -18,6 +18,7 @@ from app.core.config import settings
 PUBLIC_PATHS = {
     "/health",
     "/api/v1/auth/login",
+    "/api/v1/system/login",
     "/docs",
     "/openapi.json",
     "/redoc",

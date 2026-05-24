@@ -161,6 +161,58 @@ contract/
 
 > **设计真相源**：[docs/design/DESIGN_STATUS.md](docs/design/DESIGN_STATUS.md) | 文档索引：[docs/README.md](docs/README.md) | 流程：[docs/design/workflow-vs-review.md](docs/design/workflow-vs-review.md)
 
+## 本地快速启动（V1 Runbook）
+
+### Seed 用户（密码均为 `123456`）
+
+| 角色 | 用户名 | 典型页面 |
+|------|--------|----------|
+| 起草人 | drafter1 | 新建合同、合同列表 |
+| 部门主管 | approver1 | 待办审批 |
+| 法务 | legal1 | 评审工作台、审查报告 |
+| 财务 | finance1 | 评审工作台 |
+| 高管 | executive1 | 评审工作台 |
+| 管理员 | admin | 配置、用印确认、模板 |
+
+### 方式 A：开发模式（推荐）
+
+```bash
+# 1. 数据库
+docker compose up -d mysql
+cd backend
+cp ../.env.example .env   # 按需修改 DATABASE_URL
+alembic upgrade head && python scripts/seed_dev.py
+
+# 2. 后端 :8000
+uvicorn main:app --reload
+
+# 3. 前端 :8080（代理 /api → :8000）
+cd ../frontend && npm ci && npm run dev
+```
+
+### 方式 B：Docker 全栈
+
+```bash
+cp .env.example .env
+docker compose up -d    # mysql + redis + minio + backend + frontend + nginx
+docker compose exec backend alembic upgrade head
+docker compose exec backend python scripts/seed_dev.py
+# 浏览器 http://localhost 或 http://localhost:8080
+```
+
+### 回归验证
+
+```bash
+node prototype/_api-demo-test.mjs          # DEMO-01~05 API 契约
+cd backend && pytest tests/ -m "not integration"   # 158 单测
+cd frontend && npm run typecheck && npm run build
+cd frontend && npm run test:e2e              # 需 backend + seed
+```
+
+Stretch 开关见 [.env.example](.env.example)：`FILE_STORAGE=minio`、`AI_REVIEW_MOCK=0`。
+
+详见 [development-kickoff.md](docs/design/development-kickoff.md)、[frontend-api-integration-checklist.md](docs/plans/frontend-api-integration-checklist.md)、[v1.1-roadmap.md](docs/plans/v1.1-roadmap.md)。
+
 ## 📊 数据库设计（概要）
 
 | 表名 | 说明 | 核心字段 |

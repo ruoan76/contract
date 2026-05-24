@@ -18,6 +18,7 @@ from app.models.contract import (
 )
 from app.models.counterparty import Counterparty
 from app.models.review import ReviewSession, ReviewOpinion, Notification
+from app.models.template import ContractTemplate
 
 __all__ = [
     "Contract",
@@ -36,4 +37,5 @@ __all__ = [
     "AIReview",
     "RiskAlert",
     "AuditLog",
+    "ContractTemplate",
 ]

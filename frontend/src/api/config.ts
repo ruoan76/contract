@@ -1,0 +1,38 @@
+import { client } from './client'
+
+/** API 与认证配置 */
+export const API_CONFIG = {
+  baseUrl: import.meta.env.VITE_API_BASE_URL || '',
+  password: '123456',
+  roleUsers: {
+    drafter: 'drafter1',
+    approver: 'approver1',
+    legal: 'legal1',
+    finance: 'finance1',
+    executive: 'executive1',
+    admin: 'admin',
+    archivist: 'admin',
+  } as Record<string, string>,
+}
+
+export const ROLE_LABELS: Record<string, string> = {
+  drafter: '起草人',
+  approver: '部门主管',
+  legal: '法务专员',
+  finance: '财务专员',
+  executive: '高管',
+  archivist: '档案管理员',
+  admin: '系统管理员',
+}
+
+export interface ThresholdsConfig {
+  simple_max: number
+  standard_max: number
+  board_threshold: number
+}
+
+export const configApi = {
+  getThresholds: () => client.get<ThresholdsConfig>('/api/v1/config/thresholds'),
+  updateThresholds: (body: Partial<ThresholdsConfig>) =>
+    client.put<ThresholdsConfig>('/api/v1/config/thresholds', body),
+}

@@ -22,6 +22,8 @@ from app.api.v1 import (
     audit,
     statistics,
     system,
+    templates,
+    clause_compare,
 )
 from app.utils.exceptions import register_exception_handlers
 from app.middleware.auth_middleware import setup_auth_middleware
@@ -111,6 +113,8 @@ app.include_router(archives.router, prefix="/api/v1/archives", tags=["归档台�
 app.include_router(audit.router, prefix="/api/v1/audit", tags=["审计日志"])
 app.include_router(statistics.router, prefix="/api/v1/statistics", tags=["数据统计"])
 app.include_router(system.router, prefix="/api/v1/system", tags=["系统管理"])
+app.include_router(templates.router, prefix="/api/v1/templates", tags=["模板管理"])
+app.include_router(clause_compare.router, prefix="/api/v1/clause-compare", tags=["条款比对"])
 
 
 @app.get("/health")

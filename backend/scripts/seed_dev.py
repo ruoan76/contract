@@ -81,6 +81,24 @@ async def seed() -> None:
             )
 
         await session.commit()
+
+        from app.models.template import ContractTemplate
+
+        tpl_exists = await session.scalar(
+            select(ContractTemplate).where(ContractTemplate.name == "标准采购合同模板")
+        )
+        if not tpl_exists:
+            session.add(
+                ContractTemplate(
+                    name="标准采购合同模板",
+                    category="purchase",
+                    content="甲方：___\n乙方：___\n采购标的及金额以附件为准。",
+                    status="published",
+                    version=1,
+                )
+            )
+            await session.commit()
+
         print("种子数据写入完成。默认密码: 123456")
 
     await engine.dispose()

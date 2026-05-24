@@ -309,6 +309,9 @@ async def return_for_revision(
         )
     )
     await transition_contract(db, contract, "draft", approval_status="returned")
+    from app.services.notification_events import notify_review_returned
+
+    await notify_review_returned(db, contract.creator_id, contract_id, comment)
     await log_action(
         db=db,
         user_id=user_id,

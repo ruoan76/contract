@@ -65,6 +65,10 @@ async def create_seal_request(
         session.add(seal_record)
         await session.flush()
         
+        from app.services.notification_events import notify_seal_pending
+
+        await notify_seal_pending(session, contract_id)
+
         await session.refresh(seal_record)
         
         payload = {

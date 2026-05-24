@@ -1,13 +1,18 @@
 # Graph Report - contract  (2026-05-24)
 
 ## Corpus Check
-- 187 files · ~190,736 words
+- 265 files · ~212,270 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4067 nodes · 5259 edges · 309 communities (279 shown, 30 thin omitted)
-- Extraction: 85% EXTRACTED · 15% INFERRED · 0% AMBIGUOUS · INFERRED: 771 edges (avg confidence: 0.68)
+- 4312 nodes · 5533 edges · 365 communities (318 shown, 47 thin omitted)
+- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 797 edges (avg confidence: 0.69)
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `bc6f7c4f`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_Community 0|Community 0]]
@@ -286,11 +291,7 @@
 - [[_COMMUNITY_Community 288|Community 288]]
 - [[_COMMUNITY_Community 289|Community 289]]
 - [[_COMMUNITY_Community 290|Community 290]]
-- [[_COMMUNITY_Community 291|Community 291]]
-- [[_COMMUNITY_Community 292|Community 292]]
 - [[_COMMUNITY_Community 293|Community 293]]
-- [[_COMMUNITY_Community 294|Community 294]]
-- [[_COMMUNITY_Community 295|Community 295]]
 - [[_COMMUNITY_Community 296|Community 296]]
 - [[_COMMUNITY_Community 297|Community 297]]
 - [[_COMMUNITY_Community 298|Community 298]]
@@ -299,47 +300,79 @@
 - [[_COMMUNITY_Community 301|Community 301]]
 - [[_COMMUNITY_Community 302|Community 302]]
 - [[_COMMUNITY_Community 303|Community 303]]
-- [[_COMMUNITY_Community 305|Community 305]]
 - [[_COMMUNITY_Community 306|Community 306]]
 - [[_COMMUNITY_Community 307|Community 307]]
+- [[_COMMUNITY_Community 309|Community 309]]
+- [[_COMMUNITY_Community 310|Community 310]]
+- [[_COMMUNITY_Community 311|Community 311]]
+- [[_COMMUNITY_Community 312|Community 312]]
+- [[_COMMUNITY_Community 313|Community 313]]
+- [[_COMMUNITY_Community 314|Community 314]]
+- [[_COMMUNITY_Community 315|Community 315]]
+- [[_COMMUNITY_Community 316|Community 316]]
+- [[_COMMUNITY_Community 317|Community 317]]
+- [[_COMMUNITY_Community 318|Community 318]]
+- [[_COMMUNITY_Community 320|Community 320]]
+- [[_COMMUNITY_Community 321|Community 321]]
+- [[_COMMUNITY_Community 322|Community 322]]
+- [[_COMMUNITY_Community 324|Community 324]]
+- [[_COMMUNITY_Community 325|Community 325]]
+- [[_COMMUNITY_Community 326|Community 326]]
+- [[_COMMUNITY_Community 345|Community 345]]
+- [[_COMMUNITY_Community 346|Community 346]]
+- [[_COMMUNITY_Community 347|Community 347]]
+- [[_COMMUNITY_Community 348|Community 348]]
+- [[_COMMUNITY_Community 349|Community 349]]
+- [[_COMMUNITY_Community 351|Community 351]]
+- [[_COMMUNITY_Community 352|Community 352]]
+- [[_COMMUNITY_Community 353|Community 353]]
+- [[_COMMUNITY_Community 354|Community 354]]
+- [[_COMMUNITY_Community 355|Community 355]]
+- [[_COMMUNITY_Community 356|Community 356]]
+- [[_COMMUNITY_Community 357|Community 357]]
+- [[_COMMUNITY_Community 358|Community 358]]
+- [[_COMMUNITY_Community 359|Community 359]]
+- [[_COMMUNITY_Community 360|Community 360]]
+- [[_COMMUNITY_Community 361|Community 361]]
+- [[_COMMUNITY_Community 362|Community 362]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `showToast()` - 177 edges
-2. `Contract` - 48 edges
+1. `showToast()` - 179 edges
+2. `Contract` - 49 edges
 3. `create_contract()` - 41 edges
 4. `ApprovalFlow` - 31 edges
 5. `Role` - 30 edges
-6. `ApprovalStep` - 28 edges
-7. `AIReviewEngine` - 27 edges
-8. `client_for_user()` - 27 edges
+6. `client_for_user()` - 30 edges
+7. `ApprovalStep` - 28 edges
+8. `AIReviewEngine` - 27 edges
 9. `switchPage()` - 25 edges
-10. `submit_approval()` - 23 edges
+10. `submit_approval()` - 24 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `create_contract()` --calls--> `Contract`  [INFERRED]
   backend/app/api/v1/contracts.py → backend/app/models/contract.py
 - `submit_approval()` --calls--> `ApprovalFlow`  [INFERRED]
   backend/app/api/v1/approvals.py → backend/app/models/contract.py
+- `pending()` --calls--> `get_pending_reviews()`  [INFERRED]
+  backend/app/api/v1/reviews.py → backend/app/services/review_service.py
+- `workspace()` --calls--> `get_review_workspace()`  [INFERRED]
+  backend/app/api/v1/reviews.py → backend/app/services/review_service.py
 - `create()` --calls--> `create_contract()`  [INFERRED]
   backend/app/api/v1/contracts.py → backend/app/services/contract_service.py
-- `addAnnotation()` --calls--> `showToast()`  [INFERRED]
-  prototype/js/02-app.js → prototype/js/00-core.js
-- `applySuggestion()` --calls--> `showToast()`  [INFERRED]
-  prototype/js/02-app.js → prototype/js/00-core.js
 
-## Communities (309 total, 30 thin omitted)
+## Communities (365 total, 47 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.02
-Nodes (113): showToast(), aiAutoFill(), aiFillMissingClauses(), applyTemplateClause(), batchAcceptAll(), batchApplyConflictClauses(), batchApplyTemplate(), delegateApproval() (+105 more)
+Nodes (107): saveState(), acceptSuggestion(), addAnnotation(), aiBatchComplete(), aiFillClause(), aiFillMissingClauses(), aiQaAsk(), aiQaQuick() (+99 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.03
-Nodes (88): acceptRevision(), acceptSuggestion(), addAnnotation(), addNewFinding(), aiBatchComplete(), aiFillClause(), aiQaAsk(), aiQaQuick() (+80 more)
+Nodes (88): acceptRevision(), addNewFinding(), aiBatchComplete(), aiFillClause(), aiQaAsk(), aiQaQuick(), aiReReview(), applyStandardClause() (+80 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.13
-Nodes (20): renderCounterparties(), renderTemplates(), confirmSeal(), createCounterparty(), createTemplate(), hideModal(), importCounterparties(), saveConfigEdit() (+12 more)
+Cohesion: 0.04
+Nodes (67): renderCounterparties(), renderTemplates(), renderUsers(), showToast(), acceptSuggestion(), addAnnotation(), aiAutoFill(), aiFillMissingClauses() (+59 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.04
@@ -386,8 +419,8 @@ Cohesion: 0.07
 Nodes (27): 2.1 技术选型, 2.2 集成方式, 3.1 卡片结构, 4.1 卡片结构, 5.1 飞书回调, 5.2 企微回调, 6.1 推送逻辑, 7.1 页面设计 (+19 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.12
-Nodes (17): AIReviewRequest, AIReviewResult, ApprovalAction, ApprovalEfficiency, ApprovalFlowResponse, ApprovalNodeResponse, ApprovalSubmit, Config (+9 more)
+Cohesion: 0.14
+Nodes (15): AIReviewRequest, AIReviewResult, ApprovalAction, ApprovalEfficiency, ApprovalFlowResponse, ApprovalNodeResponse, ApprovalSubmit, Config (+7 more)
 
 ### Community 15 - "Community 15"
 Cohesion: 0.08
@@ -398,16 +431,16 @@ Cohesion: 0.13
 Nodes (25): applyWorkspaceFlowTabs(), stopWorkspaceAutoSave(), backFromApprovalHistory(), backFromContractDetail(), confirmAIReview(), formatContractAmount(), getActiveContract(), goArchivesExpiring() (+17 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.16
-Nodes (17): AIReviewEngine, DimensionRequest, DimensionScore, Issue, 执行单个维度的 LLM 审查。          Args:             request: 维度审查请求          Returns:, 构建单个维度审查的 prompt。          Args:             request: 维度审查请求          Returns:, 调用 LLM 获取审查结果。          Args:             prompt: 提示词          Returns:, Clause (+9 more)
+Cohesion: 0.12
+Nodes (27): AIReviewEngine, ClauseReview, _compute_clause_risk_score(), DimensionRequest, DimensionScore, get_engine(), Issue, 执行多维度合同审查。          Args:             full_text: 合同全文             clauses: 已切分的条 (+19 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.06
-Nodes (28): addAuditLog(), DEFAULT_BLACKLIST, editDraftContract(), exportAuditLog(), getBlacklistNames(), isBlacklisted(), normalizeContract(), renderUsers() (+20 more)
+Cohesion: 0.08
+Nodes (20): addAuditLog(), DEFAULT_BLACKLIST, editDraftContract(), exportAuditLog(), getBlacklistNames(), isBlacklisted(), normalizeContract(), stopDraftAutoSave() (+12 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.11
-Nodes (18): 1. AI 合同审查（重点）, 2. 审批流程, 3. 用印管控, 4. 风险预警, code:block1 (┌───────────────────────────────────────────────────────────), code:block2 (contract/), V1 MVP（核心主线，8 周）, V2 增强（12 周） (+10 more)
+Cohesion: 0.07
+Nodes (28): 1. AI 合同审查（重点）, 2. 审批流程, 3. 用印管控, 4. 风险预警, code:block1 (┌───────────────────────────────────────────────────────────), code:block2 (contract/), code:bash (# 1. 数据库), code:bash (cp .env.example .env) (+20 more)
 
 ### Community 20 - "Community 20"
 Cohesion: 0.11
@@ -454,8 +487,8 @@ Cohesion: 0.15
 Nodes (12): 1. 冻结决策记录, 2. V1 范围, 3. 原型页面清单（20）, 4. 状态与流程, 5. 技术栈（定稿）, 6. 落实进度, 7. 文档索引, 8. 冻结状态 (+4 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.18
-Nodes (10): 1.1 产品定位, 1.2 核心目标, 6.1 V1 包含（核心主线）, 6.2 V1 排除（V2/V3）, 6.3 V1 验证指标, 一、产品定位与目标, 七、需求优先级总览, 八、风险与应对 (+2 more)
+Cohesion: 0.15
+Nodes (12): 1.1 产品定位, 1.2 核心目标, 2.1 角色定义, 2.2 数据权限矩阵, 9.1 术语表, 9.2 参考文档, 一、产品定位与目标, 七、需求优先级总览 (+4 more)
 
 ### Community 32 - "Community 32"
 Cohesion: 0.15
@@ -486,8 +519,8 @@ Cohesion: 0.17
 Nodes (11): 1. AI 审查知识库基座（P0）, 2. 审批规则配置化（P0）, 3. 状态看板与到期提醒（P0）, 4. 数据库企业级预留（P0）, 5. API 接口扩展（P1）, 6. 用户故事与验收标准补充（P1）, 改进效果评估, 改进项总览 (+3 more)
 
 ### Community 39 - "Community 39"
-Cohesion: 0.09
-Nodes (25): saveState(), batchAcceptAllSuggestions(), changeContractPage(), confirmApproval(), confirmFinding(), deleteContract(), filterContracts(), filterContractsByDate() (+17 more)
+Cohesion: 0.06
+Nodes (33): aiReviewApi, AiReviewSummary, approvalsApi, archivesApi, auditApi, AuditLogItem, authApi, cache (+25 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.18
@@ -567,7 +600,7 @@ Nodes (8): code:block1 (✅ 起草 → ✅ 提交 → ✅ AI初筛 → ✅ 法�
 
 ### Community 59 - "Community 59"
 Cohesion: 0.22
-Nodes (9): 3.1 合同起草（MVP）, 3.6 用印与签署（MVP）, 三、核心业务模块需求, 功能清单, 功能清单, 用户故事, 用户故事, 验收标准 (+1 more)
+Nodes (9): 3.1 合同起草（MVP）, 3.2 合同模板管理（MVP）, 三、核心业务模块需求, 功能清单, 功能清单, 用户故事, 用户故事, 验收标准 (+1 more)
 
 ### Community 60 - "Community 60"
 Cohesion: 0.14
@@ -762,20 +795,20 @@ Cohesion: 0.08
 Nodes (23): 2.10 评审中心页 vs 设计文档, 2.11 评审工作台页 vs 设计文档, 2.1 合同列表页 vs `contracts` 表, 2.2 新建合同页 vs `contracts` 表, 2.3 相对方管理页 vs `counterparties` 表, 2.4 模板管理页 vs `contract_templates` 表, 2.5 AI 审查报告页 vs `ai_reviews` 表, 2.6 待办审批页 vs 审批流程设计 (+15 more)
 
 ### Community 111 - "Community 111"
-Cohesion: 0.09
-Nodes (17): archive_contract(), get_archive_records(), 归档合同          Args:         contract_id: 合同ID         location: 归档位置         arc, 获取归档记录列表          Args:         filters: 过滤条件         db: 数据库会话（可选）, 获取归档记录列表          Args:         filters: 过滤条件         db: 数据库会话（可选）, 获取归档记录列表          Args:         filters: 过滤条件         db: 数据库会话（可选）, create_contract(), 创建合同          Args:         title: 合同名称         contract_type: 合同类型         coun (+9 more)
+Cohesion: 0.1
+Nodes (13): archive_contract(), get_archive_records(), 获取归档记录列表          Args:         filters: 过滤条件         db: 数据库会话（可选）, 归档合同          Args:         contract_id: 合同ID         location: 归档位置         arc, 获取归档记录列表          Args:         filters: 过滤条件         db: 数据库会话（可选）, 获取归档记录列表          Args:         filters: 过滤条件         db: 数据库会话（可选）, 获取归档记录列表          Args:         filters: 过滤条件         db: 数据库会话（可选）, Archive Service Tests 测试归档服务 (+5 more)
 
 ### Community 112 - "Community 112"
-Cohesion: 0.05
-Nodes (39): Exception, approve_seal(), create_seal_request(), get_seal_records(), 获取用印记录列表          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 获取用印记录列表          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 获取用印记录列表          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 创建用印申请          Args:         contract_id: 合同ID         seal_type: 用印类型（公章|合同章|财 (+31 more)
+Cohesion: 0.08
+Nodes (22): approve_seal(), create_seal_request(), get_seal_records(), 审批用印          Args:         seal_id: 用印记录ID         approved: 是否批准         appro, 获取用印记录列表          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 获取用印记录列表          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 获取用印记录列表          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 获取用印记录列表          Args:         contract_id: 合同ID         db: 数据库会话（可选） (+14 more)
 
 ### Community 115 - "Community 115"
 Cohesion: 0.5
 Nodes (3): notif, rbacToggle, roleSelect
 
 ### Community 117 - "Community 117"
-Cohesion: 0.07
-Nodes (12): Security Service Tests 测试 JWT token、密码哈希、认证服务, get_current_user 依赖测试, create_access_token 测试, get_current_active_user 依赖测试, check_permission 依赖测试, TestCheckPermission, TestCreateAccessToken, TestDecodeToken (+4 more)
+Cohesion: 0.14
+Nodes (27): AIReview, ApprovalFlow, ApprovalStep, AuditLog, ContractLedger, ContractVersion, RiskAlert, SealRecord (+19 more)
 
 ### Community 118 - "Community 118"
 Cohesion: 0.19
@@ -858,8 +891,8 @@ Cohesion: 0.17
 Nodes (11): 1. AI 审查知识库基座（P0）, 2. 审批规则配置化（P0）, 3. 状态看板与到期提醒（P0）, 4. 数据库企业级预留（P0）, 5. API 接口扩展（P1）, 6. 用户故事与验收标准补充（P1）, 改进效果评估, 改进项总览 (+3 more)
 
 ### Community 149 - "Community 149"
-Cohesion: 0.35
-Nodes (10): filter_templates(), label_name_to_id(), main(), normalize_checklists(), normalize_contract_profiles(), normalize_revision_routing(), normalize_risk_labels(), normalize_risk_templates() (+2 more)
+Cohesion: 0.12
+Nodes (21): _classify_section(), parse_clauses(), 将文本按条款标记切分，返回 [(title, content), ...]。      策略：尝试多种正则模式，选取匹配数最多的一个。      Args:, 将长文本切分为独立条款。      Args:         full_text: 完整合同文本         contract_type: 合同类型（可选, 根据标题和内容推断条款类型，并提取风险关键词。      Args:         title: 条款标题         content: 条款正文, _split_into_blocks(), filter_templates(), label_name_to_id() (+13 more)
 
 ### Community 150 - "Community 150"
 Cohesion: 0.18
@@ -927,7 +960,7 @@ Nodes (8): 1. 会议信息（待填）, 2. 文档材料自检, 3. 演示路径�
 
 ### Community 166 - "Community 166"
 Cohesion: 0.13
-Nodes (14): 1. 契约文档（实现必读）, 2. 技术栈（已定稿）, 3. V1 明确不做, 4.1 后端实现进度（2026-05-19）, 4.2 MySQL 本地迁移（Phase A）, 4.3 后端完善进度（Phase A–D）, 4.3 后端完善进度（Phase A 落地中）, 4. 建议迭代顺序 (+6 more)
+Nodes (15): 1. 契约文档（实现必读）, 2. 技术栈（已定稿）, 3. V1 明确不做, 4.1 后端实现进度（2026-05-19）, 4.2 MySQL 本地迁移（Phase A）, 4.3 后端完善进度（Phase A–D）, 4.3 后端完善进度（Phase A 落地中）, 4. 建议迭代顺序 (+7 more)
 
 ### Community 167 - "Community 167"
 Cohesion: 0.22
@@ -935,7 +968,7 @@ Nodes (8): 1. 合同主表 `contracts`, 2. 相对方 `counterparties`, 3. 审批
 
 ### Community 168 - "Community 168"
 Cohesion: 0.22
-Nodes (9): 3.1 合同起草（MVP）, 3.3 相对方管理（MVP）, 三、核心业务模块需求, 功能清单, 功能清单, 用户故事, 用户故事, 验收标准 (+1 more)
+Nodes (9): 3.3 相对方管理（MVP）, 3.6 用印与签署（MVP）, 三、核心业务模块需求, 功能清单, 功能清单, 用户故事, 用户故事, 验收标准 (+1 more)
 
 ### Community 169 - "Community 169"
 Cohesion: 0.22
@@ -1090,8 +1123,8 @@ Cohesion: 0.5
 Nodes (4): 3.2 合同模板管理（MVP）, 功能清单, 用户故事, 验收标准
 
 ### Community 207 - "Community 207"
-Cohesion: 0.15
-Nodes (13): approveItem(), batchApprove(), openConfigAdd(), openConfigEdit(), openCounterpartyEdit(), openUserAdd(), openUserEdit(), showApprovalDetail() (+5 more)
+Cohesion: 0.2
+Nodes (8): 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, upload_contract_file(), Contract Service Tests 测试 contract_service.py 的 CRUD 操作, upload_contract_file 服务测试, TestUploadContractFile
 
 ### Community 208 - "Community 208"
 Cohesion: 0.5
@@ -1118,20 +1151,20 @@ Cohesion: 0.5
 Nodes (4): 3.8 归档与台账（MVP）, 功能清单, 用户故事, 验收标准
 
 ### Community 221 - "Community 221"
-Cohesion: 0.05
-Nodes (42): _call_ai_engine(), execute_contract_review(), 调用 AI 引擎进行合同审查          Args:         contract_content: 合同内容         contract_no, 执行合同 AI 审查任务          Args:         self: Celery task 实例         contract_id: 合同, assert_user_has_role(), get_user_role_code(), RBAC 依赖工厂 — 供 FastAPI Depends 按角色校验。, Notification (+34 more)
+Cohesion: 0.15
+Nodes (11): _call_ai_engine(), execute_contract_review(), 调用 AI 引擎进行合同审查          Args:         contract_content: 合同内容         contract_no, 执行合同 AI 审查任务          Args:         self: Celery task 实例         contract_id: 合同, get_audit_logs(), log_action(), 记录审计日志          Args:         user_id: 用户ID         action: 操作动作         resourc, 获取审计日志列表          Args:         user_id: 用户ID         resource_type: 资源类型（可选） (+3 more)
 
 ### Community 222 - "Community 222"
-Cohesion: 0.11
-Nodes (7): approval_status_after_review_role(), approval_status_for_node(), initial_approval_status(), 提交审批时的初始 approval_status。, 合同状态机迁移单测 — 对齐 contract-status-dictionary.md, TestApprovalStatusHelpers, TestPrimaryPathDictionary
+Cohesion: 0.24
+Nodes (5): approval_status_after_review_role(), approval_status_for_node(), initial_approval_status(), 提交审批时的初始 approval_status。, TestApprovalStatusHelpers
 
 ### Community 223 - "Community 223"
 Cohesion: 0.05
 Nodes (38): 2.1 技术栈选型, 2.2 分层架构, 3.1 表结构完整性, 3.2 状态设计, 4.1 接口覆盖, 4.2 关键问题, 5.1 三种流程, 5.2 退回修订闭环 (+30 more)
 
 ### Community 224 - "Community 224"
-Cohesion: 0.13
-Nodes (29): AIReview, ApprovalFlow, ApprovalStep, AuditLog, ContractLedger, ContractVersion, RiskAlert, SealRecord (+21 more)
+Cohesion: 0.07
+Nodes (12): Security Service Tests 测试 JWT token、密码哈希、认证服务, get_current_user 依赖测试, create_access_token 测试, get_current_active_user 依赖测试, check_permission 依赖测试, TestCheckPermission, TestCreateAccessToken, TestDecodeToken (+4 more)
 
 ### Community 225 - "Community 225"
 Cohesion: 0.06
@@ -1142,24 +1175,24 @@ Cohesion: 0.07
 Nodes (43): BaseModel, AIReviewListResponse, AIReviewRequest, AIReviewResponse, AIReviewResult, AuditLogListResponse, AuditLogResponse, ContractLedgerListResponse (+35 more)
 
 ### Community 227 - "Community 227"
-Cohesion: 0.09
-Nodes (26): _app_error_handler(), AppError, AuthError, BusinessError, ConflictError, FlowError, _http_exception_handler(), NotFoundError (+18 more)
+Cohesion: 0.05
+Nodes (45): _app_error_handler(), AppError, AuthError, BusinessError, ConflictError, FlowError, _http_exception_handler(), NotFoundError (+37 more)
 
 ### Community 228 - "Community 228"
-Cohesion: 0.15
-Nodes (9): 保存合同附件（本地存储 fallback）。, 保存合同附件（本地存储 fallback）。, 保存合同附件（本地存储 fallback）。, save_contract_upload(), submit_revision(), create(), create_contract(), revision() (+1 more)
+Cohesion: 0.11
+Nodes (15): ContractListResponse, list_dashboard_buckets(), 看板三栏：executing / expiring_soon / expired。, 看板三栏：executing / expiring_soon / expired。, 保存合同附件（本地存储 fallback）。, 保存合同附件（本地存储 fallback）。, 保存合同附件（本地存储 fallback）。, save_contract_upload() (+7 more)
 
 ### Community 229 - "Community 229"
-Cohesion: 0.08
-Nodes (28): Contract, approve_step(), 提交合同审批      1. 校验合同状态为 draft     2. 根据 flow_type 查找流程模板节点     3. 创建 approval_flo, 提交合同审批      1. 校验合同状态为 draft     2. 根据 flow_type 查找流程模板节点     3. 创建 approval_flo, 按节点 ID 解析审批人 user_id 与显示名。, 按节点 ID 解析审批人 user_id 与显示名。, 提交合同审批      1. 校验合同状态为 draft     2. 根据 flow_type 查找流程模板节点     3. 创建 approval_flo, 提交合同审批      1. 校验合同状态为 draft     2. 根据 flow_type 查找流程模板节点     3. 创建 approval_flo (+20 more)
+Cohesion: 0.09
+Nodes (25): approve_step(), get_flow_nodes(), get_next_node(), _load_flow_config(), 提交合同审批      1. 校验合同状态为 draft     2. 根据 flow_type 查找流程模板节点     3. 创建 approval_flo, 提交合同审批      1. 校验合同状态为 draft     2. 根据 flow_type 查找流程模板节点     3. 创建 approval_flo, 按节点 ID 解析审批人 user_id 与显示名。, 按节点 ID 解析审批人 user_id 与显示名。 (+17 more)
 
 ### Community 230 - "Community 230"
 Cohesion: 0.07
 Nodes (24): AsyncResult(), CeleryAsyncResult, delay(), get_review_result(), get_review_status(), AI审查服务 - 工作流协调层 注意：此服务是AI审查的orchestrator，不包含审查引擎本身, 获取审查状态          Args:         db: 数据库会话         review_id: 审查ID              Ret, 获取审查状态          Args:         db: 数据库会话         review_id: 审查ID              Ret (+16 more)
 
 ### Community 231 - "Community 231"
-Cohesion: 0.12
-Nodes (9): mock_auth_headers(), TestApprovalAPI, PUT /api/v1/contracts/{id} - 更新合同 API 测试, DELETE /api/v1/contracts/{id} - 删除合同 API 测试, PUT /api/v1/contracts/{id} - 更新合同 API 测试, DELETE /api/v1/contracts/{id} - 删除合同 API 测试, TestDeleteContractAPI, TestUpdateContractAPI (+1 more)
+Cohesion: 0.09
+Nodes (10): mock_auth_headers(), TestApprovalAPI, PUT /api/v1/contracts/{id} - 更新合同 API 测试, DELETE /api/v1/contracts/{id} - 删除合同 API 测试, PUT /api/v1/contracts/{id} - 更新合同 API 测试, DELETE /api/v1/contracts/{id} - 删除合同 API 测试, TestDeleteContractAPI, TestUpdateContractAPI (+2 more)
 
 ### Community 232 - "Community 232"
 Cohesion: 0.08
@@ -1167,7 +1200,7 @@ Nodes (24): 1. DESIGN_STATUS.md — 全面过时, 2026-05-19 修订摘要（Phas
 
 ### Community 233 - "Community 233"
 Cohesion: 0.25
-Nodes (7): delete_contract(), 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, TestDeleteContract, delete()
+Nodes (7): get_contract(), 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, TestGetContract, get()
 
 ### Community 234 - "Community 234"
 Cohesion: 0.09
@@ -1182,8 +1215,8 @@ Cohesion: 0.13
 Nodes (20): BatchUserAction, DepartmentBase, DepartmentCreate, DepartmentListResponse, DepartmentResponse, DepartmentTreeNode, DepartmentUpdate, PasswordChangeRequest (+12 more)
 
 ### Community 237 - "Community 237"
-Cohesion: 0.32
-Nodes (7): _classify_section(), parse_clauses(), 将文本按条款标记切分，返回 [(title, content), ...]。      策略：尝试多种正则模式，选取匹配数最多的一个。      Args:, 将长文本切分为独立条款。      Args:         full_text: 完整合同文本         contract_type: 合同类型（可选, 根据标题和内容推断条款类型，并提取风险关键词。      Args:         title: 条款标题         content: 条款正文, _split_into_blocks(), list()
+Cohesion: 0.22
+Nodes (7): ALL_NAV_PAGES, DEFAULT_FLOW_THRESHOLDS, defaultContracts, resolveFlowType(), roleConfig, submitContractViaApi(), switchRoleWithApi()
 
 ### Community 238 - "Community 238"
 Cohesion: 0.09
@@ -1198,12 +1231,12 @@ Cohesion: 0.15
 Nodes (15): changeContractPage(), confirmApproval(), confirmSealAction(), deleteContract(), filterContracts(), filterContractsByDate(), getPageData(), persistState() (+7 more)
 
 ### Community 241 - "Community 241"
-Cohesion: 0.28
-Nodes (5): AuthMiddleware, Middleware to authenticate requests using JWT tokens.          Extracts user_id, _make_request(), 构造带真实 state 对象的请求 mock。, TestAuthMiddleware
+Cohesion: 0.22
+Nodes (7): AuthMiddleware, Middleware to authenticate requests using JWT tokens.          Extracts user_id, Middleware to authenticate requests using JWT tokens.          Extracts user_id, _make_request(), Auth Middleware Tests 测试认证中间件, 构造带真实 state 对象的请求 mock。, TestAuthMiddleware
 
 ### Community 242 - "Community 242"
-Cohesion: 0.36
-Nodes (6): _ensure_dir(), get_thresholds(), 配置服务 — 阈值等持久化（JSON 文件）, update_thresholds(), read_thresholds(), write_thresholds()
+Cohesion: 0.21
+Nodes (11): _ensure_dir(), get_thresholds(), 配置服务 — 阈值等持久化（JSON 文件）, update_thresholds(), get_flow_match_detail(), _load_thresholds(), match_flow_type(), 按金额匹配流程类型：simple / standard / large_amount(special)。 (+3 more)
 
 ### Community 243 - "Community 243"
 Cohesion: 0.13
@@ -1239,7 +1272,7 @@ Nodes (7): LoggingMiddleware, Log request details.          Args:             re
 
 ### Community 251 - "Community 251"
 Cohesion: 0.12
-Nodes (17): get_approval_history(), 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, approve(), approve_flow() (+9 more)
+Nodes (17): 驳回审批（approve_step 的便捷封装）, 驳回审批（approve_step 的便捷封装）, 驳回审批（approve_step 的便捷封装）, 驳回审批（approve_step 的便捷封装）, 驳回审批（approve_step 的便捷封装）, 驳回审批（approve_step 的便捷封装）, reject_step(), approve() (+9 more)
 
 ### Community 252 - "Community 252"
 Cohesion: 0.2
@@ -1254,8 +1287,8 @@ Cohesion: 0.27
 Nodes (9): APIResponse, error(), paginate(), Unified API response wrapper., Create a success response.      Args:         data: Response data         messag, Create an error response.      Args:         code: HTTP status code         mess, Create a paginated response.      Args:         items: List of items for current, Unified API response model. (+1 more)
 
 ### Community 255 - "Community 255"
-Cohesion: 0.2
-Nodes (7): Authentication middleware.  Checks Authorization header for JWT token verificati, Register authentication middleware with the application.      Args:         app:, setup_auth_middleware(), Auth Middleware Tests 测试认证中间件, setup_auth_middleware 测试, setup_auth_middleware 测试, TestSetupAuthMiddleware
+Cohesion: 0.22
+Nodes (7): Authentication middleware.  Checks Authorization header for JWT token verificati, Register authentication middleware with the application.      Args:         app:, Register authentication middleware with the application.      Args:         app:, setup_auth_middleware(), setup_auth_middleware 测试, setup_auth_middleware 测试, TestSetupAuthMiddleware
 
 ### Community 256 - "Community 256"
 Cohesion: 0.22
@@ -1286,76 +1319,68 @@ Cohesion: 0.5
 Nodes (3): Request/response logging middleware.  Provides comprehensive logging for all HTT, Register logging middleware with the application.      Args:         app: FastAP, setup_logging_middleware()
 
 ### Community 277 - "Community 277"
-Cohesion: 0.2
-Nodes (11): calculate_risk_score(), _compute_dimension_weighted_score(), generate_report(), _lookup_risk_level(), 计算综合风险评分。      Args:         clause_reviews: 条款审查结果列表（ClauseReview 或 dict-like）, 计算综合风险评分。      Args:         clause_reviews: 条款审查结果列表（ClauseReview 或 dict-like）, 生成结构化的风险报告。      Args:         risk_data: calculate_risk_score 的返回值         revi, 生成结构化的风险报告。      Args:         risk_data: calculate_risk_score 的返回值         revi (+3 more)
+Cohesion: 0.64
+Nodes (8): api(), login(), main(), runDemo01(), runDemo02(), runDemo03(), runDemo04(), runDemo05()
 
 ### Community 278 - "Community 278"
-Cohesion: 0.15
-Nodes (12): ClauseReview, _compute_clause_risk_score(), get_engine(), 执行多维度合同审查。          Args:             full_text: 合同全文             clauses: 已切分的条, 根据维度审查结果生成条款级审查结果。          策略：将各维度的问题映射到对应条款上。          Args:             claus, 生成总体审查建议。          Args:             dimension_results: 维度评分             risk_da, 将外部合同类型映射为 AI profile key。          Args:             contract_type: 原始合同类型, 合同审查快捷函数。      Args:         contract_text: 合同全文         clauses: 条款列表         c (+4 more)
+Cohesion: 0.25
+Nodes (7): V1.1 启动清单（预置）, Vue3 启动决策（V1 联调后评估）, 何时启动 Vue3（V1.1 触发条件）, 决策：**Vue3 延后至 V1.1**, 理由, 结论, 背景
 
 ### Community 279 - "Community 279"
-Cohesion: 0.33
-Nodes (3): Process request and verify authentication.          Args:             request: I, Check if request path is public., Verify JWT token from Authorization header.          Args:             request:
+Cohesion: 0.22
+Nodes (6): Process request and verify authentication.          Args:             request: I, Process request and verify authentication.          Args:             request: I, Check if request path is public., Check if request path is public., Verify JWT token from Authorization header.          Args:             request:, Verify JWT token from Authorization header.          Args:             request:
 
 ### Community 280 - "Community 280"
-Cohesion: 0.12
-Nodes (21): Base, Department, Role, User, ApprovalStepAction, ApprovalStepResponse, ApprovalSubmitRequest, get_flow_nodes() (+13 more)
+Cohesion: 0.5
+Nodes (4): 3.6 用印与签署（MVP）, 功能清单, 用户故事, 验收标准
 
 ### Community 281 - "Community 281"
 Cohesion: 0.11
 Nodes (10): API Tests for contracts endpoint 测试合同 API 端点, POST /api/v1/contracts - 创建合同 API 测试, GET /api/v1/contracts - 合同列表 API 测试, POST /api/v1/contracts - 创建合同 API 测试, GET /api/v1/contracts/{id} - 获取合同详情 API 测试, GET /api/v1/contracts/{id} - 获取合同详情 API 测试, GET /api/v1/contracts - 合同列表 API 测试, TestCreateContractAPI (+2 more)
 
 ### Community 282 - "Community 282"
-Cohesion: 0.1
-Nodes (15): DEMO 脚本集成测试（DEMO-01～05）— Phase A 加深版, IT-05: return → revision → ai, IT-05: return → revision → ai, IT-09: approval_status 逐步断言, IT-01: create → submit → approve → review → seal, TestApprovalStatusSteps, TestDashboard, TestDashboardBuckets (+7 more)
+Cohesion: 0.08
+Nodes (17): DEMO 脚本集成测试（DEMO-01～05）— Phase A 加深版, IT-09: approval_status 逐步断言, IT-11: 提交审批后 approver 收到通知, IT-02: ai → 三角色评审 → archive, IT-02: ai → 三角色评审 → archive, IT-01: create → submit → approve → review → seal, TestApprovalStatusSteps, TestDashboard (+9 more)
 
 ### Community 283 - "Community 283"
 Cohesion: 0.6
 Nodes (4): 将 async URL 转为 sync URL 供 Alembic 使用。, run_migrations_offline(), run_migrations_online(), _sync_database_url()
 
 ### Community 286 - "Community 286"
-Cohesion: 0.33
-Nodes (5): Demo 脚本联调序列, 使用说明, 侧栏页面映射, 前端 API 联调清单（草案）, 多角色 JWT 切换
+Cohesion: 0.29
+Nodes (6): Demo 脚本联调序列, 使用说明, 侧栏页面映射, 前端 API 联调清单（草案）, 多角色 JWT 切换, 实机联调记录（2026-05-19）
 
 ### Community 287 - "Community 287"
-Cohesion: 0.27
-Nodes (6): list_contracts(), 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s, 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s, 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s, 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s, TestListContracts
+Cohesion: 0.11
+Nodes (14): get_approval_history(), 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, 获取审批历史      RETURN: 按 step_number 排序的审批步骤列表, Approval Service Tests 测试审批流程服务 (+6 more)
 
 ### Community 289 - "Community 289"
-Cohesion: 0.5
-Nodes (4): 3.6 用印与签署（MVP）, 功能清单, 用户故事, 验收标准
-
-### Community 291 - "Community 291"
 Cohesion: 0.14
-Nodes (13): _generate_contract_no(), list_dashboard_buckets(), 生成合同编号: CON-YYYYMM-XXXX          Args:         db: 数据库会话              Returns:, 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, 上传合同文件到 MinIO          Args:         file_path: 本地文件路径         file_type: 文件类型, 看板三栏：executing / expiring_soon / expired。 (+5 more)
-
-### Community 292 - "Community 292"
-Cohesion: 0.24
-Nodes (7): 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, update_contract(), TestUpdateContract, update()
+Nodes (17): Base, Contract, Department, Role, User, ContractTemplate, ApprovalStepAction, ApprovalStepResponse (+9 more)
 
 ### Community 293 - "Community 293"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (7): client_for_user(), 返回 async callable(role) -> AsyncClient，按角色切换当前用户。, 评审域 API 测试 — Phase B-2, TestReviewOpinionsAPI, RBAC API 测试 — Phase C-1, TestRBACAllowed, TestRBACForbidden
-
-### Community 294 - "Community 294"
-Cohesion: 0.25
-Nodes (7): get_contract(), 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, 获取合同详情          Args:         contract_id: 合同ID         db: 数据库会话（可选，如果提供则使用，否则创, TestGetContract, get()
 
 ### Community 296 - "Community 296"
 Cohesion: 0.38
 Nodes (6): Config, CounterpartyBase, CounterpartyCreate, CounterpartyListResponse, CounterpartyResponse, CounterpartyUpdate
 
 ### Community 297 - "Community 297"
-Cohesion: 0.53
-Nodes (5): get_flow_match_detail(), _load_thresholds(), match_flow_type(), 按金额匹配流程类型：simple / standard / large_amount(special)。, match_flow()
+Cohesion: 0.23
+Nodes (15): _ensure_ai_gate(), _get_approved_roles_in_session(), _get_latest_ai(), _get_or_create_session(), get_pending_reviews(), get_review_workspace(), _infer_flow_type(), 评审中心待办：审批已通过、评审未完成，按待完成角色过滤。 (+7 more)
+
+### Community 298 - "Community 298"
+Cohesion: 0.22
+Nodes (13): create_template(), get_template(), list_templates(), publish_template(), _to_dict(), update_template(), TemplateCreate, templates_create() (+5 more)
 
 ### Community 300 - "Community 300"
-Cohesion: 0.4
-Nodes (3): Contract Service Tests 测试 contract_service.py 的 CRUD 操作, upload_contract_file 服务测试, TestUploadContractFile
+Cohesion: 0.22
+Nodes (6): auth, name, router, canAccessRoute(), ROLE_VISIBLE_ROUTES, app
 
 ### Community 301 - "Community 301"
-Cohesion: 0.11
-Nodes (16): get_pending_approvals(), 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 获取待办审批列表      JOIN approval_flows + contracts，按当前审批人过滤, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 获取待办审批列表      JOIN approval_flows + contracts，按当前审批人过滤, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft (+8 more)
+Cohesion: 0.14
+Nodes (14): get_pending_approvals(), 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 获取待办审批列表      JOIN approval_flows + contracts，按当前审批人过滤, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft, 获取待办审批列表      JOIN approval_flows + contracts，按当前审批人过滤, 退回至草稿      1. 更新审批流程状态为 returned     2. 将合同状态回退至 draft (+6 more)
 
 ### Community 302 - "Community 302"
 Cohesion: 0.4
@@ -1363,38 +1388,90 @@ Nodes (3): IT-03: 特殊流程 history 含 board 节点, IT-03: 特殊流程 his
 
 ### Community 303 - "Community 303"
 Cohesion: 0.5
-Nodes (4): 3.2 合同模板管理（MVP）, 功能清单, 用户故事, 验收标准
-
-### Community 305 - "Community 305"
-Cohesion: 0.67
-Nodes (3): 2.1 角色定义, 2.2 数据权限矩阵, 二、用户角色与权限
+Nodes (4): 6.1 V1 包含（核心主线）, 6.2 V1 排除（V2/V3）, 6.3 V1 验证指标, 六、MVP 范围定义
 
 ### Community 306 - "Community 306"
-Cohesion: 0.4
-Nodes (3): IT-02: ai → 三角色评审 → archive, IT-02: ai → 三角色评审 → archive, TestDemo02StandardReview
+Cohesion: 0.18
+Nodes (8): assert_user_has_role(), get_user_role_code(), RBAC 依赖工厂 — 供 FastAPI Depends 按角色校验。, get_review_history(), history(), opinions(), pending(), workspace()
 
-### Community 307 - "Community 307"
-Cohesion: 0.67
-Nodes (3): 9.1 术语表, 9.2 参考文档, 九、附录
+### Community 318 - "Community 318"
+Cohesion: 0.14
+Nodes (13): create_contract(), _generate_contract_no(), list_contracts(), 生成合同编号: CON-YYYYMM-XXXX          Args:         db: 数据库会话              Returns:, 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s, 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s, 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s, 获取合同列表（分页 + 过滤）          Args:         db: 数据库会话         page: 页码         page_s (+5 more)
+
+### Community 320 - "Community 320"
+Cohesion: 0.29
+Nodes (6): ApiUser, AppRole, ApprovalPendingItem, Contract, DashboardData, FlowMatchResult
+
+### Community 321 - "Community 321"
+Cohesion: 0.33
+Nodes (5): components, $defs, operations, paths, webhooks
+
+### Community 322 - "Community 322"
+Cohesion: 0.4
+Nodes (4): comment, load(), loading, resolveId()
+
+### Community 324 - "Community 324"
+Cohesion: 0.5
+Nodes (3): NAV_ITEMS, NavItem, ROUTE_TITLES
+
+### Community 345 - "Community 345"
+Cohesion: 0.24
+Nodes (7): 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, 更新合同          Args:         contract_id: 合同ID         updates: 更新数据         db:, update_contract(), TestUpdateContract, update()
+
+### Community 346 - "Community 346"
+Cohesion: 0.22
+Nodes (10): calculate_risk_score(), _compute_dimension_weighted_score(), generate_report(), _lookup_risk_level(), 计算综合风险评分。      Args:         clause_reviews: 条款审查结果列表（ClauseReview 或 dict-like）, 计算综合风险评分。      Args:         clause_reviews: 条款审查结果列表（ClauseReview 或 dict-like）, 生成结构化的风险报告。      Args:         risk_data: calculate_risk_score 的返回值         revi, 生成结构化的风险报告。      Args:         risk_data: calculate_risk_score 的返回值         revi (+2 more)
+
+### Community 348 - "Community 348"
+Cohesion: 0.25
+Nodes (7): delete_contract(), 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, 软删除合同          Args:         contract_id: 合同ID         db: 数据库会话（可选）, TestDeleteContract, delete()
+
+### Community 351 - "Community 351"
+Cohesion: 0.39
+Nodes (8): notify_approval_pending(), notify_archived(), notify_review_returned(), notify_role(), notify_seal_pending(), notify_user(), 业务事件 → 通知写入（V1 Stretch：同步写入 notifications 表）, _user_id_by_role()
+
+### Community 352 - "Community 352"
+Cohesion: 0.29
+Nodes (6): Notification, create_notification(), list_notifications(), mark_notification_read(), mark_read(), notifications()
+
+### Community 353 - "Community 353"
+Cohesion: 0.29
+Nodes (3): 执行单个维度的 LLM 审查。          Args:             request: 维度审查请求          Returns:, 构建单个维度审查的 prompt。          Args:             request: 维度审查请求          Returns:, 调用 LLM 获取审查结果。          Args:             prompt: 提示词          Returns:
+
+### Community 355 - "Community 355"
+Cohesion: 0.33
+Nodes (5): P1（下一 Sprint）, P2, V1.1 路线图, V2, 已启动（Week 4 MVP）
+
+### Community 356 - "Community 356"
+Cohesion: 0.4
+Nodes (4): ReviewOpinion, ReviewSession, return_for_revision(), return_contract()
+
+### Community 358 - "Community 358"
+Cohesion: 0.5
+Nodes (4): 3.1 合同起草（MVP）, 功能清单, 用户故事, 验收标准
+
+### Community 359 - "Community 359"
+Cohesion: 0.5
+Nodes (3): IT-05: return → revision → ai, IT-05: return → revision → ai, TestDemo05Revision
 
 ## Knowledge Gaps
-- **1777 isolated node(s):** `Celery 异步任务配置 用于 AI 审查等耗时任务`, `Custom exception hierarchy for the application.`, `Base application exception.      All custom exceptions should inherit from this`, `Initialize AppError.          Args:             message: Error message (override`, `Exception raised when a resource is not found.` (+1772 more)
+- **1865 isolated node(s):** `approveBtn`, `returnBtn`, `revisionLink`, `app`, `ImportMetaEnv` (+1860 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **47 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Contract` connect `Community 229` to `Community 224`, `Community 292`, `Community 228`, `Community 294`, `Community 295`, `Community 231`, `Community 233`, `Community 298`, `Community 300`, `Community 301`, `Community 302`, `Community 111`, `Community 306`, `Community 280`, `Community 281`, `Community 282`, `Community 287`?**
+- **Why does `Contract` connect `Community 289` to `Community 228`, `Community 229`, `Community 281`, `Community 231`, `Community 359`, `Community 233`, `Community 301`, `Community 302`, `Community 207`, `Community 111`, `Community 117`, `Community 345`, `Community 282`, `Community 347`, `Community 348`, `Community 318`, `Community 287`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **Why does `ApprovalSubmitRequest` connect `Community 280` to `Community 224`, `Community 226`, `Community 229`, `Community 231`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **Why does `ApprovalStepAction` connect `Community 280` to `Community 224`, `Community 226`, `Community 229`?**
-  _High betweenness centrality (0.009) - this node is a cross-community bridge._
-- **Are the 170 inferred relationships involving `showToast()` (e.g. with `deleteContract()` and `voidContract()`) actually correct?**
-  _`showToast()` has 170 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 46 inferred relationships involving `Contract` (e.g. with `ApprovalSubmitRequest` and `ApprovalStepAction`) actually correct?**
-  _`Contract` has 46 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `BusinessError` connect `Community 112` to `Community 227`, `Community 233`, `Community 207`, `Community 111`, `Community 345`, `Community 348`, `Community 318`?**
+  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **Why does `ApprovalSubmitRequest` connect `Community 289` to `Community 226`, `Community 117`, `Community 229`, `Community 231`?**
+  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **Are the 172 inferred relationships involving `showToast()` (e.g. with `deleteContract()` and `voidContract()`) actually correct?**
+  _`showToast()` has 172 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 47 inferred relationships involving `Contract` (e.g. with `ApprovalSubmitRequest` and `ApprovalStepAction`) actually correct?**
+  _`Contract` has 47 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 36 inferred relationships involving `create_contract()` (e.g. with `create()` and `check_blacklist()`) actually correct?**
   _`create_contract()` has 36 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 29 inferred relationships involving `ApprovalFlow` (e.g. with `ApprovalSubmitRequest` and `ApprovalStepAction`) actually correct?**

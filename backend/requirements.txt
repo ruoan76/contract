@@ -7,6 +7,8 @@ python-multipart==0.0.6
 sqlalchemy==2.0.25
 alembic==1.13.1
 asyncmy==0.2.9
+pymysql==1.1.0
+aiosqlite==0.19.0
 
 # Pydantic
 pydantic==2.5.3

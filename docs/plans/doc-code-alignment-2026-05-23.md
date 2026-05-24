@@ -18,7 +18,9 @@
 | workflow_service 双轨 | ✅ 已删除，统一 `approval_service` |
 | RBAC 未挂 API | ✅ Phase C-1 + IT-08 |
 
-**仍待：** Vue3 `frontend/` 0 代码；Stretch MinIO/Celery；MySQL CI 重跑集成测。
+**仍待：** Stretch MinIO/Celery 生产化；设计正式四方签字。
+
+**2026-05-19 V1 对齐：** Vue3 `frontend/` 17/17 侧栏实装；通知事件；模板/条款比对 MVP；158 单测 + 11 集成测。
 
 ---
 

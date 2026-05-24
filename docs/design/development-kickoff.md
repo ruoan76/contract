@@ -82,6 +82,17 @@ python scripts/seed_dev.py
 uvicorn main:app --reload
 ```
 
+**MySQL 验证记录（2026-05-19）：**
+
+```bash
+docker compose up -d mysql
+export DATABASE_URL=mysql+asyncmy://contract_user:contract_password@localhost:3306/contract_db
+alembic upgrade head && python scripts/seed_dev.py
+pytest tests/integration/ -m integration -v   # 10/10 通过
+```
+
+依赖：`pymysql`（Alembic 同步迁移，`requirements.txt` 已含）。
+
 ### 4.3 后端完善进度（Phase A–D）
 
 | Phase | 状态 | 说明 |

@@ -136,6 +136,23 @@ class TestRBACForbidden:
             )
         assert resp.status_code == 403
 
+    async def test_legal_cannot_approve_when_not_current_step(self, client_for_user):
+        """非当前步骤审批人应返回 403"""
+        cid = await self._create_contract(client_for_user)
+        async with await client_for_user("drafter") as drafter:
+            submit = await drafter.post(
+                "/api/v1/approvals/submit",
+                json={"contract_id": cid, "flow_type": "simple"},
+            )
+        flow_id = submit.json()["data"]["flow_id"]
+
+        async with await client_for_user("legal") as legal:
+            resp = await legal.post(
+                f"/api/v1/approvals/{flow_id}/approve",
+                json={"action": "approve"},
+            )
+        assert resp.status_code == 403
+
 
 @pytest.mark.unit
 class TestRBACAllowed:

@@ -406,7 +406,7 @@ gantt
 
 - [ ] C-2 四类业务事件自动通知
 - [ ] C-3 MinIO upload + Celery ai-review 各 1 条 E2E
-- [ ] integration 在 MySQL 上重跑 IT-01～05
+- [x] integration 在 MySQL 上重跑 IT-01～05（2026-05-19：10/10 通过，见 kickoff §4.2）
 
 ---
 

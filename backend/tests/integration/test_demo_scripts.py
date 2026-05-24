@@ -497,3 +497,31 @@ class TestApprovalStatusSteps:
         async with await client_for_user("drafter") as drafter:
             detail = await drafter.get(f"/api/v1/contracts/{cid}")
         assert detail.json()["data"]["approval_status"] == "finance_review"
+
+
+@pytest.mark.integration
+class TestIT11NotificationEvents:
+    """IT-11: 提交审批后 approver 收到通知"""
+
+    async def test_approval_triggers_notification(self, client_for_user):
+        async with await client_for_user("drafter") as drafter:
+            create = await drafter.post(
+                "/api/v1/contracts/",
+                json={
+                    "title": "IT11 通知合同",
+                    "contract_type": "purchase",
+                    "counterparty_name": "供应商",
+                    "amount": 80000,
+                    "content": "内容",
+                },
+            )
+        cid = create.json()["data"]["id"]
+        async with await client_for_user("drafter") as drafter:
+            await drafter.post(
+                "/api/v1/approvals/submit",
+                json={"contract_id": cid, "flow_type": "simple"},
+            )
+        async with await client_for_user("approver") as approver:
+            resp = await approver.get("/api/v1/notifications/")
+        items = resp.json()["data"]["items"]
+        assert any(n.get("resource_id") == cid for n in items)
