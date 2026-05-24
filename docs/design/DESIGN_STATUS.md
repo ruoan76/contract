@@ -49,9 +49,11 @@
 
 见 [方案 §九](../plans/design-freeze-improvement-plan.md#九v1-范围边界)。
 
-**后端实现度（2026-05-19）：** Sprint 0–5 + Phase A–D 完成；`backend/` 约 **88% V1 功能**。已完成：RBAC、Alembic、158 单测、通知业务事件。**Stretch 待完成：** MinIO 生产联调、Celery+Qwen 实机、飞书外推送。
+**后端实现度（2026-05-19）：** Sprint 0–5 + V1.1 完成；`backend/` **176 pytest**（含 IT-12 模板审批、delegate RBAC）。Stretch：**MinIO/Celery/Qwen 实机**待验收；飞书 webhook 已接（需配置 `FEISHU_WEBHOOK_URL`）。
 
-**前端：** `frontend/` Vue3 **V1 完成**（17/17 侧栏 MVP）；V1.1 进行中：PRD 体验对齐、模板发布审批、委托、生产化。
+**前端：** `frontend/` Vue3 **V1.1 完成**（草稿/上传/版本/委托/模板审批/5 E2E）；`prototype/` 冻结为设计参考。
+
+**CI：** GitHub Actions 依赖 `pytest-asyncio` + `bcrypt==4.0.1`（见 requirements.txt）。
 
 **AI 范围**：`ai-review-design.md` = 开发蓝图（含 contract-review-pro V3.0 结合 §2.3）；种子数据见 `reference/contract-review-pro-seeds.md`；V1 原型 = 报告 + 置信度 + 误报漏报。
 

@@ -105,8 +105,16 @@ async def update_template(
 
 
 async def publish_template(db: AsyncSession, template_id: int) -> dict:
-    """管理员一键发布（兼容旧 API）"""
-    return await approve_publish(db, template_id)
+    """管理员一键发布（兼容旧 API，允许 draft 直接发布）"""
+    t = await db.get(ContractTemplate, template_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="模板不存在")
+    if t.status not in ("draft", "pending_publish"):
+        raise HTTPException(status_code=400, detail="仅草稿或待发布状态可发布")
+    t.status = "published"
+    t.version = (t.version or 0) + 1
+    await db.flush()
+    return _to_dict(t)
 
 
 async def submit_for_publish(db: AsyncSession, template_id: int) -> dict:
@@ -122,12 +130,12 @@ async def submit_for_publish(db: AsyncSession, template_id: int) -> dict:
 
 
 async def approve_publish(db: AsyncSession, template_id: int) -> dict:
-    """批准发布：pending_publish → published"""
+    """批准发布：pending_publish → published（审批流专用，不可从 draft 跳过）"""
     t = await db.get(ContractTemplate, template_id)
     if not t:
         raise HTTPException(status_code=404, detail="模板不存在")
-    if t.status not in ("pending_publish", "draft"):
-        raise HTTPException(status_code=400, detail="模板不在待发布状态")
+    if t.status != "pending_publish":
+        raise HTTPException(status_code=400, detail="仅待发布状态可批准")
     t.status = "published"
     t.version = (t.version or 0) + 1
     await db.flush()

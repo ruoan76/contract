@@ -61,7 +61,6 @@ async function openDelegate(row: ApprovalPendingItem) {
   delegateTarget.value = row
   delegateUserId.value = null
   try {
-    await auth.switchRole('admin')
     const res = await usersApi.list({ page: 1, page_size: 50 })
     userOptions.value = res.items || []
   } catch {

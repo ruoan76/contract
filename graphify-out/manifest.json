@@ -24,8 +24,8 @@
     "hash": "5c7375d5edef610404caafb0389f022c"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-04.spec.ts": {
-    "mtime": 1779614197.01454,
-    "hash": "7390f2d72edbb8039501ffe2fb984576"
+    "mtime": 1779616428.2178633,
+    "hash": "6315a78424e42f58ef034f40ce880f63"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/App.vue": {
     "mtime": 1779578724.57019,
@@ -224,8 +224,8 @@
     "hash": "9f197a5b6798319d6473055624fafb18"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/approval/ApprovalsView.vue": {
-    "mtime": 1779614156.1450155,
-    "hash": "eccf471f10bd337db8897e9fd8ac5319"
+    "mtime": 1779616521.3000271,
+    "hash": "511b946078da8f1a1817170e3e2b359f"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/router/nav.ts": {
     "mtime": 1779578448.5406623,
@@ -540,8 +540,8 @@
     "hash": "6d874894ba2ab3e88369e6fd3f49d970"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/template_service.py": {
-    "mtime": 1779614149.527956,
-    "hash": "8d187bef85a8fd124fe30a917bd80706"
+    "mtime": 1779616418.368002,
+    "hash": "7d144d8d130e2e33cae56d58b015989e"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/contract_service.py": {
     "mtime": 1779613944.9327323,
@@ -640,8 +640,8 @@
     "hash": "5082f90c058f9c0176f4248e6dfb45d5"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/test_template_service.py": {
-    "mtime": 1779614161.9926903,
-    "hash": "3f5d13a99be878c5567ada8990ed3dab"
+    "mtime": 1779616439.2549195,
+    "hash": "4f1ec68a5e70a63189ff1bdf8c8650d7"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_reviews.py": {
     "mtime": 1779573817.822115,
@@ -844,8 +844,8 @@
     "hash": "b3322c4006cd14f69f5986e1a054589c"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/requirements.txt": {
-    "mtime": 1779577710.5820045,
-    "hash": "895059ea0a684aad4c0212769c8c9560"
+    "mtime": 1779616406.7117174,
+    "hash": "56431f8e14a630ba5a2de1f436fca95a"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/README.md": {
     "mtime": 1779532072.9642525,
@@ -972,8 +972,8 @@
     "hash": "fd1870eec48525cd359ab299d2850fde"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/design-freeze-confirmation.md": {
-    "mtime": 1779611368.6586254,
-    "hash": "36cba81d9e26fd503ef07d0a74bc975e"
+    "mtime": 1779616468.8516784,
+    "hash": "ff6c812b2e53a2c5a6a9a57b8a3cf446"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/api-spec.md": {
     "mtime": 1779575019.7955313,
@@ -1008,8 +1008,8 @@
     "hash": "053aefe38191694964fcf1d2f77e32eb"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/DESIGN_STATUS.md": {
-    "mtime": 1779614233.802163,
-    "hash": "e02998339876f04e407bba6a5458e58b"
+    "mtime": 1779616524.4116309,
+    "hash": "25be2bebb9af9b1e0876f36273573d99"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/review-2026-05-23.md": {
     "mtime": 1779488468.816894,
@@ -1056,8 +1056,8 @@
     "hash": "805408c0fefb82db8963a2e1b251417e"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/prd-v1-checklist.md": {
-    "mtime": 1779112457.6716416,
-    "hash": "88e85631b1fe84b770670e4ce48d0be6"
+    "mtime": 1779616477.1609151,
+    "hash": "89f868b2cfab47567092d17adb71fc2b"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/database-design.md": {
     "mtime": 1779105195.0342474,
