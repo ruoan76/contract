@@ -1,6 +1,6 @@
 # 前端 API 联调清单（草案）
 
-> 版本：**0.6.0** | 日期：2026-05-19  
+> 版本：**1.1.0** | 日期：2026-05-19  
 > 前置：[backend-hardening-plan.md](./backend-hardening-plan.md) Phase D  
 > 用途：20 页原型 ↔ 后端 API 对照，联调时逐项勾选  
 > OpenAPI：`backend/openapi.json`（`python backend/scripts/export_openapi.py`）  
@@ -24,7 +24,8 @@
 | 项 | 方式 | 结果 |
 |----|------|------|
 | DEMO-01~05 全链路 | `node prototype/_api-demo-test.mjs` | ✅ API 契约 ✅ |
-| Vue3 Phase 3 | review-history + 列表筛选 + executive + E2E CI | ✅ Phase 3 ✅ |
+| Vue3 V1.1 | 版本/上传/委托/模板审批/5 E2E | ✅ V1.1 ✅ |
+| 后端 176 pytest + IT-12 | 模板审批 + delegate RBAC | ✅ |
 | Vue3 Phase 2 | messages/config/audit/users + D10 详情 + Playwright | ✅ Phase 2 ✅ |
 | 原型 Mock 回归 | `node prototype/_run-tests.mjs` | ✅ 147/147（原型冻结） |
 | API 层 | `frontend/src/api/` 自 prototype 迁移 | ✅ |

@@ -17,6 +17,7 @@ from app.services.contract_service import (
     delete_contract,
     list_dashboard_buckets,
     save_contract_upload,
+    list_contract_versions,
 )
 from app.services.flow_match_service import get_flow_match_detail
 from app.services.review_service import submit_revision
@@ -88,6 +89,21 @@ async def list(
     filters = {k: v for k, v in filters.items() if v is not None}
     result = await list_contracts(db=db, page=page, page_size=page_size, filters=filters)
     return {"code": 200, "data": result}
+
+
+@router.get("/{contract_id}/versions", summary="合同版本历史")
+async def versions(
+    contract_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """获取合同版本列表"""
+    try:
+        data = await list_contract_versions(db, contract_id)
+        return {"code": 200, "data": data}
+    except BusinessError as e:
+        if "not found" in str(e):
+            raise HTTPException(status_code=404, detail="合同不存在")
+        raise
 
 
 @router.get("/{contract_id}", summary="合同详情")

@@ -8,6 +8,7 @@ export interface NotificationItem {
   resource_id?: number
   is_read: number | boolean
   created_at?: string
+  channel?: string
 }
 
 export const notificationsApi = {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { reviewsApi } from '@/api/reviews'
 import { useAuthStore } from '@/stores/auth'
+import { useContractContext } from '@/composables/useContractContext'
 import ContractContextBar from '@/components/ContractContextBar.vue'
 import { contractsApi } from '@/api/contracts'
 import type { Contract } from '@/types/models'
@@ -21,15 +22,15 @@ const ROLE_TABS = [
   { key: 'executive', label: '高管' },
 ]
 
-const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const contractId = ref(0)
+const { contractId } = useContractContext()
 const contract = ref<Contract | null>(null)
 const workspace = ref<WorkspaceData | null>(null)
 const activeTab = ref('legal')
 const comment = ref('审核通过')
 const loading = ref(false)
+const demoStep = ref(0)
 
 const visibleTabs = computed(() => {
   const required = workspace.value?.required_roles || ['legal']
@@ -44,14 +45,13 @@ const approvedRoles = computed(() => {
   return set
 })
 
-function resolveId(): number {
-  const param = route.params.id
-  if (param) return Number(param)
-  return auth.restoreLastContractId() || auth.lastContract?.id || 0
-}
+const demoHints = [
+  'DEMO-02 步骤 1：法务 Tab 提交通过',
+  'DEMO-02 步骤 2：切换财务角色完成财务 Tab',
+  'DEMO-02 步骤 3：切换高管角色完成高管 Tab',
+]
 
 async function load() {
-  contractId.value = resolveId()
   if (!contractId.value) return
   loading.value = true
   try {
@@ -68,7 +68,7 @@ async function load() {
 }
 
 onMounted(load)
-watch(() => route.params.id, load)
+watch(contractId, load)
 
 async function submitOpinion() {
   if (!contractId.value) {
@@ -84,6 +84,7 @@ async function submitOpinion() {
     await auth.switchRole(role as 'legal' | 'finance' | 'executive')
     await reviewsApi.submitOpinion(contractId.value, role, 'approve', comment.value)
     ElMessage.success(`${ROLE_TABS.find((t) => t.key === role)?.label} 评审已通过`)
+    demoStep.value = Math.min(demoStep.value + 1, demoHints.length - 1)
     await load()
     if (role === 'legal' && (workspace.value?.required_roles || []).length === 1) {
       router.push({ name: 'seal' })
@@ -92,12 +93,27 @@ async function submitOpinion() {
     ElMessage.error(e instanceof Error ? e.message : '提交失败')
   }
 }
+
+async function returnForRevision() {
+  if (!contractId.value) return
+  try {
+    await auth.switchRole('legal')
+    await reviewsApi.returnForRevision(contractId.value, activeTab.value, comment.value || '请修订')
+    ElMessage.success('已退回修订')
+    router.push({ name: 'revision-workspace', params: { id: String(contractId.value) } })
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '退回失败')
+  }
+}
 </script>
 
 <template>
   <div v-loading="loading" class="page-card">
     <ContractContextBar :contract="contract" />
     <h2>评审工作台</h2>
+    <el-steps v-if="(workspace?.required_roles?.length || 0) > 1" :active="demoStep" finish-status="success" style="margin: 12px 0">
+      <el-step v-for="(hint, idx) in demoHints" :key="idx" :title="hint" />
+    </el-steps>
     <el-alert
       v-if="workspace?.contract?.flow_type === 'simple'"
       type="info"
@@ -113,14 +129,16 @@ async function submitOpinion() {
         :name="tab.key"
       >
         <el-input v-model="comment" type="textarea" :rows="3" placeholder="评审意见" />
-        <el-button
-          type="primary"
-          style="margin-top: 12px"
-          :disabled="approvedRoles.has(tab.key)"
-          @click="submitOpinion"
-        >
-          {{ approvedRoles.has(tab.key) ? '已完成' : '提交通过' }}
-        </el-button>
+        <div style="margin-top: 12px; display: flex; gap: 8px">
+          <el-button
+            type="primary"
+            :disabled="approvedRoles.has(tab.key)"
+            @click="submitOpinion"
+          >
+            {{ approvedRoles.has(tab.key) ? '已完成' : '提交通过' }}
+          </el-button>
+          <el-button type="warning" plain @click="returnForRevision">退回修订</el-button>
+        </div>
       </el-tab-pane>
     </el-tabs>
     <el-table

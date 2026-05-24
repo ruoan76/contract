@@ -4,6 +4,7 @@
 import logging
 
 from app.celery_tasks import celery_app
+from app.utils.feishu import send_feishu_webhook_sync
 
 logger = logging.getLogger(__name__)
 
@@ -15,16 +16,19 @@ def send_approval_reminder(
     approver_id: int,
 ) -> None:
     """
-    发送审批提醒通知
-    
-    Args:
-        flow_id: 审批流程ID
-        step_id: 审批步骤ID
-        approver_id: 审批人ID
+    发送审批提醒通知（飞书 webhook + 日志）
     """
-    # TODO: 实际发送通知（邮件/短信/站内信）
-    logger.info(f"Sending approval reminder to user {approver_id} for flow {flow_id}")
-    pass
+    message = (
+        f"审批流程 #{flow_id} 步骤 #{step_id} 待处理，"
+        f"审批人 user_id={approver_id}"
+    )
+    send_feishu_webhook_sync(message, title="审批提醒")
+    logger.info(
+        "Sending approval reminder to user %s for flow %s step %s",
+        approver_id,
+        flow_id,
+        step_id,
+    )
 
 
 @celery_app.task(name="notification.send_contract_signed")

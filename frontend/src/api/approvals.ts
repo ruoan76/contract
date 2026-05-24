@@ -9,8 +9,12 @@ export const approvalsApi = {
       flow_type: flowType,
     }),
 
-  approve: (flowId: number, action = 'approve', comment = '') =>
-    client.post<unknown>(`/api/v1/approvals/${flowId}/approve`, { action, comment }),
+  approve: (flowId: number, action = 'approve', comment = '', delegateTo?: number) =>
+    client.post<unknown>(`/api/v1/approvals/${flowId}/approve`, {
+      action,
+      comment,
+      ...(delegateTo ? { delegate_to: delegateTo } : {}),
+    }),
 
   pending: () =>
     client.get<{ items?: ApprovalPendingItem[] }>('/api/v1/approvals/pending'),

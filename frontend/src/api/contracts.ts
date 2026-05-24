@@ -1,6 +1,24 @@
 import type { Contract, DashboardData, FlowMatchResult } from '@/types/models'
 import { client } from './client'
 
+export interface ContractVersion {
+  version: number
+  content?: string
+  change_description?: string
+  file_path?: string
+  file_hash?: string
+  created_at?: string
+}
+
+export interface ContractUploadResult {
+  contract_id: number
+  file_path: string
+  file_hash: string
+  file_type?: string
+  file_size?: number
+  version_id?: number
+}
+
 export const contractsApi = {
   create: (payload: {
     title: string
@@ -21,6 +39,15 @@ export const contractsApi = {
     return client.get<{ items?: Contract[]; total?: number }>(
       `/api/v1/contracts/${qs ? `?${qs}` : ''}`,
     )
+  },
+
+  listVersions: (id: number) =>
+    client.get<ContractVersion[]>(`/api/v1/contracts/${id}/versions`),
+
+  upload: (id: number, file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return client.post<ContractUploadResult>(`/api/v1/contracts/${id}/upload`, fd)
   },
 
   dashboard: () => client.get<DashboardData>('/api/v1/contracts/dashboard'),

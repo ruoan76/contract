@@ -11,6 +11,7 @@ from app.schemas.contract import ApprovalSubmit, ApprovalAction
 from app.services.approval_service import (
     ApprovalSubmitRequest,
     approve_step,
+    delegate_step,
     get_approval_history,
     get_pending_approvals,
     reject_step,
@@ -93,6 +94,17 @@ async def approve(
             username=user.real_name,
             flow_id=flow_id,
             action="approve",
+            comment=action_in.comment,
+        )
+    elif action == "delegate":
+        if not action_in.delegate_to:
+            raise HTTPException(status_code=400, detail="委托操作需指定 delegate_to")
+        flow = await delegate_step(
+            db=db,
+            user_id=user.id,
+            username=user.real_name,
+            flow_id=flow_id,
+            delegate_to=action_in.delegate_to,
             comment=action_in.comment,
         )
     else:

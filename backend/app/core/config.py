@@ -2,7 +2,7 @@
 应用配置
 """
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Optional
 
 
 class Settings(BaseSettings):
@@ -73,6 +73,9 @@ class Settings(BaseSettings):
     # 审批配置
     DEFAULT_APPROVAL_TIMEOUT_HOURS: int = 24
     AUTO_APPROVE_ENABLED: bool = False
+
+    # 飞书 Webhook（可选，配置后推送审批/评审通知）
+    FEISHU_WEBHOOK_URL: Optional[str] = None
     
     # 日志配置
     LOG_LEVEL: str = "INFO"

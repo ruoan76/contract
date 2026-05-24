@@ -141,8 +141,18 @@ async def get_latest_review(
     db: AsyncSession = Depends(get_db),
 ):
     """获取合同最新审查结果"""
+    import json
+
     from app.models.contract import AIReview
-    
+
+    def _parse_json_field(raw: str | None):
+        if not raw:
+            return None
+        try:
+            return json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            return None
+
     result = await db.execute(
         select(AIReview)
         .where(AIReview.contract_id == contract_id)
@@ -150,16 +160,19 @@ async def get_latest_review(
         .limit(1)
     )
     review = result.scalar_one_or_none()
-    
+
     if not review:
         raise HTTPException(status_code=404, detail="暂无审查记录")
-    
+
     return {
         "code": 200,
         "data": {
             "review_id": review.review_id,
+            "review_status": review.review_status,
             "risk_level": review.overall_risk_level,
             "risk_score": review.overall_risk_score,
+            "clause_reviews": _parse_json_field(review.clause_reviews),
+            "summary": _parse_json_field(review.summary),
             "review_time": review.created_at,
-        }
+        },
     }

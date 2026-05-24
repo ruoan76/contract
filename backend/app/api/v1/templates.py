@@ -7,10 +7,14 @@ from app.core.rbac import require_any_role
 from app.db.database import get_db
 from app.models.contract import User
 from app.services.template_service import (
+    approve_publish,
     create_template,
+    deprecate_template,
     get_template,
     list_templates,
     publish_template,
+    reject_publish,
+    submit_for_publish,
     update_template,
 )
 from app.utils.auth import get_current_user
@@ -18,6 +22,7 @@ from app.utils.auth import get_current_user
 router = APIRouter()
 
 _admin = require_any_role("admin")
+_approver = require_any_role("admin", "approver")
 
 
 class TemplateCreate(BaseModel):
@@ -88,4 +93,44 @@ async def templates_publish(
     db: AsyncSession = Depends(get_db),
 ):
     data = await publish_template(db, template_id)
+    return {"code": 200, "data": data}
+
+
+@router.post("/{template_id}/submit-publish", summary="提交发布审批")
+async def templates_submit_publish(
+    template_id: int,
+    user: User = Depends(_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    data = await submit_for_publish(db, template_id)
+    return {"code": 200, "data": data}
+
+
+@router.post("/{template_id}/approve-publish", summary="批准发布")
+async def templates_approve_publish(
+    template_id: int,
+    user: User = Depends(_approver),
+    db: AsyncSession = Depends(get_db),
+):
+    data = await approve_publish(db, template_id)
+    return {"code": 200, "data": data}
+
+
+@router.post("/{template_id}/reject-publish", summary="驳回发布")
+async def templates_reject_publish(
+    template_id: int,
+    user: User = Depends(_approver),
+    db: AsyncSession = Depends(get_db),
+):
+    data = await reject_publish(db, template_id)
+    return {"code": 200, "data": data}
+
+
+@router.post("/{template_id}/deprecate", summary="废止模板")
+async def templates_deprecate(
+    template_id: int,
+    user: User = Depends(_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    data = await deprecate_template(db, template_id)
     return {"code": 200, "data": data}

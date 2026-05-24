@@ -39,6 +39,12 @@ function openResource(row: NotificationItem) {
     router.push({ name: 'contract-detail', params: { id: row.resource_id } })
   }
 }
+
+function channelLabel(row: NotificationItem) {
+  if (!row.channel) return '站内'
+  if (row.channel === 'feishu') return '飞书'
+  return row.channel
+}
 </script>
 
 <template>
@@ -51,8 +57,15 @@ function openResource(row: NotificationItem) {
       </div>
     </div>
     <el-table v-loading="loading" :data="items" stripe @row-click="openResource">
-      <el-table-column prop="title" label="标题" min-width="180" />
-      <el-table-column prop="message" label="内容" min-width="240" show-overflow-tooltip />
+      <el-table-column prop="title" label="标题" min-width="160" />
+      <el-table-column prop="message" label="内容" min-width="200" show-overflow-tooltip />
+      <el-table-column label="渠道" width="90">
+        <template #default="{ row }">
+          <el-tag v-if="row.channel === 'feishu'" type="primary" size="small">飞书</el-tag>
+          <el-tag v-else-if="row.channel" size="small">{{ channelLabel(row) }}</el-tag>
+          <span v-else class="muted">站内</span>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" width="90">
         <template #default="{ row }">
           <el-tag :type="row.is_read ? 'info' : 'warning'" size="small">
@@ -70,3 +83,10 @@ function openResource(row: NotificationItem) {
     <el-empty v-if="!loading && !items.length" description="暂无消息" />
   </div>
 </template>
+
+<style scoped>
+.muted {
+  color: #9ca3af;
+  font-size: 13px;
+}
+</style>

@@ -30,4 +30,16 @@ export const templatesApi = {
     client.put<ContractTemplate>(`/api/v1/templates/${id}`, body),
 
   publish: (id: number) => client.post<ContractTemplate>(`/api/v1/templates/${id}/publish`, {}),
+
+  submitPublish: (id: number) =>
+    client.post<ContractTemplate>(`/api/v1/templates/${id}/submit-publish`, {}),
+
+  approvePublish: (id: number) =>
+    client.post<ContractTemplate>(`/api/v1/templates/${id}/approve-publish`, {}),
+
+  rejectPublish: (id: number) =>
+    client.post<ContractTemplate>(`/api/v1/templates/${id}/reject-publish`, {}),
+
+  deprecate: (id: number) =>
+    client.post<ContractTemplate>(`/api/v1/templates/${id}/deprecate`, {}),
 }

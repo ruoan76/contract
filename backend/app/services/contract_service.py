@@ -641,6 +641,32 @@ async def list_dashboard_buckets(db: AsyncSession) -> dict:
     }
 
 
+async def list_contract_versions(db: AsyncSession, contract_id: int) -> list[dict]:
+    """获取合同版本历史列表。"""
+    result = await db.execute(select(Contract).where(Contract.id == contract_id))
+    contract = result.scalar_one_or_none()
+    if not contract:
+        raise BusinessError(f"Contract {contract_id} not found")
+
+    ver_result = await db.execute(
+        select(ContractVersion)
+        .where(ContractVersion.contract_id == contract_id)
+        .order_by(ContractVersion.version.desc())
+    )
+    versions = ver_result.scalars().all()
+    return [
+        {
+            "version": v.version,
+            "content": v.content,
+            "change_description": v.change_description,
+            "file_path": v.file_path,
+            "file_hash": v.file_hash,
+            "created_at": v.created_at.isoformat() if v.created_at else None,
+        }
+        for v in versions
+    ]
+
+
 async def save_contract_upload(
     db: AsyncSession,
     contract_id: int,

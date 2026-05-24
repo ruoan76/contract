@@ -525,3 +525,40 @@ class TestIT11NotificationEvents:
             resp = await approver.get("/api/v1/notifications/")
         items = resp.json()["data"]["items"]
         assert any(n.get("resource_id") == cid for n in items)
+
+
+@pytest.mark.integration
+class TestIT12TemplateApprovalFlow:
+    """IT-12: 模板提交发布 → 批准 → 废止"""
+
+    async def test_template_publish_approval_flow(self, client_for_user):
+        async with await client_for_user("admin") as admin:
+            create = await admin.post(
+                "/api/v1/templates/",
+                json={
+                    "name": "IT12 采购模板",
+                    "category": "purchase",
+                    "content": "模板正文",
+                },
+            )
+        assert create.status_code == 200
+        tid = create.json()["data"]["id"]
+        assert create.json()["data"]["status"] == "draft"
+
+        async with await client_for_user("admin") as admin:
+            submit = await admin.post(f"/api/v1/templates/{tid}/submit-publish")
+        assert submit.status_code == 200
+        assert submit.json()["data"]["status"] == "pending_publish"
+
+        async with await client_for_user("approver") as approver:
+            approve = await approver.post(
+                f"/api/v1/templates/{tid}/approve-publish"
+            )
+        assert approve.status_code == 200
+        assert approve.json()["data"]["status"] == "published"
+        assert approve.json()["data"]["version"] == 2
+
+        async with await client_for_user("admin") as admin:
+            deprecate = await admin.post(f"/api/v1/templates/{tid}/deprecate")
+        assert deprecate.status_code == 200
+        assert deprecate.json()["data"]["status"] == "deprecated"

@@ -1,6 +1,6 @@
 # 设计状态 — 单一真相源（DESIGN STATUS）
 
-> **版本**：1.0.0-final | **日期**：2026-05-19 | **阶段**：V1 全路线交付（17/17 侧栏 + Stretch 基线）  
+> **版本**：1.1.0 | **日期**：2026-05-19 | **阶段**：V1.1 + P2 Stretch 交付  
 > **维护规则**：任何影响范围/页面/状态/流程的变更，须更新本文版本号与变更日志。  
 > **执行方案**：[design-freeze-improvement-plan.md](../plans/design-freeze-improvement-plan.md) V1.1
 
@@ -10,6 +10,7 @@
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
+| 1.1.0 | 2026-05-19 | V1.1+P2：模板审批/委托/版本 API/Stretch/5 E2E/DEMO 全绿 |
 | 1.0.0-final | 2026-05-19 | V1 全路线：17/17 页、通知事件、模板/条款比对 MVP、E2E CI |
 | 1.0.0 | 2026-05-19 | Vue3 Phase 3：review-history、列表分页筛选、高管角色、审批历史时间线、Playwright CI |
 | 0.9.0 | 2026-05-19 | Vue3 Phase 2：messages/audit/users、D10 详情、AI 报告、Playwright E2E |
@@ -48,9 +49,9 @@
 
 见 [方案 §九](../plans/design-freeze-improvement-plan.md#九v1-范围边界)。
 
-**后端实现度（2026-05-19）：** Sprint 0–5 + Phase A–D 完成；`backend/` 约 **85% V1 功能**（RBAC、Alembic、集成测、OpenAPI 已就绪；Stretch：MinIO/Celery/通知事件）。
+**后端实现度（2026-05-19）：** Sprint 0–5 + Phase A–D 完成；`backend/` 约 **88% V1 功能**。已完成：RBAC、Alembic、158 单测、通知业务事件。**Stretch 待完成：** MinIO 生产联调、Celery+Qwen 实机、飞书外推送。
 
-**前端：** `frontend/` Vue3 **V1 完成**（17/17 侧栏实装含 templates/clause-compare MVP）；`prototype/` 冻结为设计参考。
+**前端：** `frontend/` Vue3 **V1 完成**（17/17 侧栏 MVP）；V1.1 进行中：PRD 体验对齐、模板发布审批、委托、生产化。
 
 **AI 范围**：`ai-review-design.md` = 开发蓝图（含 contract-review-pro V3.0 结合 §2.3）；种子数据见 `reference/contract-review-pro-seeds.md`；V1 原型 = 报告 + 置信度 + 误报漏报。
 

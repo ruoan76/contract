@@ -153,6 +153,27 @@ class TestRBACForbidden:
             )
         assert resp.status_code == 403
 
+    async def test_non_approver_cannot_delegate(self, client_for_user):
+        """非当前步骤审批人委托应返回 403"""
+        cid = await self._create_contract(client_for_user)
+        async with await client_for_user("drafter") as drafter:
+            submit = await drafter.post(
+                "/api/v1/approvals/submit",
+                json={"contract_id": cid, "flow_type": "simple"},
+            )
+        flow_id = submit.json()["data"]["flow_id"]
+
+        async with await client_for_user("legal") as legal:
+            resp = await legal.post(
+                f"/api/v1/approvals/{flow_id}/approve",
+                json={
+                    "action": "delegate",
+                    "delegate_to": 1,
+                    "comment": "非法委托",
+                },
+            )
+        assert resp.status_code == 403
+
 
 @pytest.mark.unit
 class TestRBACAllowed:

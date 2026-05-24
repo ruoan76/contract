@@ -11,6 +11,17 @@ VALID_STATUSES = {"draft", "pending_publish", "published", "deprecated"}
 
 
 def _to_dict(t: ContractTemplate) -> dict:
+    from sqlalchemy import inspect as sa_inspect
+
+    state = sa_inspect(t)
+    if "updated_at" in state.unloaded:
+        updated_at = None
+    else:
+        updated_at = t.updated_at
+    if "created_at" in state.unloaded:
+        created_at = None
+    else:
+        created_at = t.created_at
     return {
         "id": t.id,
         "name": t.name,
@@ -19,8 +30,8 @@ def _to_dict(t: ContractTemplate) -> dict:
         "status": t.status,
         "version": t.version,
         "creator_id": t.creator_id,
-        "created_at": t.created_at.isoformat() if t.created_at else None,
-        "updated_at": t.updated_at.isoformat() if t.updated_at else None,
+        "created_at": created_at.isoformat() if created_at else None,
+        "updated_at": updated_at.isoformat() if updated_at else None,
     }
 
 
@@ -94,11 +105,54 @@ async def update_template(
 
 
 async def publish_template(db: AsyncSession, template_id: int) -> dict:
-    """管理员一键发布（V1.1 alpha）"""
+    """管理员一键发布（兼容旧 API）"""
+    return await approve_publish(db, template_id)
+
+
+async def submit_for_publish(db: AsyncSession, template_id: int) -> dict:
+    """草稿提交发布审批"""
     t = await db.get(ContractTemplate, template_id)
     if not t:
         raise HTTPException(status_code=404, detail="模板不存在")
+    if t.status != "draft":
+        raise HTTPException(status_code=400, detail="仅草稿状态可提交发布")
+    t.status = "pending_publish"
+    await db.flush()
+    return _to_dict(t)
+
+
+async def approve_publish(db: AsyncSession, template_id: int) -> dict:
+    """批准发布：pending_publish → published"""
+    t = await db.get(ContractTemplate, template_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="模板不存在")
+    if t.status not in ("pending_publish", "draft"):
+        raise HTTPException(status_code=400, detail="模板不在待发布状态")
     t.status = "published"
-    t.version = (t.version or 1) + 1
+    t.version = (t.version or 0) + 1
+    await db.flush()
+    return _to_dict(t)
+
+
+async def reject_publish(db: AsyncSession, template_id: int) -> dict:
+    """驳回发布：pending_publish → draft"""
+    t = await db.get(ContractTemplate, template_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="模板不存在")
+    if t.status != "pending_publish":
+        raise HTTPException(status_code=400, detail="仅待发布状态可驳回")
+    t.status = "draft"
+    await db.flush()
+    return _to_dict(t)
+
+
+async def deprecate_template(db: AsyncSession, template_id: int) -> dict:
+    """废止模板：published -> deprecated"""
+    t = await db.get(ContractTemplate, template_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="模板不存在")
+    if t.status != "published":
+        raise HTTPException(status_code=400, detail="仅已发布模板可废止")
+    t.status = "deprecated"
     await db.flush()
     return _to_dict(t)

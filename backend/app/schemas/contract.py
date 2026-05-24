@@ -77,6 +77,7 @@ class ApprovalAction(BaseModel):
     """审批操作"""
     action: str = Field(..., description="approve | reject | return | delegate | countersign")
     comment: Optional[str] = Field(None, description="审批意见")
+    delegate_to: Optional[int] = Field(None, description="转交人 ID（delegate 操作时有效）")
 
 
 class ApprovalNodeResponse(BaseModel):

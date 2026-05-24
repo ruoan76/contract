@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { clauseCompareApi, type ClauseCompareResult } from '@/api/clause-compare'
 
+const inputMode = ref<'paste' | 'upload'>('paste')
 const leftText = ref('甲方应在合同签订后 30 日内支付全款。')
 const rightText = ref('甲方应在合同签订后 45 日内支付全款。')
 const loading = ref(false)
@@ -22,6 +23,19 @@ async function runCompare() {
     loading.value = false
   }
 }
+
+function readFileAsText(file: File, target: 'left' | 'right') {
+  const reader = new FileReader()
+  reader.onload = () => {
+    const text = String(reader.result || '')
+    if (target === 'left') leftText.value = text
+    else rightText.value = text
+    ElMessage.success('文件已载入')
+  }
+  reader.onerror = () => ElMessage.error('读取文件失败')
+  reader.readAsText(file, 'utf-8')
+  return false
+}
 </script>
 
 <template>
@@ -30,13 +44,37 @@ async function runCompare() {
       <h2>条款比对</h2>
       <el-button type="primary" :loading="loading" @click="runCompare">开始比对</el-button>
     </div>
+
+    <el-radio-group v-model="inputMode" style="margin-bottom: 16px">
+      <el-radio-button value="paste">粘贴文本</el-radio-button>
+      <el-radio-button value="upload">上传 TXT</el-radio-button>
+    </el-radio-group>
+
     <el-row :gutter="16">
       <el-col :span="12">
         <p class="label">基准版</p>
+        <el-upload
+          v-if="inputMode === 'upload'"
+          :auto-upload="true"
+          :show-file-list="false"
+          accept=".txt,text/plain"
+          :before-upload="(f: File) => readFileAsText(f, 'left')"
+        >
+          <el-button size="small">上传基准 TXT</el-button>
+        </el-upload>
         <el-input v-model="leftText" type="textarea" :rows="10" />
       </el-col>
       <el-col :span="12">
         <p class="label">对比版</p>
+        <el-upload
+          v-if="inputMode === 'upload'"
+          :auto-upload="true"
+          :show-file-list="false"
+          accept=".txt,text/plain"
+          :before-upload="(f: File) => readFileAsText(f, 'right')"
+        >
+          <el-button size="small">上传对比 TXT</el-button>
+        </el-upload>
         <el-input v-model="rightText" type="textarea" :rows="10" />
       </el-col>
     </el-row>
@@ -50,6 +88,12 @@ async function runCompare() {
 </template>
 
 <style scoped>
+.page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
 .label {
   font-size: 13px;
   color: #6b7280;

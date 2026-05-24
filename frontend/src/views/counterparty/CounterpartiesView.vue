@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus'
 import { counterpartiesApi, type CounterpartyItem } from '@/api/counterparties'
 import { contractsApi } from '@/api/contracts'
 import { useAuthStore } from '@/stores/auth'
+import { downloadCsv } from '@/utils/exportCsv'
 
 const auth = useAuthStore()
 const items = ref<CounterpartyItem[]>([])
@@ -72,11 +73,27 @@ async function testBlockedCreate(row: CounterpartyItem) {
     ElMessage.success(`创建被拒绝：${e instanceof Error ? e.message : ''}`)
   }
 }
+
+function exportCsv() {
+  downloadCsv(
+    'counterparties.csv',
+    ['ID', '名称', '信用代码', '黑名单'],
+    items.value.map((r) => [
+      String(r.id),
+      r.name,
+      r.credit_code ?? '',
+      r.is_blacklisted ? '是' : '否',
+    ]),
+  )
+}
 </script>
 
 <template>
   <div class="page-card">
-    <h2>相对方管理</h2>
+    <div class="page-toolbar">
+      <h2>相对方管理</h2>
+      <el-button @click="exportCsv">导出 CSV</el-button>
+    </div>
     <el-form inline style="margin: 16px 0">
       <el-form-item label="名称">
         <el-input v-model="name" placeholder="新公司名" />
@@ -110,3 +127,12 @@ async function testBlockedCreate(row: CounterpartyItem) {
     </el-table>
   </div>
 </template>
+
+<style scoped>
+.page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+</style>

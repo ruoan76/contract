@@ -121,10 +121,10 @@ class TestApproveStep:
             })(),
         )
         
-        # 审批第一步
+        # 审批第一步（无角色用户时 fallback 审批人为提交人 user_id=1）
         result = await approve_step(
             db=db_session,
-            user_id=2,
+            user_id=1,
             username="approver",
             flow_id=flow.id,
             action="approve",
@@ -159,7 +159,7 @@ class TestApproveStep:
         # 拒绝第一步
         result = await approve_step(
             db=db_session,
-            user_id=2,
+            user_id=1,
             username="approver",
             flow_id=flow.id,
             action="reject",
@@ -208,17 +208,17 @@ class TestApproveStep:
         # 拒绝使流程结束
         await approve_step(
             db=db_session,
-            user_id=2,
+            user_id=1,
             username="approver",
             flow_id=flow.id,
             action="reject",
         )
-        
+
         # 再次审批应失败
         with pytest.raises(HTTPException, match="当前不可审批"):
             await approve_step(
                 db=db_session,
-                user_id=2,
+                user_id=1,
                 username="approver",
                 flow_id=flow.id,
                 action="approve",
@@ -253,7 +253,7 @@ class TestRejectStep:
         
         result = await reject_step(
             db=db_session,
-            user_id=2,
+            user_id=1,
             username="approver",
             flow_id=flow.id,
             comment="需要补充材料",
@@ -392,7 +392,7 @@ class TestGetApprovalHistory:
         # 审批一步
         await approve_step(
             db=db_session,
-            user_id=2,
+            user_id=1,
             username="approver",
             flow_id=flow.id,
             action="approve",

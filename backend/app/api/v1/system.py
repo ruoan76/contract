@@ -2,15 +2,25 @@
 系统管理 API
 """
 from fastapi import APIRouter, Depends, Query, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import Optional
 
+from app.core.rbac import require_any_role
 from app.db.database import get_db
 from app.models.contract import User, Department, Role
 from app.utils.auth import create_access_token, verify_password, get_current_user
 
 router = APIRouter()
+
+_admin = require_any_role("admin")
+
+
+class AdminUserUpdate(BaseModel):
+    """管理员更新用户角色与状态"""
+    role_id: Optional[int] = Field(None, description="角色 ID")
+    status: Optional[int] = Field(None, ge=0, le=1, description="1:启用 0:禁用")
 
 
 @router.get("/users", summary="用户列表")
@@ -19,6 +29,7 @@ async def list_users(
     page_size: int = Query(20, ge=1, le=100),
     keyword: Optional[str] = None,
     department_id: Optional[int] = None,
+    role_id: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
 ):
     """获取用户列表"""
@@ -31,6 +42,8 @@ async def list_users(
         ])
     if department_id:
         conditions.append(User.department_id == department_id)
+    if role_id is not None:
+        conditions.append(User.role_id == role_id)
     
     # 总数
     count_query = select(func.count()).select_from(User).where(*conditions)
@@ -59,10 +72,44 @@ async def list_users(
             "phone": user.phone,
             "department_name": dept_name,
             "role_name": role_name,
+            "role_id": user.role_id,
             "status": user.status,
         })
     
     return {"code": 200, "data": {"total": total, "page": page, "page_size": page_size, "items": items}}
+
+
+@router.put("/users/{user_id}", summary="更新用户（管理员）")
+async def update_user(
+    user_id: int,
+    body: AdminUserUpdate,
+    user: User = Depends(_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """管理员更新用户 role_id 与 status"""
+    target = await db.get(User, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    updates = body.model_dump(exclude_unset=True)
+    if "role_id" in updates and updates["role_id"] is not None:
+        role = await db.get(Role, updates["role_id"])
+        if not role:
+            raise HTTPException(status_code=400, detail="角色不存在")
+        target.role_id = updates["role_id"]
+    if "status" in updates and updates["status"] is not None:
+        target.status = updates["status"]
+
+    await db.flush()
+    return {
+        "code": 200,
+        "data": {
+            "id": target.id,
+            "username": target.username,
+            "role_id": target.role_id,
+            "status": target.status,
+        },
+    }
 
 
 @router.get("/roles", summary="角色列表")

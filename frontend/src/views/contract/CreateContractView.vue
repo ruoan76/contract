@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { contractsApi, resolveFlowType, mapFlowTypeForApi } from '@/api/contracts'
@@ -8,7 +8,10 @@ import { aiReviewApi } from '@/api/ai-review'
 import { counterpartiesApi, type CounterpartyItem } from '@/api/counterparties'
 import { templatesApi, type ContractTemplate } from '@/api/templates'
 import { useAuthStore } from '@/stores/auth'
+import { debounce } from '@/utils/debounce'
 import type { Contract, FlowMatchResult } from '@/types/models'
+
+const DRAFT_KEY = 'contract-draft'
 
 type CreateMode = 'blank' | 'template' | 'history'
 
@@ -33,7 +36,32 @@ const form = reactive({
 const selectedTemplateId = ref<number | null>(null)
 const selectedHistoryId = ref<number | null>(null)
 
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return
+    const draft = JSON.parse(raw) as Partial<typeof form> & { mode?: CreateMode }
+    Object.assign(form, draft)
+    if (draft.mode) mode.value = draft.mode
+    ElMessage.info('已恢复本地草稿')
+  } catch {
+    /* 忽略损坏草稿 */
+  }
+}
+
+const saveDraft = debounce(() => {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...form, mode: mode.value }))
+  } catch {
+    /* 存储满等情况 */
+  }
+}, 400)
+
+watch(form, saveDraft, { deep: true })
+watch(mode, saveDraft)
+
 onMounted(async () => {
+  restoreDraft()
   try {
     const [cpRes, tplRes, listRes] = await Promise.all([
       counterpartiesApi.list(),
@@ -41,7 +69,7 @@ onMounted(async () => {
       contractsApi.list({ page: 1, page_size: 20 }),
     ])
     counterparties.value = cpRes.items || []
-    templates.value = tplRes.items || []
+    templates.value = (tplRes.items || []).filter((t) => t.status === 'published')
     historyContracts.value = listRes.items || []
   } catch {
     counterparties.value = []
@@ -87,6 +115,7 @@ async function submit() {
     })
     const flow = await approvalsApi.submit(created.id, mapFlowTypeForApi(flowType))
     auth.setLastContract(created, flow.flow_id)
+    localStorage.removeItem(DRAFT_KEY)
     flowDialogVisible.value = true
     ElMessage.success(`合同 #${created.id} 已提交审批`)
     try {
@@ -121,6 +150,11 @@ const modeHint = computed(() => {
   if (mode.value === 'history') return '引用历史合同字段快速起草'
   return '空白起草，填写全部字段'
 })
+
+function templateLabel(t: ContractTemplate) {
+  const ver = t.version != null ? ` v${t.version}` : ''
+  return `${t.name}${ver}`
+}
 </script>
 
 <template>
@@ -139,7 +173,12 @@ const modeHint = computed(() => {
     <el-form v-if="mode === 'template'" label-width="100px" style="max-width: 640px; margin-bottom: 16px">
       <el-form-item label="选择模板">
         <el-select v-model="selectedTemplateId" filterable placeholder="已发布模板" style="width: 100%">
-          <el-option v-for="t in templates" :key="t.id" :label="t.name" :value="t.id" />
+          <el-option
+            v-for="t in templates"
+            :key="t.id"
+            :label="templateLabel(t)"
+            :value="t.id"
+          />
         </el-select>
       </el-form-item>
       <el-form-item>

@@ -2,12 +2,18 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { approvalsApi } from '@/api/approvals'
+import { usersApi, type SystemUser } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
 import type { ApprovalPendingItem } from '@/types/models'
 
 const auth = useAuthStore()
 const loading = ref(true)
 const items = ref<ApprovalPendingItem[]>([])
+const selected = ref<ApprovalPendingItem[]>([])
+const delegateVisible = ref(false)
+const delegateTarget = ref<ApprovalPendingItem | null>(null)
+const delegateUserId = ref<number | null>(null)
+const userOptions = ref<SystemUser[]>([])
 
 async function load() {
   loading.value = true
@@ -50,25 +56,104 @@ async function reject(row: ApprovalPendingItem) {
     }
   }
 }
+
+async function openDelegate(row: ApprovalPendingItem) {
+  delegateTarget.value = row
+  delegateUserId.value = null
+  try {
+    await auth.switchRole('admin')
+    const res = await usersApi.list({ page: 1, page_size: 50 })
+    userOptions.value = res.items || []
+  } catch {
+    userOptions.value = []
+  }
+  delegateVisible.value = true
+}
+
+async function confirmDelegate() {
+  if (!delegateTarget.value || !delegateUserId.value) {
+    ElMessage.warning('请选择被委托人')
+    return
+  }
+  try {
+    await auth.switchRole('approver')
+    await approvalsApi.approve(
+      delegateTarget.value.flow_id,
+      'delegate',
+      '委托审批',
+      delegateUserId.value,
+    )
+    ElMessage.success('已委托')
+    delegateVisible.value = false
+    await load()
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '委托失败')
+  }
+}
+
+async function batchApprove() {
+  if (!selected.value.length) {
+    ElMessage.warning('请先选择待办')
+    return
+  }
+  for (const row of selected.value) {
+    try {
+      await approvalsApi.approve(row.flow_id, 'approve', '批量通过')
+    } catch (e) {
+      ElMessage.error(`流程 #${row.flow_id} 失败：${e instanceof Error ? e.message : ''}`)
+      break
+    }
+  }
+  ElMessage.success('批量审批完成')
+  selected.value = []
+  await load()
+}
 </script>
 
 <template>
   <div class="page-card">
     <div class="page-toolbar">
       <h2>待办审批</h2>
-      <el-button @click="load">刷新</el-button>
+      <div style="display: flex; gap: 8px">
+        <el-button type="primary" :disabled="!selected.length" @click="batchApprove">
+          批量通过 ({{ selected.length }})
+        </el-button>
+        <el-button @click="load">刷新</el-button>
+      </div>
     </div>
-    <el-table v-loading="loading" :data="items" stripe>
+    <el-table
+      v-loading="loading"
+      :data="items"
+      stripe
+      @selection-change="(rows: ApprovalPendingItem[]) => (selected = rows)"
+    >
+      <el-table-column type="selection" width="48" />
       <el-table-column prop="flow_id" label="流程 ID" width="100" />
       <el-table-column prop="contract_id" label="合同 ID" width="100" />
       <el-table-column prop="contract_title" label="标题" min-width="200" />
       <el-table-column prop="flow_type" label="流程类型" width="120" />
-      <el-table-column label="操作" width="180">
+      <el-table-column label="操作" width="260">
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="approve(row)">通过</el-button>
           <el-button type="danger" size="small" plain @click="reject(row)">驳回</el-button>
+          <el-button size="small" plain @click="openDelegate(row)">委托</el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <el-dialog v-model="delegateVisible" title="审批委托" width="420px">
+      <el-select v-model="delegateUserId" placeholder="选择被委托人" filterable style="width: 100%">
+        <el-option
+          v-for="u in userOptions"
+          :key="u.id"
+          :label="`${u.real_name || u.username} (${u.role_name || '-'})`"
+          :value="u.id"
+        />
+      </el-select>
+      <template #footer>
+        <el-button @click="delegateVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmDelegate">确认委托</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>

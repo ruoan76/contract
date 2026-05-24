@@ -11,13 +11,21 @@
     "mtime": 1779611197.447558,
     "hash": "810c0ffaf16c85bf31d9933f563c2f39"
   },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-03.spec.ts": {
+    "mtime": 1779614185.9651017,
+    "hash": "e9d874f5a26e9a0f9ae1bab757b45d9b"
+  },
   "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-01.spec.ts": {
     "mtime": 1779579990.5137618,
     "hash": "4833b152a5e731df8aae0f449538d584"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-05.spec.ts": {
-    "mtime": 1779611176.966377,
-    "hash": "7b78b0c18082c98696dfa9dda1972468"
+    "mtime": 1779614192.0950994,
+    "hash": "5c7375d5edef610404caafb0389f022c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-04.spec.ts": {
+    "mtime": 1779614197.01454,
+    "hash": "7390f2d72edbb8039501ffe2fb984576"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/App.vue": {
     "mtime": 1779578724.57019,
@@ -47,6 +55,14 @@
     "mtime": 1779578455.7319098,
     "hash": "8e450a3898631e756e2bd1783aa78943"
   },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/debounce.ts": {
+    "mtime": 1779614060.613616,
+    "hash": "f64f7f7140a79bc310429c2cc00d3350"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/exportCsv.ts": {
+    "mtime": 1779614060.1458745,
+    "hash": "d72c0bd81746eaaaead326b36c08d81a"
+  },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/components/StatusTag.vue": {
     "mtime": 1779578561.443619,
     "hash": "c2deec692e9eb763ae746e21f0f7cf85"
@@ -60,28 +76,28 @@
     "hash": "924dadd9d9fa3b147b4588eb67f81653"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/ai-review.ts": {
-    "mtime": 1779579755.8079526,
-    "hash": "7afd63657dad6f65444c6b6b742fa4a5"
+    "mtime": 1779614080.737101,
+    "hash": "3cb8816bf0d4069f1c0e5163cd1e6662"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/clause-compare.ts": {
     "mtime": 1779610989.6582243,
     "hash": "b0327f0ad488a62a93b15aa13d1077f1"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/notifications.ts": {
-    "mtime": 1779579744.3912506,
-    "hash": "06bacf66349436704354db3ad6be6d49"
+    "mtime": 1779614068.3410661,
+    "hash": "600057c70dc7007492d375f1e13d628a"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/contracts.ts": {
-    "mtime": 1779578402.6005828,
-    "hash": "42e2f8d0ce7ca3668e9ebe5116734222"
+    "mtime": 1779614079.2095134,
+    "hash": "3c22cabd90f162828e89cc08d5b7d258"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/seals.ts": {
     "mtime": 1779578414.3099427,
     "hash": "e7226c6cd708c271fb0c1e5b4738e1b3"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/templates.ts": {
-    "mtime": 1779610986.853057,
-    "hash": "4243a0fc385ae35a489d830163256309"
+    "mtime": 1779614053.6384006,
+    "hash": "a9dc61f0705690e6f70ef7bcb0ccd068"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/archives.ts": {
     "mtime": 1779578420.16986,
@@ -96,24 +112,24 @@
     "hash": "0c888a707a498f7b4b1d59cbb07ce0e7"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/users.ts": {
-    "mtime": 1779579750.1859865,
-    "hash": "64d698c3a7c961c2f16cda90ef31cb76"
+    "mtime": 1779614255.5750813,
+    "hash": "7ca9c4294d7cda3998ad1c6270703b5a"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/index.ts": {
     "mtime": 1779579764.6180031,
     "hash": "22c466cf6773b5c5322992b97a09b649"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/approvals.ts": {
-    "mtime": 1779580288.461298,
-    "hash": "18ba2cd2ace83e0c6c2447699c842f41"
+    "mtime": 1779614057.8608584,
+    "hash": "2d50c9bff1c20bd0bb48ba71a418a5be"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/config.ts": {
     "mtime": 1779580141.8545308,
     "hash": "b42a01706b347952409b5338468aba84"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/audit.ts": {
-    "mtime": 1779579747.5953047,
-    "hash": "bd3f448a520eebb3f127d761efc3f05c"
+    "mtime": 1779614066.0041752,
+    "hash": "a44c9040da34093ccbb5c05bf0344ff5"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/api/reviews.ts": {
     "mtime": 1779580112.884423,
@@ -140,24 +156,28 @@
     "hash": "97e21ed216b72856e6d62ffde2068f21"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/contract/CreateContractView.vue": {
-    "mtime": 1779611136.267332,
-    "hash": "e850e45ab6b8fa377b907bf52cb90772"
+    "mtime": 1779614091.5789647,
+    "hash": "2c70fc160901785832189c93ac93dbe9"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/contract/ContractDetailView.vue": {
-    "mtime": 1779579855.8568146,
-    "hash": "d3f09a44d0c6d339ae6e52f926c7e79e"
+    "mtime": 1779614096.8782585,
+    "hash": "dd842bcd68214bfd73974dd39d141fb1"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/messages/MessagesView.vue": {
-    "mtime": 1779579837.814499,
-    "hash": "7b3e506e4733cd12bece7cabfca40c24"
+    "mtime": 1779614143.6476095,
+    "hash": "31eaafebfea5f866127090a305a9d799"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/archive/ArchivesView.vue": {
-    "mtime": 1779611108.0928495,
-    "hash": "228f100e83b81f75273d9a78b7e8ae4a"
+    "mtime": 1779614133.5261521,
+    "hash": "50a9ced0990dbf06f3c3f786ba0851c5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/auth/LoginView.vue": {
+    "mtime": 1779614209.580299,
+    "hash": "c6e3576ae0e977399b5cf7dd19ce4c33"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/template/TemplatesView.vue": {
-    "mtime": 1779611034.0672884,
-    "hash": "3162fb17485af6277374740449dbd561"
+    "mtime": 1779614169.0777383,
+    "hash": "edab5d9a5307a466d18999ff5ee81e32"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/seal/SealView.vue": {
     "mtime": 1779579928.345614,
@@ -168,24 +188,24 @@
     "hash": "bb090bc8d677769caef8fe1c85f9c2a7"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/system/AuditView.vue": {
-    "mtime": 1779579939.603947,
-    "hash": "3f37237a48494a5d0dc0be7b6d5be87c"
+    "mtime": 1779614152.0629013,
+    "hash": "f86011efb80fb002814a285ae47b052d"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/system/UsersView.vue": {
-    "mtime": 1779579962.701549,
-    "hash": "f3871f68f3ea99dd2ad2ac54d6f940c0"
+    "mtime": 1779614220.584144,
+    "hash": "eff6e1ea4ef47a8f171c94ae229ceb31"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/system/ConfigView.vue": {
     "mtime": 1779579850.2227077,
     "hash": "e12206908d3fc7ac56882dfc64dfc24e"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/ai/AiReviewView.vue": {
-    "mtime": 1779579866.7143636,
-    "hash": "ed43f72a82256b36e189ed2a9ce37bcc"
+    "mtime": 1779614143.8064246,
+    "hash": "1817bd919d8ad31415a2712823137468"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/ai/ClauseCompareView.vue": {
-    "mtime": 1779611048.1803567,
-    "hash": "13d65c10a82cd640dd2e4604dce9b265"
+    "mtime": 1779614156.4133198,
+    "hash": "9c3529a04b1869d12dce669a80832bb2"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/review/ReviewHistoryView.vue": {
     "mtime": 1779580256.80466,
@@ -196,16 +216,16 @@
     "hash": "ab044bfb2ca4fb8d7b98faa056a85faf"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/review/ReviewWorkspaceView.vue": {
-    "mtime": 1779580214.1505053,
-    "hash": "654ac34cf912bd016f35f540913bc1b0"
+    "mtime": 1779614112.5002341,
+    "hash": "ffd45d7fd68af2568ea0d4b3800b3b0b"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/counterparty/CounterpartiesView.vue": {
-    "mtime": 1779580037.7385917,
-    "hash": "9802a2ccd47910fd26cfab34ada85c56"
+    "mtime": 1779614138.5384586,
+    "hash": "9f197a5b6798319d6473055624fafb18"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/views/approval/ApprovalsView.vue": {
-    "mtime": 1779611087.2857475,
-    "hash": "076adb973fc8b8134ff925c43ef853a3"
+    "mtime": 1779614156.1450155,
+    "hash": "eccf471f10bd337db8897e9fd8ac5319"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/router/nav.ts": {
     "mtime": 1779578448.5406623,
@@ -216,8 +236,8 @@
     "hash": "d0c5c9b7b62de0f0236f58fc2ffa1039"
   },
   "/Users/tianfch/Documents/Dev/contract/frontend/src/router/index.ts": {
-    "mtime": 1779611053.136167,
-    "hash": "8b790e0b4b8eed10a061fe3747a37ea0"
+    "mtime": 1779614224.7581167,
+    "hash": "9fb06a8a83a4ece660a5167cb6e5b1f9"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/main.py": {
     "mtime": 1779610913.1317668,
@@ -276,12 +296,12 @@
     "hash": "f3a7c91cac6f3aac0e48bad4faf9193c"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/celery_tasks/notification_tasks.py": {
-    "mtime": 1779516496.2456644,
-    "hash": "8dda3a99d01f9bf2c9411f9cb1ad0c4d"
+    "mtime": 1779614081.4971416,
+    "hash": "7afa93443014a407be6313a01131251f"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/core/config.py": {
-    "mtime": 1779610892.5539925,
-    "hash": "66a7eca636106dbcd27a9f0c3393c0e2"
+    "mtime": 1779613994.8505704,
+    "hash": "1ae78a8f4033069dc0699294df1e790c"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/core/security.py": {
     "mtime": 1779574934.020759,
@@ -322,6 +342,10 @@
   "/Users/tianfch/Documents/Dev/contract/backend/app/utils/storage.py": {
     "mtime": 1779544738.4971452,
     "hash": "947dde996b86d3ee77771ea5f456a5cc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/feishu.py": {
+    "mtime": 1779614007.4612136,
+    "hash": "3371fdbcc8850b518f45084613edf48c"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/utils/exceptions.py": {
     "mtime": 1779514274.8522716,
@@ -392,8 +416,8 @@
     "hash": "1ead6c4a343d0fa3f77f66539ffbf576"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/contract.py": {
-    "mtime": 1779546539.1367946,
-    "hash": "376e52b7098fb63b2d8ad2007752e5e3"
+    "mtime": 1779614116.0834575,
+    "hash": "9dbeb32827b56a7348c4102550895ef6"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/ai_review.py": {
     "mtime": 1779516898.304691,
@@ -416,8 +440,8 @@
     "hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/system.py": {
-    "mtime": 1779521148.096691,
-    "hash": "fd6a809f96544776af64587dc276d9d2"
+    "mtime": 1779614236.9119906,
+    "hash": "4e8b55f07badd5c63bc448b62d45a8f0"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/reviews.py": {
     "mtime": 1779574901.6392286,
@@ -432,8 +456,8 @@
     "hash": "65b7b514497210024b65f8650bccd47e"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/approvals.py": {
-    "mtime": 1779574898.4064543,
-    "hash": "81dff60dd57620871996dbbc76a2a21f"
+    "mtime": 1779614004.5138252,
+    "hash": "33bd9556fcf83289540d7bd8726370af"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ai_review_demo.py": {
     "mtime": 1779143451.1102843,
@@ -452,16 +476,16 @@
     "hash": "986dd92c3e26244730260dda223a8cde"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/templates.py": {
-    "mtime": 1779610881.0892339,
-    "hash": "c6409d97ea79fec6a8ed3b5fbedb10d7"
+    "mtime": 1779613968.803736,
+    "hash": "3c8b4eb2c942ea81ec0b8a03ec129fbf"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/seals.py": {
     "mtime": 1779574895.011333,
     "hash": "a9ab9fcd93c4d5a220d0bca9f8c8cbbf"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/contracts.py": {
-    "mtime": 1779574920.38675,
-    "hash": "4c93aeaba91997e9e621f4a846acad0b"
+    "mtime": 1779613947.116665,
+    "hash": "a430baf4aa8a02c509a89a40753fbf54"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/risks.py": {
     "mtime": 1779546246.022128,
@@ -476,20 +500,20 @@
     "hash": "f1ca3827e3f7432ca7ff71a968366928"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/clause_compare.py": {
-    "mtime": 1779610892.4414668,
-    "hash": "dc20a93d432f43a61f5f114f9fe6bfd5"
+    "mtime": 1779614078.0960736,
+    "hash": "0cadeaf3775ff8574c2e0f2f5687254f"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ai_review.py": {
-    "mtime": 1779546747.4579885,
-    "hash": "e0ae312efffce38ffcd3382059614e9a"
+    "mtime": 1779614063.6403315,
+    "hash": "c6f7e600d076b93fb4b58b846fed6694"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ai_review_seeds.py": {
     "mtime": 1779143443.532064,
     "hash": "bbd4a16954ea39ef2864475d87d0b0ca"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/notification_events.py": {
-    "mtime": 1779610848.935308,
-    "hash": "75a6bdc98a370ef56f1e30e35bb11cb3"
+    "mtime": 1779614013.1603618,
+    "hash": "d8b9b87b7d727ebf3934aa773953d3b2"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/review_service.py": {
     "mtime": 1779610925.4246414,
@@ -512,16 +536,16 @@
     "hash": "0329f3ffb3bc255e7e3dc2566854426e"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/approval_service.py": {
-    "mtime": 1779611321.188492,
-    "hash": "7e919682398eca23f254d5488a4301af"
+    "mtime": 1779614057.8608897,
+    "hash": "6d874894ba2ab3e88369e6fd3f49d970"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/template_service.py": {
-    "mtime": 1779610860.8469086,
-    "hash": "7262e17b1fdc1d0543ff22fbfefda04d"
+    "mtime": 1779614149.527956,
+    "hash": "8d187bef85a8fd124fe30a917bd80706"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/contract_service.py": {
-    "mtime": 1779610938.915158,
-    "hash": "9c096b4e6b75e2b44190568583784e5f"
+    "mtime": 1779613944.9327323,
+    "hash": "da7a595510c9a4d9a8d2a1c16f4fdb3d"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/app/services/contract_state.py": {
     "mtime": 1779573769.3914118,
@@ -608,12 +632,16 @@
     "hash": "3d473e9370ad0b2716d3d0d67ef712ac"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_approval.py": {
-    "mtime": 1779611324.2416027,
-    "hash": "e0108cf9c380b38a35327e193f79edd2"
+    "mtime": 1779614109.0747714,
+    "hash": "6bb41b0607428b6fceecdf687a9448f0"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_statistics.py": {
     "mtime": 1779573833.533046,
     "hash": "5082f90c058f9c0176f4248e6dfb45d5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_template_service.py": {
+    "mtime": 1779614161.9926903,
+    "hash": "3f5d13a99be878c5567ada8990ed3dab"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_reviews.py": {
     "mtime": 1779573817.822115,
@@ -656,16 +684,16 @@
     "hash": "c2b5c015eea9072df0843893a46daf04"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/test_rbac_api.py": {
-    "mtime": 1779610965.1567302,
-    "hash": "84e9c0baa2dcd69a4be640761aea917c"
+    "mtime": 1779614098.8187358,
+    "hash": "f422f7346df57c1dcd0e9b02e66cfce4"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_ai_review_engine.py": {
     "mtime": 1779532036.291788,
     "hash": "22c67ba2d17f63bd46f7874fe8310772"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/integration/test_demo_scripts.py": {
-    "mtime": 1779611290.4936633,
-    "hash": "b02142f242f4ea8efae2e57bbfccd7e7"
+    "mtime": 1779614162.6708665,
+    "hash": "d00c82444e0d191c1cf7fee18e181931"
   },
   "/Users/tianfch/Documents/Dev/contract/backend/tests/integration/__init__.py": {
     "mtime": 1779546769.6428838,
@@ -980,8 +1008,8 @@
     "hash": "053aefe38191694964fcf1d2f77e32eb"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/DESIGN_STATUS.md": {
-    "mtime": 1779611365.854852,
-    "hash": "e06456606e370cdfc1e4685037910678"
+    "mtime": 1779614233.802163,
+    "hash": "e02998339876f04e407bba6a5458e58b"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/design/review-2026-05-23.md": {
     "mtime": 1779488468.816894,
@@ -1096,8 +1124,8 @@
     "hash": "5cc671f1d484dbe20d2880cddd88ee8c"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/plans/frontend-api-integration-checklist.md": {
-    "mtime": 1779580307.9567566,
-    "hash": "6ae20f80626f64b6732f8c899e9226c4"
+    "mtime": 1779614270.2097287,
+    "hash": "ccbb3d1c2efee431dec9b55018fab175"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/plans/backend-hardening-plan.md": {
     "mtime": 1779577710.4909813,
@@ -1124,8 +1152,8 @@
     "hash": "eaa6ed071bd839da45369a76790d04d3"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/plans/v1.1-roadmap.md": {
-    "mtime": 1779611208.0601006,
-    "hash": "ce88a56545f80f7693d761b1bb3456cf"
+    "mtime": 1779614231.632577,
+    "hash": "c0af005f199c5f0a493ec90aad745a34"
   },
   "/Users/tianfch/Documents/Dev/contract/docs/plans/ai-review-sprint-plan.md": {
     "mtime": 1779052335.0661638,

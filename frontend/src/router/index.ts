@@ -7,6 +7,18 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/auth/LoginView.vue'),
+      meta: { title: '登录', public: true },
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/auth/LoginView.vue'),
+      meta: { title: '登录', public: true },
+    },
+    {
       path: '/',
       component: AppLayout,
       children: [
@@ -137,6 +149,10 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, _from, next) => {
+  if (to.meta.public) {
+    next()
+    return
+  }
   const auth = useAuthStore()
   if (!auth.user) {
     try {
@@ -146,6 +162,10 @@ router.beforeEach(async (to, _from, next) => {
     }
   }
   const name = to.name as string | undefined
+  if (to.meta.public) {
+    next()
+    return
+  }
   if (name && !canAccessRoute(auth.role, name)) {
     next({ name: 'dashboard' })
     return

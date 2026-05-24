@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { templatesApi, type ContractTemplate } from '@/api/templates'
 import { useAuthStore } from '@/stores/auth'
@@ -9,6 +9,8 @@ const loading = ref(true)
 const items = ref<ContractTemplate[]>([])
 const dialogVisible = ref(false)
 const form = reactive({ name: '', category: 'purchase', content: '' })
+const isAdmin = computed(() => auth.role === 'admin')
+const isApprover = computed(() => auth.role === 'approver' || auth.role === 'admin')
 
 const STATUS_MAP: Record<string, string> = {
   draft: '草稿',
@@ -49,14 +51,47 @@ async function createTemplate() {
   }
 }
 
-async function publish(row: ContractTemplate) {
+async function submitPublish(row: ContractTemplate) {
   try {
     await auth.switchRole('admin')
-    await templatesApi.publish(row.id)
-    ElMessage.success('模板已发布')
+    await templatesApi.submitPublish(row.id)
+    ElMessage.success('已提交发布审批')
     await load()
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : '发布失败')
+    ElMessage.error(e instanceof Error ? e.message : '提交失败')
+  }
+}
+
+async function approvePublish(row: ContractTemplate) {
+  try {
+    await auth.switchRole('approver')
+    await templatesApi.approvePublish(row.id)
+    ElMessage.success('已批准发布')
+    await load()
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '批准失败')
+  }
+}
+
+async function rejectPublish(row: ContractTemplate) {
+  try {
+    await auth.switchRole('approver')
+    await templatesApi.rejectPublish(row.id)
+    ElMessage.success('已驳回')
+    await load()
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '驳回失败')
+  }
+}
+
+async function deprecate(row: ContractTemplate) {
+  try {
+    await auth.switchRole('admin')
+    await templatesApi.deprecate(row.id)
+    ElMessage.success('模板已废止')
+    await load()
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '废止失败')
   }
 }
 </script>
@@ -65,7 +100,7 @@ async function publish(row: ContractTemplate) {
   <div class="page-card">
     <div class="page-toolbar">
       <h2>模板管理</h2>
-      <el-button type="primary" @click="dialogVisible = true">新建模板</el-button>
+      <el-button v-if="isAdmin" type="primary" @click="dialogVisible = true">新建模板</el-button>
     </div>
     <el-table v-loading="loading" :data="items" stripe>
       <el-table-column prop="id" label="ID" width="70" />
@@ -77,15 +112,24 @@ async function publish(row: ContractTemplate) {
         </template>
       </el-table-column>
       <el-table-column prop="version" label="版本" width="70" />
-      <el-table-column label="操作" width="120">
+      <el-table-column label="操作" width="280">
         <template #default="{ row }">
+          <el-button v-if="row.status === 'draft' && isAdmin" link type="primary" @click="submitPublish(row)">
+            提交发布
+          </el-button>
+          <el-button v-if="row.status === 'pending_publish' && isApprover" link type="success" @click="approvePublish(row)">
+            批准发布
+          </el-button>
+          <el-button v-if="row.status === 'pending_publish' && isApprover" link type="warning" @click="rejectPublish(row)">
+            驳回
+          </el-button>
           <el-button
-            v-if="row.status !== 'published'"
+            v-if="row.status === 'published' && isAdmin"
             link
-            type="primary"
-            @click="publish(row)"
+            type="danger"
+            @click="deprecate(row)"
           >
-            发布
+            废止
           </el-button>
         </template>
       </el-table-column>

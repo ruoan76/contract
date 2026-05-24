@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { archivesApi } from '@/api/archives'
 import { useAuthStore } from '@/stores/auth'
+import { downloadCsv } from '@/utils/exportCsv'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -12,6 +13,13 @@ const loading = ref(false)
 const archiving = ref(false)
 
 const contractId = ref(auth.restoreLastContractId() || auth.lastContract?.id || 0)
+
+const DEMO02_STEPS = [
+  { title: '新建', route: 'create' },
+  { title: 'AI 审查', route: 'ai-review' },
+  { title: '三角色评审', route: 'review-workspace' },
+  { title: '归档', route: 'archive' },
+]
 
 onMounted(async () => {
   loading.value = true
@@ -31,17 +39,17 @@ function openContract(row: { contract_id?: number }) {
   }
 }
 
-function go(name: string) {
-  if (!contractId.value && name !== 'create') {
+function go(step: string) {
+  if (!contractId.value && step !== 'create') {
     ElMessage.warning('请先在新建合同页创建并提交合同')
     return
   }
-  if (name === 'ai-review') {
+  if (step === 'ai-review') {
     router.push({ name: 'ai-review', params: { id: contractId.value } })
-  } else if (name === 'review-workspace') {
+  } else if (step === 'review-workspace') {
     router.push({ name: 'review-workspace', params: { id: contractId.value } })
   } else {
-    router.push({ name })
+    router.push({ name: step })
   }
 }
 
@@ -62,21 +70,37 @@ async function archiveCurrent() {
     archiving.value = false
   }
 }
+
+function exportCsv() {
+  downloadCsv(
+    'archives.csv',
+    ['合同 ID', '归档位置', '归档时间'],
+    items.value.map((r) => [
+      String(r.contract_id ?? ''),
+      r.archive_location ?? '',
+      r.archived_at ?? '',
+    ]),
+  )
+}
 </script>
 
 <template>
   <div class="page-card">
     <div class="page-toolbar">
       <h2>归档台账</h2>
+      <el-button @click="exportCsv">导出 CSV</el-button>
     </div>
 
-    <el-alert
-      title="DEMO-02 标准流程指引"
-      type="info"
-      :closable="false"
-      style="margin-bottom: 16px"
-    >
-      <p>当前合同 ID：{{ contractId || '未选择' }}。按序完成：AI 审查 → 三角色评审 → 归档。</p>
+    <el-alert title="DEMO-02 标准流程指引" type="info" :closable="false" style="margin-bottom: 16px">
+      <p style="margin: 0 0 12px">当前合同 ID：{{ contractId || '未选择' }}</p>
+      <el-steps :active="contractId ? 1 : 0" align-center finish-status="success">
+        <el-step
+          v-for="(s, i) in DEMO02_STEPS"
+          :key="i"
+          :title="s.title"
+          @click="go(s.route)"
+        />
+      </el-steps>
       <div class="demo-actions">
         <el-button size="small" @click="go('create')">1. 新建合同</el-button>
         <el-button size="small" @click="go('ai-review')">2. AI 审查</el-button>
@@ -97,10 +121,16 @@ async function archiveCurrent() {
 </template>
 
 <style scoped>
+.page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
 .demo-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 </style>

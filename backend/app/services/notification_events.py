@@ -59,14 +59,19 @@ async def notify_approval_pending(
     contract_id: int,
     contract_title: str,
 ) -> None:
+    title = "待办审批"
+    message = f"合同「{contract_title}」待您审批"
     await notify_user(
         db,
         approver_id or 0,
-        title="待办审批",
-        message=f"合同「{contract_title}」待您审批",
+        title=title,
+        message=message,
         resource_type="contract",
         resource_id=contract_id,
     )
+    from app.utils.feishu import send_feishu_webhook
+
+    await send_feishu_webhook(message, title=title)
 
 
 async def notify_review_returned(
@@ -75,14 +80,19 @@ async def notify_review_returned(
     contract_id: int,
     comment: Optional[str] = None,
 ) -> None:
+    title = "评审退回"
+    message = comment or f"合同 #{contract_id} 已被退回，请修订后重新提交"
     await notify_user(
         db,
         creator_id or 0,
-        title="评审退回",
-        message=comment or f"合同 #{contract_id} 已被退回，请修订后重新提交",
+        title=title,
+        message=message,
         resource_type="contract",
         resource_id=contract_id,
     )
+    from app.utils.feishu import send_feishu_webhook
+
+    await send_feishu_webhook(message, title=title)
 
 
 async def notify_seal_pending(db: AsyncSession, contract_id: int) -> None:

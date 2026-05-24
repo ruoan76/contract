@@ -330,13 +330,8 @@ async def approve_step(
     )
     actor_role = role_row.scalar_one_or_none()
 
-    if action == "approve" and step_record and step_record.approver_id and actor_role is not None:
-        required_role = NODE_TO_ROLE_CODE.get(current_node["node_id"])
-        allowed = (
-            step_record.approver_id == user_id
-            or actor_role == "admin"
-            or (required_role and actor_role == required_role)
-        )
+    if step_record and step_record.approver_id:
+        allowed = step_record.approver_id == user_id or actor_role == "admin"
         if not allowed:
             raise HTTPException(status_code=403, detail="非当前步骤审批人，无权操作")
 
@@ -454,6 +449,80 @@ async def approve_step(
     return flow
 
 
+async def delegate_step(
+    db: AsyncSession,
+    user_id: int,
+    username: str,
+    flow_id: int,
+    delegate_to: int,
+    comment: Optional[str] = None,
+) -> ApprovalFlow:
+    """审批委托：将当前 pending 步骤转交他人。"""
+    result = await db.execute(select(ApprovalFlow).where(ApprovalFlow.id == flow_id))
+    flow = result.scalar_one_or_none()
+    if not flow:
+        raise HTTPException(status_code=404, detail="审批流程不存在")
+    if flow.status != "approving":
+        raise HTTPException(status_code=400, detail=f"流程状态为 {flow.status}，无法委托")
+
+    pending_result = await db.execute(
+        select(ApprovalStep)
+        .where(ApprovalStep.flow_id == flow.id, ApprovalStep.status == "pending")
+        .order_by(ApprovalStep.step_number)
+        .limit(1)
+    )
+    step_record = pending_result.scalar_one_or_none()
+    if not step_record:
+        raise HTTPException(status_code=400, detail="无待处理审批步骤")
+
+    from app.models.contract import Role
+
+    role_row = await db.execute(
+        select(Role.code).join(User, User.role_id == Role.id).where(User.id == user_id)
+    )
+    actor_role = role_row.scalar_one_or_none()
+    if step_record.approver_id:
+        allowed = step_record.approver_id == user_id or actor_role == "admin"
+        if not allowed:
+            raise HTTPException(status_code=403, detail="非当前步骤审批人，无权委托")
+
+    delegate_user = await db.get(User, delegate_to)
+    if not delegate_user or delegate_user.status != 1:
+        raise HTTPException(status_code=400, detail="被委托人不存在或已禁用")
+
+    step_record.approver_id = delegate_to
+    step_record.approver_name = delegate_user.real_name or delegate_user.username
+    if comment:
+        step_record.comment = comment
+
+    contract_result = await db.execute(select(Contract).where(Contract.id == flow.contract_id))
+    contract = contract_result.scalar_one_or_none()
+    from app.services.notification_events import notify_approval_pending
+
+    await notify_approval_pending(
+        db,
+        delegate_to,
+        flow.contract_id,
+        contract.title if contract else f"#{flow.contract_id}",
+    )
+
+    await log_action(
+        db=db,
+        user_id=user_id,
+        action="delegate_step",
+        resource_type="approval",
+        resource_id=flow.id,
+        detail={
+            "username": username,
+            "delegate_to": delegate_to,
+            "resource_name": f"审批流程 #{flow.id}",
+        },
+    )
+    await db.flush()
+    await db.refresh(flow)
+    return flow
+
+
 async def reject_step(
     db: AsyncSession,
     user_id: int,
@@ -492,6 +561,24 @@ async def return_to_draft(
             status_code=400,
             detail=f"流程状态为 {flow.status}，无法退回草稿",
         )
+
+    pending_result = await db.execute(
+        select(ApprovalStep)
+        .where(ApprovalStep.flow_id == flow.id, ApprovalStep.status == "pending")
+        .order_by(ApprovalStep.step_number)
+        .limit(1)
+    )
+    step_record = pending_result.scalar_one_or_none()
+    from app.models.contract import Role
+
+    role_row = await db.execute(
+        select(Role.code).join(User, User.role_id == Role.id).where(User.id == user_id)
+    )
+    actor_role = role_row.scalar_one_or_none()
+    if step_record and step_record.approver_id:
+        allowed = step_record.approver_id == user_id or actor_role == "admin"
+        if not allowed:
+            raise HTTPException(status_code=403, detail="非当前步骤审批人，无权操作")
 
     flow.status = "returned"
     flow.end_time = datetime.now(timezone.utc)
