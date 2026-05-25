@@ -204,6 +204,92 @@ class TestListContracts:
 
 
 @pytest.mark.unit
+class TestDashboardBucketFilters:
+    async def test_list_contracts_bucket_executing(self, db_session, mock_data):
+        from datetime import date, timedelta
+
+        from app.models.contract import Contract
+        from app.services.contract_service import list_contracts
+
+        today = date.today()
+        db_session.add_all(
+            [
+                Contract(
+                    contract_no="BKT-EXEC-1",
+                    title="执行中",
+                    contract_type="service",
+                    status="executing",
+                    counterparty_name="A",
+                    creator_id=1,
+                    end_date=today + timedelta(days=60),
+                ),
+                Contract(
+                    contract_no="BKT-EXP-1",
+                    title="快到期",
+                    contract_type="service",
+                    status="sealed",
+                    counterparty_name="B",
+                    creator_id=1,
+                    end_date=today + timedelta(days=10),
+                ),
+            ]
+        )
+        await db_session.commit()
+
+        result = await list_contracts(
+            db=db_session,
+            page=1,
+            page_size=20,
+            filters={"bucket": "executing"},
+        )
+        assert result["total"] == 1
+        assert result["items"][0]["contract_no"] == "BKT-EXEC-1"
+
+    async def test_dashboard_pending_matches_status_filter(self, db_session, mock_data):
+        from app.models.contract import Contract
+        from app.services.contract_service import list_contracts, list_dashboard_buckets
+
+        db_session.add_all(
+            [
+                Contract(
+                    contract_no="PEND-1",
+                    title="待审批1",
+                    contract_type="service",
+                    status="pending",
+                    counterparty_name="A",
+                    creator_id=1,
+                ),
+                Contract(
+                    contract_no="PEND-2",
+                    title="待审批2",
+                    contract_type="service",
+                    status="pending",
+                    counterparty_name="B",
+                    creator_id=1,
+                ),
+                Contract(
+                    contract_no="DRAFT-1",
+                    title="草稿",
+                    contract_type="service",
+                    status="draft",
+                    counterparty_name="C",
+                    creator_id=1,
+                ),
+            ]
+        )
+        await db_session.commit()
+
+        dashboard = await list_dashboard_buckets(db_session)
+        listed = await list_contracts(
+            db=db_session,
+            page=1,
+            page_size=20,
+            filters={"status": "pending"},
+        )
+        assert dashboard["stats"]["pending_approval"] == listed["total"] == 2
+
+
+@pytest.mark.unit
 class TestUpdateContract:
     """update_contract 服务测试"""
     

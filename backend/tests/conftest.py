@@ -48,7 +48,7 @@ db_module._async_session = TestSessionLocal
 
 async def _create_tables() -> None:
     async with test_engine.begin() as conn:
-        from app.models import ai_review, contract, counterparty, review, user  # noqa: F401
+        from app.models import ai_review, ai_review_issue, contract, counterparty, review, user  # noqa: F401
 
         await conn.run_sync(Base.metadata.create_all)
 

@@ -199,4 +199,5 @@ MySQL 8 · Redis 7 · MinIO · FastAPI · Vue3（规划）· Qwen（规划）
 | 项 | 状态 |
 |----|------|
 | 设计冻结 | ⏳ 待正式会四方签字（预评审已通过，见 design-freeze-pre-review.md） |
-| DESIGN_STATUS | **0.5.2** |
+| DESIGN_STATUS | **1.1.0** |
+| Dashboard API | `stats` + `executing` / `expiring_soon` / `expired` 三栏（见 api-page-mapping） |

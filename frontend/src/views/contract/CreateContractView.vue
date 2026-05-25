@@ -13,7 +13,7 @@ import type { Contract, FlowMatchResult } from '@/types/models'
 
 const DRAFT_KEY = 'contract-draft'
 
-type CreateMode = 'blank' | 'template' | 'history'
+type CreateMode = 'blank' | 'template' | 'history' | 'ai-parse'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -35,6 +35,8 @@ const form = reactive({
 
 const selectedTemplateId = ref<number | null>(null)
 const selectedHistoryId = ref<number | null>(null)
+const pendingFile = ref<File | null>(null)
+const parseLoading = ref(false)
 
 function restoreDraft() {
   try {
@@ -113,6 +115,14 @@ async function submit() {
       amount: form.amount,
       content: form.content,
     })
+    if (pendingFile.value) {
+      try {
+        await contractsApi.upload(created.id, pendingFile.value)
+      } catch {
+        ElMessage.warning('合同已创建，附件上传失败')
+      }
+      pendingFile.value = null
+    }
     const flow = await approvalsApi.submit(created.id, mapFlowTypeForApi(flowType))
     auth.setLastContract(created, flow.flow_id)
     localStorage.removeItem(DRAFT_KEY)
@@ -120,8 +130,13 @@ async function submit() {
     ElMessage.success(`合同 #${created.id} 已提交审批`)
     try {
       await aiReviewApi.review(created.id)
-    } catch {
-      /* AI 可选 */
+      ElMessage.success('AI 初筛已触发')
+    } catch (e) {
+      ElMessage.warning(
+        e instanceof Error
+          ? `AI 初筛未成功：${e.message}，请稍后在「AI 审查报告」手动触发`
+          : 'AI 初筛未成功，请稍后在「AI 审查报告」手动触发',
+      )
     }
   } catch (e) {
     ElMessage.error(e instanceof Error ? e.message : '提交失败')
@@ -133,6 +148,41 @@ async function submit() {
 function goApprovals() {
   flowDialogVisible.value = false
   router.push({ name: 'approvals' })
+}
+
+function goLegalReview() {
+  flowDialogVisible.value = false
+  const c = auth.lastContract
+  if (c?.id) {
+    router.push({ name: 'review-workspace', params: { id: String(c.id) } })
+  }
+}
+
+async function onParseFile(file: File) {
+  parseLoading.value = true
+  pendingFile.value = file
+  try {
+    const text = await file.text()
+    form.content = text.slice(0, 8000)
+    const titleMatch = text.match(/合同名称[：:]\s*(.+)/)
+    const cpMatch = text.match(/相对方[：:]\s*(.+)/)
+    const amtMatch = text.match(/金额[：:]\s*([\d,]+)/)
+    if (titleMatch) form.title = titleMatch[1].trim().slice(0, 100)
+    if (cpMatch) form.counterparty_name = cpMatch[1].trim().slice(0, 80)
+    if (amtMatch) form.amount = Number(amtMatch[1].replace(/,/g, '')) || form.amount
+    ElMessage.success('已解析文件内容（演示模式，请核对字段）')
+  } catch {
+    ElMessage.warning('解析失败，请手动补全字段')
+  } finally {
+    parseLoading.value = false
+  }
+  return false
+}
+
+function onPendingUpload(file: File) {
+  pendingFile.value = file
+  ElMessage.info(`已选择附件：${file.name}，提交后将自动上传`)
+  return false
 }
 
 const flowSteps = () => {
@@ -148,6 +198,7 @@ const flowSteps = () => {
 const modeHint = computed(() => {
   if (mode.value === 'template') return '从已发布模板套用正文与标题'
   if (mode.value === 'history') return '引用历史合同字段快速起草'
+  if (mode.value === 'ai-parse') return '上传合同文本，AI 自动解析字段（演示）'
   return '空白起草，填写全部字段'
 })
 
@@ -167,6 +218,7 @@ function templateLabel(t: ContractTemplate) {
       <el-tab-pane label="空白起草" name="blank" />
       <el-tab-pane label="模板起草" name="template" />
       <el-tab-pane label="历史引用" name="history" />
+      <el-tab-pane label="智能起草" name="ai-parse" />
     </el-tabs>
     <p class="mode-hint">{{ modeHint }}</p>
 
@@ -202,6 +254,14 @@ function templateLabel(t: ContractTemplate) {
       </el-form-item>
     </el-form>
 
+    <el-form v-if="mode === 'ai-parse'" label-width="100px" style="max-width: 640px; margin-bottom: 16px">
+      <el-form-item label="上传合同">
+        <el-upload :auto-upload="true" :show-file-list="false" :before-upload="onParseFile">
+          <el-button type="primary" :loading="parseLoading">上传 TXT 解析</el-button>
+        </el-upload>
+      </el-form-item>
+    </el-form>
+
     <el-form label-width="100px" style="max-width: 640px">
       <el-form-item label="合同标题" required>
         <el-input v-model="form.title" />
@@ -232,6 +292,12 @@ function templateLabel(t: ContractTemplate) {
       <el-form-item label="合同正文">
         <el-input v-model="form.content" type="textarea" :rows="4" />
       </el-form-item>
+      <el-form-item label="附件（可选）">
+        <el-upload :auto-upload="true" :show-file-list="false" :before-upload="onPendingUpload">
+          <el-button>选择附件</el-button>
+        </el-upload>
+        <span v-if="pendingFile" class="pending-file">{{ pendingFile.name }}</span>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" :loading="submitting" @click="submit">提交审批</el-button>
       </el-form-item>
@@ -250,6 +316,7 @@ function templateLabel(t: ContractTemplate) {
       </el-timeline>
       <template #footer>
         <el-button @click="flowDialogVisible = false">关闭</el-button>
+        <el-button @click="goLegalReview">提交法务评审</el-button>
         <el-button type="primary" @click="goApprovals">前往待办审批</el-button>
       </template>
     </el-dialog>
@@ -261,5 +328,10 @@ function templateLabel(t: ContractTemplate) {
   color: #6b7280;
   font-size: 13px;
   margin: 0 0 12px;
+}
+.pending-file {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #6b7280;
 }
 </style>

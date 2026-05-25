@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { configApi, type ThresholdsConfig } from '@/api/config'
+import { configApi, type ApproverConfig, type ThresholdsConfig } from '@/api/config'
 import { approvalsApi } from '@/api/approvals'
 import { contractsApi } from '@/api/contracts'
 import { useAuthStore } from '@/stores/auth'
@@ -12,6 +12,14 @@ const form = reactive<ThresholdsConfig>({
   standard_max: 1000000,
   board_threshold: 1000000,
 })
+const approvers = ref<ApproverConfig[]>([])
+const approverForm = reactive({
+  flow_type: 'standard',
+  step: 1,
+  role: 'approver',
+  user_id: 2,
+  user_name: '部门主管',
+})
 const loading = ref(false)
 const saving = ref(false)
 const devOpen = ref<string[]>([])
@@ -20,8 +28,12 @@ const historySteps = ref(0)
 onMounted(async () => {
   loading.value = true
   try {
-    const data = await configApi.getThresholds()
-    Object.assign(form, data)
+    const [thresholds, approverList] = await Promise.all([
+      configApi.getThresholds(),
+      configApi.getApprovers(),
+    ])
+    Object.assign(form, thresholds)
+    approvers.value = approverList || []
   } catch (e) {
     console.error(e)
   } finally {
@@ -40,6 +52,17 @@ async function save() {
     ElMessage.error(e instanceof Error ? e.message : '保存失败')
   } finally {
     saving.value = false
+  }
+}
+
+async function addApprover() {
+  try {
+    await auth.switchRole('admin')
+    const row = await configApi.createApprover({ ...approverForm })
+    approvers.value.push(row)
+    ElMessage.success('审批人已添加')
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '添加失败')
   }
 }
 
@@ -84,6 +107,38 @@ async function runDemo03() {
         <el-input-number v-model="form.board_threshold" :min="0" :step="100000" style="width: 100%" />
       </el-form-item>
     </el-form>
+
+    <el-card shadow="never" style="margin-top: 24px; max-width: 800px">
+      <template #header>审批人配置</template>
+      <el-table :data="approvers" stripe size="small">
+        <el-table-column prop="flow_type" label="流程类型" width="120" />
+        <el-table-column prop="step" label="步骤" width="70" />
+        <el-table-column prop="role" label="角色" width="100" />
+        <el-table-column prop="user_name" label="审批人" min-width="120" />
+      </el-table>
+      <el-form inline style="margin-top: 12px">
+        <el-form-item label="流程">
+          <el-select v-model="approverForm.flow_type" style="width: 120px">
+            <el-option label="简易" value="simple" />
+            <el-option label="标准" value="standard" />
+            <el-option label="大额" value="large_amount" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="步骤">
+          <el-input-number v-model="approverForm.step" :min="1" />
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-input v-model="approverForm.role" style="width: 100px" />
+        </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="approverForm.user_name" style="width: 120px" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" plain @click="addApprover">添加</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
     <el-collapse v-model="devOpen" style="margin-top: 24px; max-width: 640px">
       <el-collapse-item title="开发者工具（DEMO-03）" name="dev">
         <el-button :loading="loading" @click="runDemo03">运行 DEMO-03 特殊流程</el-button>

@@ -1,20 +1,32 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { contractsApi } from '@/api/contracts'
+import { canAccessRoute } from '@/router/permissions'
+import { useAuthStore } from '@/stores/auth'
+import type { DashboardBucketItem, DashboardData } from '@/types/models'
 
 const router = useRouter()
+const auth = useAuthStore()
 const loading = ref(true)
-const stats = ref({ pending_approval: 0, in_review: 0, sealed_or_archived: 0 })
+const data = ref<DashboardData>({
+  stats: {
+    total: 0,
+    pending_approval: 0,
+    executing_count: 0,
+    expiring_soon_count: 0,
+    expired_count: 0,
+  },
+  executing: [],
+  expiring_soon: [],
+  expired: [],
+})
+
+const stats = computed(() => data.value.stats ?? {})
 
 onMounted(async () => {
   try {
-    const data = await contractsApi.dashboard()
-    stats.value = {
-      pending_approval: Number(data.pending_approval ?? 0),
-      in_review: Number(data.in_review ?? 0),
-      sealed_or_archived: Number(data.sealed_or_archived ?? 0),
-    }
+    data.value = await contractsApi.dashboard()
   } catch (e) {
     console.error(e)
   } finally {
@@ -22,46 +34,169 @@ onMounted(async () => {
   }
 })
 
-function go(name: string) {
-  router.push({ name })
+function go(name: string, query?: Record<string, string>) {
+  router.push({ name, query })
+}
+
+/** 待审批统计卡：与列表 status=pending 口径一致 */
+function goPendingStat() {
+  go('contracts', { status: 'pending', scope: 'all' })
+}
+
+/** 快捷入口：审批人进待办页，其余进待审批合同列表 */
+function goPendingApproval() {
+  if (canAccessRoute(auth.role, 'approvals')) {
+    go('approvals')
+  } else {
+    goPendingStat()
+  }
+}
+
+function goExecutingStat() {
+  go('contracts', { bucket: 'executing', scope: 'all' })
+}
+
+function goExpiringStat() {
+  go('contracts', { bucket: 'expiring_soon', scope: 'all' })
+}
+
+function goDetail(row: DashboardBucketItem) {
+  router.push({ name: 'contract-detail', params: { id: String(row.id) } })
+}
+
+function formatAmount(amount?: number) {
+  if (amount == null) return '—'
+  return `¥ ${amount.toLocaleString()}`
 }
 </script>
 
 <template>
-  <div v-loading="loading">
-    <el-row :gutter="16">
-      <el-col :span="8">
-        <el-card shadow="hover" class="stat-card" @click="go('approvals')">
+  <div v-loading="loading" class="dashboard">
+    <el-row :gutter="16" class="stats-row">
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card" @click="go('contracts')">
+          <div class="stat-label">合同总数</div>
+          <div class="stat-value">{{ stats.total ?? 0 }}</div>
+          <p class="stat-hint">查看合同列表</p>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card warn" @click="goPendingStat">
           <div class="stat-label">待审批</div>
-          <div class="stat-value">{{ stats.pending_approval }}</div>
-          <p class="stat-hint">点击进入待办审批</p>
+          <div class="stat-value">{{ stats.pending_approval ?? 0 }}</div>
+          <p class="stat-hint">需尽快处理</p>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card shadow="hover" class="stat-card" @click="go('review-center')">
-          <div class="stat-label">评审中</div>
-          <div class="stat-value">{{ stats.in_review }}</div>
-          <p class="stat-hint">点击进入评审中心</p>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card primary" @click="goExecutingStat">
+          <div class="stat-label">执行中</div>
+          <div class="stat-value">{{ stats.executing_count ?? 0 }}</div>
+          <p class="stat-hint">正常履约合同</p>
         </el-card>
       </el-col>
-      <el-col :span="8">
-        <el-card shadow="hover" class="stat-card" @click="go('archives')">
-          <div class="stat-label">已用印/归档</div>
-          <div class="stat-value">{{ stats.sealed_or_archived }}</div>
-          <p class="stat-hint">点击查看归档台账</p>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card danger" @click="goExpiringStat">
+          <div class="stat-label">即将到期 (≤30天)</div>
+          <div class="stat-value">{{ stats.expiring_soon_count ?? 0 }}</div>
+          <p class="stat-hint">需关注续签</p>
         </el-card>
+      </el-col>
+    </el-row>
+
+    <div class="quick-links">
+      <el-button @click="goPendingApproval">待办审批 →</el-button>
+      <el-button @click="go('review-center')">待评审任务 →</el-button>
+      <el-button @click="go('ai-review')">AI 审查报告 →</el-button>
+    </div>
+
+    <el-row :gutter="16" class="kanban">
+      <el-col :xs="24" :md="8">
+        <div class="kanban-col">
+          <div class="kanban-title">执行中 <span class="count">{{ data.executing?.length ?? 0 }}</span></div>
+          <el-card
+            v-for="item in data.executing ?? []"
+            :key="item.id"
+            shadow="hover"
+            class="kanban-card"
+            @click="goDetail(item)"
+          >
+            <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
+            <div class="kc-meta">
+              <span>相对方：{{ item.counterparty_name }}</span>
+              <span v-if="item.end_date">交付：{{ item.end_date }}</span>
+            </div>
+            <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
+          </el-card>
+          <el-empty v-if="!(data.executing?.length)" description="暂无执行中合同" :image-size="64" />
+        </div>
+      </el-col>
+      <el-col :xs="24" :md="8">
+        <div class="kanban-col">
+          <div class="kanban-title warn">即将到期 <span class="count">{{ data.expiring_soon?.length ?? 0 }}</span></div>
+          <el-card
+            v-for="item in data.expiring_soon ?? []"
+            :key="item.id"
+            shadow="hover"
+            class="kanban-card border-warn"
+            @click="goDetail(item)"
+          >
+            <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
+            <div class="kc-meta">
+              <span>相对方：{{ item.counterparty_name }}</span>
+              <span v-if="item.end_date">到期：{{ item.end_date }}</span>
+            </div>
+            <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
+          </el-card>
+          <el-empty v-if="!(data.expiring_soon?.length)" description="暂无即将到期合同" :image-size="64" />
+        </div>
+      </el-col>
+      <el-col :xs="24" :md="8">
+        <div class="kanban-col">
+          <div class="kanban-title danger">已到期 <span class="count">{{ data.expired?.length ?? 0 }}</span></div>
+          <el-card
+            v-for="item in data.expired ?? []"
+            :key="item.id"
+            shadow="hover"
+            class="kanban-card border-danger"
+            @click="goDetail(item)"
+          >
+            <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
+            <div class="kc-meta">
+              <span>相对方：{{ item.counterparty_name }}</span>
+              <span v-if="item.end_date">到期：{{ item.end_date }}</span>
+            </div>
+            <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
+          </el-card>
+          <el-empty v-if="!(data.expired?.length)" description="暂无已到期合同" :image-size="64" />
+        </div>
       </el-col>
     </el-row>
   </div>
 </template>
 
 <style scoped>
+.dashboard {
+  padding-bottom: 24px;
+}
+.stats-row {
+  margin-bottom: 16px;
+}
 .stat-card {
   cursor: pointer;
   transition: transform 0.15s ease;
+  margin-bottom: 12px;
 }
 .stat-card:hover {
   transform: translateY(-2px);
+}
+.stat-card.warn .stat-value {
+  color: #d97706;
+}
+.stat-card.primary .stat-value {
+  color: #1d4ed8;
+}
+.stat-card.danger .stat-value {
+  color: #dc2626;
 }
 .stat-label {
   color: #6b7280;
@@ -71,11 +206,63 @@ function go(name: string) {
   font-size: 28px;
   font-weight: 700;
   margin-top: 8px;
-  color: #1d4ed8;
+  color: #111827;
 }
 .stat-hint {
   color: #9ca3af;
   font-size: 12px;
   margin: 8px 0 0;
+}
+.quick-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.kanban-col {
+  min-height: 200px;
+}
+.kanban-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+.kanban-title.warn {
+  color: #d97706;
+}
+.kanban-title.danger {
+  color: #dc2626;
+}
+.kanban-title .count {
+  font-weight: 400;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+.kanban-card {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.kanban-card.border-warn {
+  border-left: 3px solid #f59e0b;
+}
+.kanban-card.border-danger {
+  border-left: 3px solid #ef4444;
+}
+.kc-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.kc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.kc-amount {
+  margin-top: 8px;
+  font-weight: 600;
+  color: #1d4ed8;
 }
 </style>

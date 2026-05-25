@@ -16,6 +16,7 @@ from app.models.contract import (
     RiskAlert,
     AuditLog,
 )
+from app.models.ai_review_issue import AIReviewIssue
 from app.models.counterparty import Counterparty
 from app.models.review import ReviewSession, ReviewOpinion, Notification
 from app.models.template import ContractTemplate
@@ -35,6 +36,7 @@ __all__ = [
     "Role",
     "Department",
     "AIReview",
+    "AIReviewIssue",
     "RiskAlert",
     "AuditLog",
     "ContractTemplate",

@@ -63,13 +63,16 @@ class TestTemplateStateMachine:
         with pytest.raises(HTTPException, match="仅待发布状态可批准"):
             await approve_publish(db_session, t["id"])
 
-    async def test_publish_template_backward_compat(self, db_session):
-        """publish_template 兼容从 draft 直接发布"""
+    async def test_publish_template_requires_pending(self, db_session):
+        """publish_template 不可从 draft 跳过审批"""
         from app.services.template_service import publish_template
 
         t = await create_template(
             db_session, "兼容发布", "purchase", "内容", creator_id=1
         )
+        with pytest.raises(HTTPException, match="仅待发布状态"):
+            await publish_template(db_session, t["id"])
+        await submit_for_publish(db_session, t["id"])
         published = await publish_template(db_session, t["id"])
         assert published["status"] == "published"
         assert published["version"] == 2

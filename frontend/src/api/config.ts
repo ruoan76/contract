@@ -31,8 +31,22 @@ export interface ThresholdsConfig {
   board_threshold: number
 }
 
+export interface ApproverConfig {
+  id: number
+  flow_type: string
+  step: number
+  role: string
+  user_id?: number
+  user_name?: string
+}
+
 export const configApi = {
   getThresholds: () => client.get<ThresholdsConfig>('/api/v1/config/thresholds'),
   updateThresholds: (body: Partial<ThresholdsConfig>) =>
     client.put<ThresholdsConfig>('/api/v1/config/thresholds', body),
+  getApprovers: () => client.get<ApproverConfig[]>('/api/v1/config/approvers'),
+  createApprover: (body: Partial<ApproverConfig>) =>
+    client.post<ApproverConfig>('/api/v1/config/approvers', body),
+  updateApprover: (id: number, body: Partial<ApproverConfig>) =>
+    client.put<ApproverConfig>(`/api/v1/config/approvers/${id}`, body),
 }

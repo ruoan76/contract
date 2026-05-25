@@ -44,7 +44,7 @@ class TestSubmitApproval:
         assert result.status == "approving"
         assert result.flow_type == "standard"
         assert result.current_step == 0
-        assert result.total_steps == 4  # standard flow 有 4 个节点
+        assert result.total_steps == 1  # 标准流程：仅部门主管审批，法务/财务/高管走评审工作台
     
     async def test_submit_approval_contract_not_found(self, db_session, mock_data):
         """测试提交不存在的合同审批"""
@@ -132,7 +132,7 @@ class TestApproveStep:
         )
         
         assert result.current_step == 1
-        assert result.status == "approving"
+        assert result.status == "approved"
     
     async def test_approve_step_reject(self, db_session, mock_data):
         """测试审批拒绝"""
@@ -405,6 +405,6 @@ class TestGetApprovalHistory:
         )
         
         assert result["flow_id"] == flow.id
-        assert result["total_steps"] == 4
+        assert result["total_steps"] == 1
         assert len(result["steps"]) >= 1
         assert result["steps"][0]["action"] == "approve"

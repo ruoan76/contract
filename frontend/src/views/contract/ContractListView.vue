@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { contractsApi } from '@/api/contracts'
 import type { Contract } from '@/types/models'
 import StatusTag from '@/components/StatusTag.vue'
@@ -30,6 +30,7 @@ const RISK_OPTIONS = [
 ]
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(true)
 const items = ref<Contract[]>([])
 const total = ref(0)
@@ -39,6 +40,18 @@ const statusFilter = ref('')
 const typeFilter = ref('')
 const riskFilter = ref('')
 const keyword = ref('')
+const scope = ref('mine')
+const bucketFilter = ref('')
+
+const BUCKET_LABELS: Record<string, string> = {
+  executing: '执行中（看板口径）',
+  expiring_soon: '即将到期（≤30天）',
+  expired: '已到期',
+}
+
+const activeBucketLabel = computed(() =>
+  bucketFilter.value ? BUCKET_LABELS[bucketFilter.value] || bucketFilter.value : '',
+)
 
 async function load() {
   loading.value = true
@@ -46,8 +59,10 @@ async function load() {
     const params: Record<string, string | number> = {
       page: page.value,
       page_size: pageSize.value,
+      scope: scope.value,
     }
     if (statusFilter.value) params.status = statusFilter.value
+    if (bucketFilter.value) params.bucket = bucketFilter.value
     if (typeFilter.value) params.type = typeFilter.value
     if (riskFilter.value) params.risk_level = riskFilter.value
     if (keyword.value.trim()) params.keyword = keyword.value.trim()
@@ -61,7 +76,31 @@ async function load() {
   }
 }
 
-onMounted(load)
+function applyRouteQuery() {
+  const q = route.query
+  if (typeof q.status === 'string') statusFilter.value = q.status
+  if (typeof q.scope === 'string') scope.value = q.scope
+  bucketFilter.value = typeof q.bucket === 'string' ? q.bucket : ''
+}
+
+function clearBucketFilter() {
+  bucketFilter.value = ''
+  router.replace({ name: 'contracts', query: { ...route.query, bucket: undefined } })
+}
+
+onMounted(() => {
+  applyRouteQuery()
+  load()
+})
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteQuery()
+    page.value = 1
+    load()
+  },
+)
 
 function onSearch() {
   page.value = 1
@@ -93,6 +132,11 @@ function openReviewHistory(row: Contract, e: Event) {
     <div class="page-toolbar">
       <h2>合同列表</h2>
       <div class="filters">
+        <el-radio-group v-model="scope" size="small" @change="onSearch">
+          <el-radio-button value="mine">我的</el-radio-button>
+          <el-radio-button value="department">本部门</el-radio-button>
+          <el-radio-button value="all">全公司</el-radio-button>
+        </el-radio-group>
         <el-input
           v-model="keyword"
           placeholder="搜索标题/相对方"
@@ -117,6 +161,15 @@ function openReviewHistory(row: Contract, e: Event) {
         <el-button type="primary" @click="onSearch">查询</el-button>
       </div>
     </div>
+    <el-alert
+      v-if="activeBucketLabel"
+      :title="`当前筛选：${activeBucketLabel}`"
+      type="info"
+      show-icon
+      closable
+      class="bucket-alert"
+      @close="clearBucketFilter"
+    />
     <el-table v-loading="loading" :data="items" stripe @row-click="openDetail">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="title" label="标题" min-width="200" />
@@ -161,6 +214,10 @@ function openReviewHistory(row: Contract, e: Event) {
   gap: 8px;
   flex-wrap: wrap;
 }
+.bucket-alert {
+  margin-bottom: 12px;
+}
+
 .pager {
   margin-top: 16px;
   display: flex;

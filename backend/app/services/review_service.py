@@ -16,6 +16,8 @@ from app.services.contract_state import (
     approval_status_after_review_role,
     transition_contract,
 )
+from app.core.config import settings
+from app.services.ai_review_issue_service import list_top_issues_for_contract
 from app.services.audit_service import log_action
 
 # 各流程类型所需评审角色
@@ -95,11 +97,38 @@ def _validate_review_sequence(role: str, approved_roles: set[str], required_role
             raise HTTPException(status_code=400, detail="请先完成财务评审")
 
 
+async def _get_current_version_id(db: AsyncSession, contract: Contract) -> Optional[int]:
+    """当前合同版本 ID（优先 current_version_id，否则取最新版本）。"""
+    if contract.current_version_id:
+        return contract.current_version_id
+    result = await db.execute(
+        select(ContractVersion.id)
+        .where(ContractVersion.contract_id == contract.id)
+        .order_by(ContractVersion.version.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
 async def _ensure_ai_gate(db: AsyncSession, contract_id: int) -> None:
-    """法务评审前须完成 AI 审查。"""
+    """法务评审前须完成 AI 审查，且审查版本与当前合同版本一致。"""
+    contract = await db.get(Contract, contract_id)
+    if not contract:
+        raise HTTPException(status_code=404, detail="合同不存在")
+
     ai = await _get_latest_ai(db, contract_id)
     if not ai or ai.review_status not in AI_READY_STATUSES:
         raise HTTPException(status_code=400, detail="请先完成 AI 审查后再提交评审")
+
+    if settings.AI_REQUIRE_CONFIRM and ai.review_status not in ("reviewed", "confirmed"):
+        raise HTTPException(status_code=400, detail="请先确认 AI 审查报告后再提交评审")
+
+    current_version_id = await _get_current_version_id(db, contract)
+    if current_version_id and ai.version_id != current_version_id:
+        raise HTTPException(
+            status_code=400,
+            detail="合同内容已修订，请重新触发 AI 审查后再提交评审",
+        )
 
 
 async def get_pending_reviews(
@@ -172,12 +201,34 @@ async def get_review_workspace(db: AsyncSession, contract_id: int) -> dict:
     ai_summary = None
     review = await _get_latest_ai(db, contract_id)
     if review:
+        import json as _json
+
+        clause_reviews = []
+        if review.clause_reviews:
+            try:
+                clause_reviews = _json.loads(review.clause_reviews)
+            except (_json.JSONDecodeError, TypeError):
+                clause_reviews = []
+
+        high_clauses = [
+            c
+            for c in clause_reviews
+            if isinstance(c, dict)
+            and c.get("risk_level") in ("high", "critical", "medium")
+        ][:5]
+
         ai_summary = {
             "review_id": review.review_id,
             "risk_level": review.overall_risk_level,
             "risk_score": review.overall_risk_score,
             "review_status": review.review_status,
+            "recommendation": review.recommendation,
+            "version_id": review.version_id,
+            "model_version": review.model_version,
+            "top_clauses": high_clauses,
         }
+
+    ai_issues = await list_top_issues_for_contract(db, contract_id, limit=20)
 
     opinions_result = await db.execute(
         select(ReviewOpinion)
@@ -208,6 +259,7 @@ async def get_review_workspace(db: AsyncSession, contract_id: int) -> dict:
             "flow_type": flow_type,
         },
         "ai_summary": ai_summary,
+        "ai_issues": ai_issues,
         "opinions": opinions,
         "required_roles": _required_roles(flow_type),
     }

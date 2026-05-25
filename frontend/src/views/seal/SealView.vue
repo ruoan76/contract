@@ -11,6 +11,7 @@ interface SealItem {
   contract_id: number
   status?: string
   seal_type?: string
+  seal_image_path?: string
 }
 
 const auth = useAuthStore()
@@ -72,6 +73,22 @@ async function approveSeal(row: SealItem) {
     loading.value = false
   }
 }
+
+async function uploadScan(row: SealItem, file: File) {
+  loading.value = true
+  try {
+    const res = await sealsApi.uploadScan(row.id, file)
+    ElMessage.success('扫描件已上传')
+    row.seal_image_path = res.seal_image_path
+    row.status = 'completed'
+    await load()
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '上传失败')
+  } finally {
+    loading.value = false
+  }
+  return false
+}
 </script>
 
 <template>
@@ -87,16 +104,24 @@ async function approveSeal(row: SealItem) {
       <el-table-column prop="contract_id" label="合同 ID" width="100" />
       <el-table-column prop="seal_type" label="印章类型" width="120" />
       <el-table-column prop="status" label="状态" width="120" />
-      <el-table-column label="操作" width="120">
+      <el-table-column prop="seal_image_path" label="扫描件" min-width="180" show-overflow-tooltip />
+      <el-table-column label="操作" width="220">
         <template #default="{ row }">
           <el-button
-            v-if="row.status !== 'approved'"
+            v-if="row.status !== 'approved' && row.status !== 'completed'"
             link
             type="primary"
             @click="approveSeal(row)"
           >
             确认用印
           </el-button>
+          <el-upload
+            :auto-upload="true"
+            :show-file-list="false"
+            :before-upload="(f: File) => uploadScan(row, f)"
+          >
+            <el-button link type="success">上传扫描件</el-button>
+          </el-upload>
         </template>
       </el-table-column>
     </el-table>

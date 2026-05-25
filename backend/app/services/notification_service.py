@@ -16,6 +16,7 @@ async def create_notification(
     message: Optional[str] = None,
     resource_type: Optional[str] = None,
     resource_id: Optional[int] = None,
+    channel: str = "system",
 ) -> dict:
     n = Notification(
         user_id=user_id,
@@ -23,6 +24,7 @@ async def create_notification(
         message=message,
         resource_type=resource_type,
         resource_id=resource_id,
+        channel=channel,
     )
     db.add(n)
     await db.flush()
@@ -30,6 +32,7 @@ async def create_notification(
         "id": n.id,
         "title": n.title,
         "message": n.message,
+        "channel": n.channel,
         "is_read": n.is_read,
         "created_at": n.created_at.isoformat() if n.created_at else None,
     }
@@ -62,6 +65,7 @@ async def list_notifications(
             "message": n.message,
             "resource_type": n.resource_type,
             "resource_id": n.resource_id,
+            "channel": n.channel,
             "is_read": n.is_read,
             "created_at": n.created_at.isoformat() if n.created_at else None,
         }

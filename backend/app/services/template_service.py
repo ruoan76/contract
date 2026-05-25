@@ -105,12 +105,12 @@ async def update_template(
 
 
 async def publish_template(db: AsyncSession, template_id: int) -> dict:
-    """管理员一键发布（兼容旧 API，允许 draft 直接发布）"""
+    """管理员一键发布（仅 pending_publish，不可跳过审批从 draft 直发）"""
     t = await db.get(ContractTemplate, template_id)
     if not t:
         raise HTTPException(status_code=404, detail="模板不存在")
-    if t.status not in ("draft", "pending_publish"):
-        raise HTTPException(status_code=400, detail="仅草稿或待发布状态可发布")
+    if t.status != "pending_publish":
+        raise HTTPException(status_code=400, detail="仅待发布状态可一键发布，草稿请先提交发布审批")
     t.status = "published"
     t.version = (t.version or 0) + 1
     await db.flush()

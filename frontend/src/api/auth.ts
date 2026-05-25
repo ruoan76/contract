@@ -2,7 +2,7 @@ import type { AppRole, ApiUser } from '@/types/models'
 import { API_CONFIG } from './config'
 import { setToken } from './client'
 
-const cache: Partial<Record<AppRole, string>> = {}
+const cache: Partial<Record<AppRole, { token: string; user: ApiUser }>> = {}
 
 export async function login(username: string, password = API_CONFIG.password) {
   const qs = new URLSearchParams({ username, password })
@@ -20,13 +20,14 @@ export async function login(username: string, password = API_CONFIG.password) {
 export async function loginAsRole(role: AppRole) {
   const username = API_CONFIG.roleUsers[role]
   if (!username) throw new Error(`未知角色: ${role}`)
-  if (cache[role]) {
-    setToken(cache[role]!)
-    const raw = sessionStorage.getItem('api_current_user')
-    return raw ? (JSON.parse(raw) as ApiUser) : ({ username } as ApiUser)
+  const cached = cache[role]
+  if (cached) {
+    setToken(cached.token)
+    sessionStorage.setItem('api_current_user', JSON.stringify(cached.user))
+    return cached.user
   }
   const data = await login(username)
-  cache[role] = data.token
+  cache[role] = { token: data.token, user: data.user }
   return data.user
 }
 

@@ -3,10 +3,12 @@
 """
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Optional
 
+from app.core.config import settings
 from app.db.database import get_db
-from app.models.contract import User
+from app.models.contract import User, Contract, ContractVersion
 from app.schemas.contract import ContractCreate, ContractUpdate
 from app.schemas.review import RevisionSubmit
 from app.services.contract_service import (
@@ -21,10 +23,26 @@ from app.services.contract_service import (
 )
 from app.services.flow_match_service import get_flow_match_detail
 from app.services.review_service import submit_revision
+from app.services.ai_review_service import start_review
 from app.utils.auth import get_current_user
 from app.exceptions import BusinessError
 
 router = APIRouter()
+
+
+@router.post("/parse", summary="解析合同文件")
+async def parse_contract(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+):
+    """上传合同文件，提取文本并返回结构化字段（默认 mock 模式）。"""
+    from app.services.contract_parse_service import parse_contract_file
+
+    try:
+        data = await parse_contract_file(file)
+        return {"code": 200, "data": data}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/", summary="创建合同")
@@ -74,17 +92,30 @@ async def list(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status: Optional[str] = None,
+    bucket: Optional[str] = Query(
+        None, description="看板桶：executing|expiring_soon|expired，与 dashboard 口径一致"
+    ),
     contract_type: Optional[str] = None,
     keyword: Optional[str] = None,
     risk_level: Optional[str] = None,
+    scope: Optional[str] = Query(None, description="mine|department|all"),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """获取合同列表"""
+    if scope and scope not in ("mine", "department", "all"):
+        raise HTTPException(status_code=400, detail="scope 必须为 mine、department 或 all")
+    if bucket and bucket not in ("executing", "expiring_soon", "expired"):
+        raise HTTPException(status_code=400, detail="bucket 无效")
     filters = {
         "status": status,
+        "bucket": bucket,
         "type": contract_type,
         "risk_level": risk_level,
         "keyword": keyword,
+        "scope": scope,
+        "creator_id": user.id,
+        "user_department_id": user.department_id,
     }
     filters = {k: v for k, v in filters.items() if v is not None}
     result = await list_contracts(db=db, page=page, page_size=page_size, filters=filters)
@@ -181,6 +212,29 @@ async def upload(
             content,
             file.content_type or "application/octet-stream",
         )
+        if settings.AI_AUTO_REVIEW_ON_UPLOAD and result.get("version_id"):
+            contract_result = await db.execute(
+                select(Contract).where(Contract.id == contract_id)
+            )
+            contract = contract_result.scalar_one_or_none()
+            version_result = await db.execute(
+                select(ContractVersion).where(
+                    ContractVersion.id == result["version_id"]
+                )
+            )
+            version = version_result.scalar_one_or_none()
+            text = ""
+            if contract and version:
+                text = (version.content or contract.content or "").strip()
+            if text:
+                review_data = await start_review(
+                    db=db,
+                    contract_id=contract_id,
+                    version_id=result["version_id"],
+                    user_id=user.id,
+                    username=user.username,
+                )
+                result["auto_review"] = review_data
         return {"code": 200, "data": result}
     except BusinessError as e:
         if "not found" in str(e):

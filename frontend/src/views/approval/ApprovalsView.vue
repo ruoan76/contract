@@ -32,7 +32,13 @@ onMounted(load)
 
 async function approve(row: ApprovalPendingItem) {
   try {
-    await approvalsApi.approve(row.flow_id, 'approve', '同意')
+    const { value } = await ElMessageBox.prompt('请输入审批意见', '通过审批', {
+      confirmButtonText: '通过',
+      cancelButtonText: '取消',
+      inputPlaceholder: '同意',
+      inputValidator: (v) => !!(v && v.trim()) || '请填写审批意见',
+    })
+    await approvalsApi.approve(row.flow_id, 'approve', value || '同意')
     ElMessage.success('审批通过')
     await load()
   } catch (e) {

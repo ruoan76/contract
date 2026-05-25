@@ -17,6 +17,8 @@ from app.api.v1 import (
     ai_review_seeds,
     ai_review_demo,
     risks,
+    reminders,
+    ws_notifications,
     seals,
     archives,
     audit,
@@ -108,6 +110,8 @@ app.include_router(ai_review.router, prefix="/api/v1/ai-review", tags=["AI 审�
 app.include_router(ai_review_seeds.router, prefix="/api/v1/ai-review", tags=["AI 审查-种子"])
 app.include_router(ai_review_demo.router, prefix="/api/v1/ai-review", tags=["AI 审查-演示"])
 app.include_router(risks.router, prefix="/api/v1/risks", tags=["风险预警"])
+app.include_router(reminders.router, prefix="/api/v1/reminders", tags=["到期提醒"])
+app.include_router(ws_notifications.router, prefix="/api/v1/ws", tags=["WebSocket"])
 app.include_router(seals.router, prefix="/api/v1/seals", tags=["用印管理"])
 app.include_router(archives.router, prefix="/api/v1/archives", tags=["归档台账"])
 app.include_router(audit.router, prefix="/api/v1/audit", tags=["审计日志"])

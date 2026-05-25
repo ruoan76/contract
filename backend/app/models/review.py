@@ -55,6 +55,7 @@ class Notification(Base):
     message = Column(Text)
     resource_type = Column(String(50))
     resource_id = Column(Integer)
+    channel = Column(String(20), default="system", nullable=False, comment="system|email|feishu")
     is_read = Column(Integer, default=0, comment="0未读 1已读")
     created_at = Column(DateTime, server_default=func.now())
 

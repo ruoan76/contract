@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter, RouterView } from 'vue-router'
 import {
   Odometer,
@@ -51,11 +51,11 @@ const iconMap: Record<string, object> = {
 }
 
 const navGroups = computed(() => {
-  const groups = new Map<string, typeof NAV_ITEMS>()
+  const groups = new Map<string, Array<(typeof NAV_ITEMS)[number] & { restricted?: boolean }>>()
   NAV_ITEMS.forEach((item) => {
-    if (!canAccessRoute(auth.role, item.name)) return
+    const allowed = canAccessRoute(auth.role, item.name)
     if (!groups.has(item.group)) groups.set(item.group, [])
-    groups.get(item.group)!.push(item)
+    groups.get(item.group)!.push({ ...item, restricted: !allowed })
   })
   return [...groups.entries()].filter(([, items]) => items.length > 0)
 })
@@ -82,6 +82,16 @@ async function onRoleChange(role: AppRole) {
   router.push({ name: 'dashboard' })
 }
 
+onMounted(async () => {
+  if (!auth.user) {
+    try {
+      await auth.initAuth()
+    } catch (e) {
+      console.error('初始化演示账号失败', e)
+    }
+  }
+})
+
 function goCreate() {
   router.push({ name: 'create' })
 }
@@ -107,7 +117,12 @@ function goCreate() {
       >
         <template v-for="[group, items] in navGroups" :key="group">
           <div class="nav-group-title">{{ group }}</div>
-          <el-menu-item v-for="item in items" :key="item.name" :index="item.path">
+          <el-menu-item
+            v-for="item in items"
+            :key="item.name"
+            :index="item.path"
+            :class="{ 'nav-restricted': item.restricted }"
+          >
             <el-icon><component :is="iconMap[item.icon || 'Document']" /></el-icon>
             <span>{{ item.title }}</span>
           </el-menu-item>
@@ -129,6 +144,7 @@ function goCreate() {
           <span v-if="breadcrumb" class="header-breadcrumb">{{ breadcrumb }}</span>
         </div>
         <div class="header-right">
+          <span class="role-switch-label">演示角色</span>
           <el-select
             :model-value="auth.role"
             placeholder="切换角色"
@@ -198,12 +214,28 @@ function goCreate() {
   flex: 1;
 }
 
+.sidebar-menu :deep(.el-menu-item) {
+  height: 38px;
+  line-height: 38px;
+  margin-bottom: 0;
+  padding-left: 16px !important;
+}
+
+.sidebar-menu :deep(.el-menu-item .el-icon) {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
 .nav-group-title {
-  padding: 12px 20px 4px;
+  padding: 8px 20px 2px;
   font-size: 11px;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+:deep(.nav-restricted) {
+  opacity: 0.45;
 }
 
 .sidebar-footer {
@@ -224,6 +256,19 @@ function goCreate() {
   color: #9ca3af;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.role-switch-label {
+  font-size: 13px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
 .app-header {
   display: flex;
   align-items: center;
@@ -231,12 +276,15 @@ function goCreate() {
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
   padding: 0 24px;
+  gap: 16px;
+  overflow: visible;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .header-title {
@@ -248,12 +296,6 @@ function goCreate() {
 .header-breadcrumb {
   font-size: 12px;
   color: #6b7280;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .app-main {

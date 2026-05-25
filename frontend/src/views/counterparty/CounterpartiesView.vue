@@ -82,9 +82,35 @@ function exportCsv() {
       String(r.id),
       r.name,
       r.credit_code ?? '',
-      r.is_blacklisted ? '是' : '否',
+      r.is_blacklist ? '是' : '否',
     ]),
   )
+}
+
+async function onImport(file: File) {
+  loading.value = true
+  try {
+    await auth.switchRole('admin')
+    const res = await counterpartiesApi.importCsv(file)
+    ElMessage.success(`导入完成：新增 ${res.created ?? 0}，跳过 ${res.skipped ?? 0}`)
+    await load()
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '导入失败')
+  } finally {
+    loading.value = false
+  }
+  return false
+}
+
+function downloadTemplate() {
+  const csv = 'name,credit_code,contact_name,contact_phone\n示例公司,91110000MA00000000,张三,13800000000\n'
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'counterparties_template.csv'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 </script>
 
@@ -92,7 +118,13 @@ function exportCsv() {
   <div class="page-card">
     <div class="page-toolbar">
       <h2>相对方管理</h2>
-      <el-button @click="exportCsv">导出 CSV</el-button>
+      <p>
+        <el-button @click="downloadTemplate">下载模板</el-button>
+        <el-upload :auto-upload="true" :show-file-list="false" :before-upload="onImport" style="display: inline-block; margin-left: 8px">
+          <el-button>CSV 导入</el-button>
+        </el-upload>
+        <el-button style="margin-left: 8px" @click="exportCsv">导出 CSV</el-button>
+      </p>
     </div>
     <el-form inline style="margin: 16px 0">
       <el-form-item label="名称">
@@ -111,17 +143,17 @@ function exportCsv() {
       <el-table-column prop="credit_code" label="信用代码" min-width="180" />
       <el-table-column label="黑名单" width="100">
         <template #default="{ row }">
-          <el-tag :type="row.is_blacklisted ? 'danger' : 'success'" size="small">
-            {{ row.is_blacklisted ? '是' : '否' }}
+          <el-tag :type="row.is_blacklist ? 'danger' : 'success'" size="small">
+            {{ row.is_blacklist ? '是' : '否' }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="200">
         <template #default="{ row }">
-          <el-button link type="danger" :disabled="!!row.is_blacklisted" @click="blacklist(row)">
+          <el-button link type="danger" :disabled="!!row.is_blacklist" @click="blacklist(row)">
             拉黑
           </el-button>
-          <el-button v-if="row.is_blacklisted" link @click="testBlockedCreate(row)">测试拒绝</el-button>
+          <el-button v-if="row.is_blacklist" link @click="testBlockedCreate(row)">测试拒绝</el-button>
         </template>
       </el-table-column>
     </el-table>

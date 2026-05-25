@@ -22,6 +22,19 @@ from app.utils.auth import get_current_user
 router = APIRouter()
 
 
+@router.get("/conflicts", summary="评审冲突列表（占位）")
+async def list_conflicts(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    """评审中心冲突管理占位接口，返回空列表"""
+    return {
+        "code": 200,
+        "data": {"total": 0, "page": page, "page_size": page_size, "items": []},
+    }
+
+
 @router.get("/pending", summary="评审待办")
 async def pending(
     role: Optional[str] = None,

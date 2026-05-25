@@ -14,6 +14,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.contract import AIReview, ContractVersion
 
+from app.services.ai_review.issue_schema import AiReviewIssue
+from app.services.ai_review.runner import apply_payload_to_ai_review, run_contract_ai_review
+from app.services.ai_review.orchestrator import build_mock_payload
+from app.services.ai_review_issue_service import replace_review_issues
+
 logger = logging.getLogger(__name__)
 
 # 导入Celery任务 - 假设已定义
@@ -25,7 +30,7 @@ try:
 except ImportError:
     class execute_review_task:
         @staticmethod
-        def delay(contract_id: int, version_id: int) -> str:
+        def delay(contract_id: int, version_id: int, review_id: str) -> str:
             return f"celery_task_{uuid.uuid4().hex[:8]}"
         
         @staticmethod
@@ -53,6 +58,31 @@ class CeleryAsyncResult:
     
     def successful(self) -> bool:
         return self._status == "SUCCESS"
+
+
+async def persist_review_result(
+    db: AsyncSession,
+    ai_review: AIReview,
+    payload: dict,
+    contract_id: int,
+    version_id: int,
+) -> None:
+    """写入审查结果与 issue 明细。"""
+    apply_payload_to_ai_review(ai_review, payload)
+    raw_issues = payload.get("issues") or []
+    issues: list[AiReviewIssue] = []
+    for item in raw_issues:
+        if isinstance(item, AiReviewIssue):
+            issues.append(item)
+        elif isinstance(item, dict):
+            issues.append(AiReviewIssue.model_validate(item))
+    if not issues and payload.get("clause_reviews"):
+        for row in payload["clause_reviews"]:
+            issues.append(AiReviewIssue.model_validate(row))
+    await replace_review_issues(
+        db, ai_review.review_id, contract_id, version_id, issues
+    )
+    await db.flush()
 
 
 async def start_review(
@@ -100,18 +130,10 @@ async def start_review(
     db.add(ai_review)
     await db.flush()
 
-    # Mock 模式：同步执行审查
+    # Mock 模式：Orchestrator 统一 Schema
     if settings.AI_REVIEW_MOCK:
-        import json as _json
-        ai_review.review_status = "ai_done"
-        ai_review.overall_risk_level = "medium"
-        ai_review.overall_risk_score = 65.0
-        ai_review.recommendation = "建议关注付款条款"
-        ai_review.clause_reviews = _json.dumps([], ensure_ascii=False)
-        ai_review.rule_violations = _json.dumps([], ensure_ascii=False)
-        ai_review.summary = _json.dumps({"mock": True}, ensure_ascii=False)
-        ai_review.model_version = "mock"
-        await db.flush()
+        payload = build_mock_payload()
+        await persist_review_result(db, ai_review, payload, contract_id, version_id)
         return {
             "review_id": review_id,
             "contract_id": contract_id,
@@ -121,10 +143,55 @@ async def start_review(
             "username": username,
             "created_at": ai_review.created_at.isoformat() if ai_review.created_at else None,
         }
-    
-    # 调用Celery异步任务
+
+    # 本地 MLX：同步调用引擎（无需 Redis/Celery）
+    if settings.AI_REVIEW_SYNC:
+        from app.models.contract import Contract
+
+        contract_result = await db.execute(
+            select(Contract).where(Contract.id == contract_id)
+        )
+        contract = contract_result.scalar_one_or_none()
+        if not contract:
+            raise HTTPException(status_code=404, detail="合同不存在")
+
+        text = (version.content or contract.content or "").strip()
+        if not text:
+            raise HTTPException(status_code=400, detail="合同内容为空")
+
+        ai_review.review_status = "reviewing"
+        await db.flush()
+        try:
+            payload = await run_contract_ai_review(
+                text,
+                contract_type=contract.contract_type or "other",
+                amount=contract.amount,
+            )
+            await persist_review_result(
+                db, ai_review, payload, contract_id, version_id
+            )
+        except Exception as exc:
+            logger.error("Sync AI review failed: %s", exc)
+            ai_review.review_status = "failed"
+            await db.flush()
+            raise HTTPException(
+                status_code=503,
+                detail=f"AI 审查失败，请确认 MLX 服务已启动（{settings.AI_BASE_URL}）: {exc}",
+            ) from exc
+
+        return {
+            "review_id": review_id,
+            "contract_id": contract_id,
+            "version_id": version_id,
+            "status": "ai_done",
+            "user_id": user_id,
+            "username": username,
+            "created_at": ai_review.created_at.isoformat() if ai_review.created_at else None,
+        }
+
+    # 调用 Celery 异步任务
     try:
-        celery_result = execute_review_task.delay(contract_id, version_id)
+        celery_result = execute_review_task.delay(contract_id, version_id, review_id)
         task_id = celery_result.id if hasattr(celery_result, "id") else celery_result
     except Exception as e:
         logger.error(f"Failed to dispatch Celery task: {e}")
@@ -287,7 +354,9 @@ async def retry_review(
     
     # 调用Celery异步任务
     try:
-        celery_result = execute_review_task.delay(review.contract_id, review.version_id)
+        celery_result = execute_review_task.delay(
+            review.contract_id, review.version_id, new_review_id
+        )
         task_id = celery_result.id if hasattr(celery_result, "id") else celery_result
     except Exception as e:
         logger.error(f"Failed to dispatch retry Celery task: {e}")
@@ -335,3 +404,28 @@ async def submit_feedback(
     review.summary = _json.dumps(summary, ensure_ascii=False)
     await db.flush()
     return {"review_id": review_id, "feedbacks": feedbacks}
+
+
+async def confirm_review(
+    db: AsyncSession,
+    review_id: str,
+    reviewer_id: int,
+) -> dict:
+    """法务确认 AI 报告。"""
+    result = await db.execute(select(AIReview).where(AIReview.review_id == review_id))
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail="审查记录不存在")
+    if review.review_status not in ("ai_done", "reviewed", "confirmed"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"当前状态不可确认: {review.review_status}",
+        )
+    review.review_status = "reviewed"
+    review.reviewer_id = reviewer_id
+    await db.flush()
+    return {
+        "review_id": review_id,
+        "review_status": review.review_status,
+        "reviewer_id": reviewer_id,
+    }

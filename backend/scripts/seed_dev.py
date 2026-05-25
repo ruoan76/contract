@@ -82,6 +82,19 @@ async def seed() -> None:
 
         await session.commit()
 
+        from app.models.counterparty import Counterparty
+
+        cp_exists = await session.scalar(select(Counterparty).limit(1))
+        if not cp_exists:
+            session.add_all(
+                [
+                    Counterparty(name="得力集团", credit_code="91310000123456789X", status=1),
+                    Counterparty(name="华为技术", credit_code="91440300123456780A", status=1),
+                    Counterparty(name="测试供应商", credit_code="91110000MA00000001", status=1),
+                ]
+            )
+            await session.commit()
+
         from app.models.template import ContractTemplate
 
         tpl_exists = await session.scalar(
@@ -97,6 +110,44 @@ async def seed() -> None:
                     version=1,
                 )
             )
+            await session.commit()
+
+        from app.models.review import Notification
+
+        existing = await session.scalar(select(Notification).limit(1))
+        if not existing:
+            admin_user = await session.scalar(select(User).where(User.username == "admin"))
+            drafter_user = await session.scalar(select(User).where(User.username == "drafter1"))
+            if admin_user:
+                session.add(
+                    Notification(
+                        user_id=admin_user.id,
+                        title="系统通知示例",
+                        message="这是一条系统渠道通知",
+                        channel="system",
+                        resource_type="system",
+                    )
+                )
+            if drafter_user:
+                session.add(
+                    Notification(
+                        user_id=drafter_user.id,
+                        title="飞书审批提醒",
+                        message="合同待审批，已通过飞书推送",
+                        channel="feishu",
+                        resource_type="contract",
+                        resource_id=1,
+                    )
+                )
+                session.add(
+                    Notification(
+                        user_id=drafter_user.id,
+                        title="邮件归档通知",
+                        message="合同已归档，邮件已发送",
+                        channel="email",
+                        resource_type="contract",
+                    )
+                )
             await session.commit()
 
         print("种子数据写入完成。默认密码: 123456")

@@ -14,7 +14,8 @@ from app.core.config import settings
 from app.db.base import Base
 
 # 导入所有模型以注册 metadata
-from app.models import contract, user, ai_review, counterparty, review  # noqa: F401
+from app.models import contract, user, counterparty, review  # noqa: F401
+from app.models import ai_review_issue  # noqa: F401
 
 config = context.config
 

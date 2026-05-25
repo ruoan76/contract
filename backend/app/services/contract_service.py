@@ -18,6 +18,61 @@ logger = logging.getLogger(__name__)
 # 合同编号格式：CON-YYYYMM-XXXX
 CONTRACT_NO_PREFIX = "CON"
 
+# 看板「执行中」桶：与 contract-status-dictionary / list_dashboard_buckets 一致
+EXECUTING_BUCKET_STATUSES = frozenset({"executing", "approved", "sealed", "signed"})
+DASHBOARD_EXPIRING_DAYS = 30
+
+
+def _dashboard_date_range() -> tuple[date, date]:
+    from datetime import timedelta
+
+    today = date.today()
+    return today, today + timedelta(days=DASHBOARD_EXPIRING_DAYS)
+
+
+def classify_contract_bucket(
+    contract: Contract,
+    today: date | None = None,
+    expiring_threshold: date | None = None,
+) -> str | None:
+    """将合同归入看板桶：expired / expiring_soon / executing；其余返回 None。"""
+    if today is None or expiring_threshold is None:
+        today, expiring_threshold = _dashboard_date_range()
+    end = contract.end_date
+    if end is not None and end < today:
+        return "expired"
+    if end is not None and end <= expiring_threshold:
+        return "expiring_soon"
+    if contract.status == "executing":
+        return "executing"
+    if contract.status in EXECUTING_BUCKET_STATUSES and (end is None or end > today):
+        return "executing"
+    return None
+
+
+def _bucket_filter_conditions(bucket: str, today: date, expiring_threshold: date) -> list:
+    """列表 API bucket 参数，与看板三栏口径一致。"""
+    from sqlalchemy import or_
+
+    if bucket == "expired":
+        return [
+            Contract.end_date.isnot(None),
+            Contract.end_date < today,
+        ]
+    if bucket == "expiring_soon":
+        return [
+            Contract.end_date.isnot(None),
+            Contract.end_date >= today,
+            Contract.end_date <= expiring_threshold,
+        ]
+    if bucket == "executing":
+        return [
+            or_(Contract.end_date.is_(None), Contract.end_date >= today),
+            or_(Contract.end_date.is_(None), Contract.end_date > expiring_threshold),
+            Contract.status.in_(tuple(EXECUTING_BUCKET_STATUSES)),
+        ]
+    raise BusinessError(f"未知看板桶: {bucket}")
+
 
 async def _generate_contract_no(db: AsyncSession) -> str:
     """
@@ -107,6 +162,7 @@ async def create_contract(
             session,
             counterparty_id=counterparty_id,
             credit_code=counterparty_credit_code,
+            counterparty_name=counterparty_name if not counterparty_id else None,
         )
 
         # 若指定 counterparty_id，填充快照字段
@@ -311,7 +367,7 @@ async def list_contracts(
         db: 数据库会话
         page: 页码
         page_size: 每页数量
-        filters: 过滤条件 - status, type, risk_level, keyword, department_id
+        filters: 过滤条件 - status, type, risk_level, keyword, department_id, scope
         
     Returns:
         dict 包含分页和列表数据
@@ -322,6 +378,11 @@ async def list_contracts(
     conditions = [Contract.status != "deleted"]
     
     if filters:
+        scope = filters.get("scope")
+        if scope == "mine" and filters.get("creator_id"):
+            conditions.append(Contract.creator_id == filters["creator_id"])
+        elif scope == "department" and filters.get("user_department_id"):
+            conditions.append(Contract.department_id == filters["user_department_id"])
         if filters.get("status"):
             conditions.append(Contract.status == filters["status"])
         if filters.get("type"):
@@ -338,6 +399,10 @@ async def list_contracts(
             )
         if filters.get("department_id"):
             conditions.append(Contract.department_id == filters["department_id"])
+        bucket = filters.get("bucket")
+        if bucket:
+            today, expiring_threshold = _dashboard_date_range()
+            conditions.extend(_bucket_filter_conditions(bucket, today, expiring_threshold))
     
     # 查询总数
     count_query = select(func.count()).select_from(Contract).where(*conditions)
@@ -595,12 +660,8 @@ async def upload_contract_file(
 
 
 async def list_dashboard_buckets(db: AsyncSession) -> dict:
-    """看板三栏：executing / expiring_soon / expired。"""
-    from datetime import timedelta
-
-    today = date.today()
-    expiring_threshold = today + timedelta(days=30)
-    executing_statuses = frozenset({"approved", "sealed", "signed"})
+    """看板三栏：executing / expiring_soon / expired，附带 stats 汇总。"""
+    today, expiring_threshold = _dashboard_date_range()
 
     def _contract_brief(c: Contract) -> dict:
         return {
@@ -622,19 +683,33 @@ async def list_dashboard_buckets(db: AsyncSession) -> dict:
         select(Contract).where(Contract.status != "deleted")
     )
     for c in result.scalars().all():
-        end = c.end_date
-        if end is not None and end < today:
-            expired.append(_contract_brief(c))
-            continue
-        if end is not None and end <= expiring_threshold:
-            expiring_soon.append(_contract_brief(c))
-            continue
-        if c.status == "executing":
-            executing.append(_contract_brief(c))
-        elif c.status in executing_statuses and (end is None or end > today):
-            executing.append(_contract_brief(c))
+        bucket = classify_contract_bucket(c, today, expiring_threshold)
+        brief = _contract_brief(c)
+        if bucket == "expired":
+            expired.append(brief)
+        elif bucket == "expiring_soon":
+            expiring_soon.append(brief)
+        elif bucket == "executing":
+            executing.append(brief)
+
+    total = await db.scalar(
+        select(func.count()).select_from(Contract).where(Contract.status != "deleted")
+    )
+    # 与列表 status=pending 口径一致：待审批合同数（非审批步骤数）
+    pending_approval = await db.scalar(
+        select(func.count())
+        .select_from(Contract)
+        .where(Contract.status != "deleted", Contract.status == "pending")
+    )
 
     return {
+        "stats": {
+            "total": total or 0,
+            "pending_approval": pending_approval or 0,
+            "executing_count": len(executing),
+            "expiring_soon_count": len(expiring_soon),
+            "expired_count": len(expired),
+        },
         "executing": executing,
         "expiring_soon": expiring_soon,
         "expired": expired,

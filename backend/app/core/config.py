@@ -31,15 +31,19 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 小时
     
-    # AI 配置
+    # AI 配置（AI_BASE_URL 须与本机 mlx_lm.server 端口一致，见 backend/docs/mlx-local-dev.md）
     AI_MODEL: str = "mlx-community/Qwen3.6-35B-A3B-4bit"
     AI_REVIEW_MOCK: bool = True
-    AI_BASE_URL: str = "http://localhost:8000/v1"
+    # Mock=0 时：True=API 进程内同步调 MLX（本地开发推荐）；False=走 Celery 异步
+    AI_REVIEW_SYNC: bool = True
+    AI_PARSE_MOCK: bool = True
+    AI_BASE_URL: str = "http://127.0.0.1:27366/v1"
     AI_API_KEY: str = "local"
     AI_TEMPERATURE: float = 0.1
     AI_MAX_TOKENS: int = 4096
-    
-    # 文件存储配置
+    AI_AUTO_REVIEW_ON_UPLOAD: bool = False
+    AI_REVIEW_SELF_CORRECT: bool = True
+    AI_REQUIRE_CONFIRM: bool = False
     FILE_STORAGE: str = "local"  # local | minio
     FILE_STORAGE_PATH: str = "/data/contract-files"
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB

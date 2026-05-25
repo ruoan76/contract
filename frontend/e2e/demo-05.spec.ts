@@ -1,35 +1,39 @@
 import { test, expect } from '@playwright/test'
+import {
+  approveFirstPending,
+  dismissFlowDialog,
+  expectToast,
+  gotoRoute,
+  submitContract,
+  switchRole,
+} from './helpers'
 
 /** DEMO-05：评审退回 → 修订 */
 test.describe('DEMO-05 退回修订', () => {
   test('法务退回 → 修订提交', async ({ page }) => {
+    test.setTimeout(120000)
     await page.goto('/')
 
-    await page.locator('.header-right .el-select').click()
-    await page.getByRole('option', { name: '起草人' }).click()
-    await page.getByRole('menuitem', { name: '新建合同' }).click()
-    await page.getByRole('button', { name: '提交审批' }).click()
-    await expect(page.getByText(/合同 #\d+ 已提交审批/)).toBeVisible({ timeout: 15000 })
+    await switchRole(page, '起草人')
+    await gotoRoute(page, '/create', '新建合同')
+    const contractId = await submitContract(page)
+    expect(contractId).toBeGreaterThan(0)
+    await dismissFlowDialog(page)
 
-    await page.locator('.header-right .el-select').click()
-    await page.getByRole('option', { name: '部门主管' }).click()
-    await page.getByRole('menuitem', { name: '待办审批' }).click()
-    await page.getByRole('button', { name: '通过' }).first().click()
-    await expect(page.getByText('审批通过')).toBeVisible({ timeout: 10000 })
+    await switchRole(page, '部门主管')
+    await gotoRoute(page, '/approvals', '待办审批')
+    await approveFirstPending(page, contractId)
+    await expectToast(page, '审批通过')
 
-    await page.locator('.header-right .el-select').click()
-    await page.getByRole('option', { name: '法务专员' }).click()
-    await page.getByRole('menuitem', { name: '评审工作台' }).click()
+    await switchRole(page, '法务专员')
+    await gotoRoute(page, `/review-workspace/${contractId}`, '评审工作台')
     await page.getByRole('button', { name: '退回修订' }).click()
-    await expect(page.getByText(/退回|修订/)).toBeVisible({ timeout: 10000 })
+    await expectToast(page, '已退回修订')
 
-    await page.locator('.header-right .el-select').click()
-    await page.getByRole('option', { name: '起草人' }).click()
-    await page.getByRole('menuitem', { name: '合同列表' }).click()
-    await page.getByRole('button', { name: '详情' }).first().click()
-    await page.getByRole('button', { name: '修订' }).click()
+    await switchRole(page, '起草人')
+    await gotoRoute(page, `/contracts/${contractId}/revision`, '修订工作台')
     await page.locator('textarea').first().fill('修订后的合同正文内容')
     await page.getByRole('button', { name: '提交修订' }).click()
-    await expect(page.getByText(/修订|成功/)).toBeVisible({ timeout: 10000 })
+    await expectToast(page, /修订/)
   })
 })

@@ -44,6 +44,8 @@ async def get_contract_ledger(
     contract_type: Optional[str] = None,
     status: Optional[str] = None,
     keyword: Optional[str] = None,
+    start_date: Optional[date] = Query(None, description="合同开始日期下限"),
+    end_date: Optional[date] = Query(None, description="合同结束日期上限"),
     db: AsyncSession = Depends(get_db),
 ):
     """获取合同台账"""
@@ -55,6 +57,10 @@ async def get_contract_ledger(
         conditions.append(Contract.contract_type == contract_type)
     if status:
         conditions.append(Contract.status == status)
+    if start_date:
+        conditions.append(Contract.start_date >= start_date)
+    if end_date:
+        conditions.append(Contract.end_date <= end_date)
     if keyword:
         conditions.extend([
             Contract.title.contains(keyword),

@@ -97,9 +97,13 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
+        env:
+          VITE_API_BASE_URL: ''
+          VITE_SKIP_AUTH: '1'
         run: |
           npm run build
           npm run preview -- --host 127.0.0.1 --port 8080 &
+          PREVIEW_PID=$!
           for i in $(seq 1 30); do
             curl -sf http://127.0.0.1:8080 >/dev/null && break
             sleep 2
@@ -108,4 +112,9 @@ jobs:
             echo "Frontend preview 未在 :8080 就绪"
             exit 1
           fi
-          npm run test:e2e -- --grep "DEMO-0[1-5]"
+          if ! curl -sf http://127.0.0.1:8080/api/v1/config/thresholds >/dev/null; then
+            echo "Preview /api 代理未连通后端"
+            exit 1
+          fi
+          npm run test:e2e -- --grep "DEMO-0[1-5]|Dashboard" || (kill $PREVIEW_PID 2>/dev/null; exit 1)
+          kill $PREVIEW_PID 2>/dev/null || true

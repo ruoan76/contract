@@ -105,8 +105,8 @@ class TestDemo02StandardReview:
             )
         flow_id = submit.json()["data"]["flow_id"]
 
-        # 标准流程 4 步审批（每步由对应角色处理）
-        for role in ("approver", "legal", "finance", "executive"):
+        # 标准流程：仅部门主管走审批链，法务/财务/高管走评审工作台
+        for role in ("approver",):
             async with await client_for_user(role) as client:
                 pending = await client.get("/api/v1/approvals/pending")
                 items = [
@@ -375,7 +375,7 @@ class TestReviewSequenceGate:
             )
         flow_id = submit.json()["data"]["flow_id"]
 
-        for role in ("approver", "legal", "finance", "executive"):
+        for role in ("approver",):
             async with await client_for_user(role) as client:
                 pending = await client.get("/api/v1/approvals/pending")
                 items = [
@@ -458,24 +458,6 @@ class TestApprovalStatusSteps:
                 f"/api/v1/approvals/{flow_id}/approve",
                 json={"action": "approve"},
             )
-
-        async with await client_for_user("drafter") as drafter:
-            detail = await drafter.get(f"/api/v1/contracts/{cid}")
-        assert detail.json()["data"]["approval_status"] == "legal_review"
-
-        for role in ("legal", "finance", "executive"):
-            async with await client_for_user(role) as client:
-                pending = await client.get("/api/v1/approvals/pending")
-                items = [
-                    i for i in pending.json()["data"]["items"] if i["contract_id"] == cid
-                ]
-                if not items:
-                    continue
-                fid = items[0]["flow_id"]
-                await client.post(
-                    f"/api/v1/approvals/{fid}/approve",
-                    json={"action": "approve"},
-                )
 
         async with await client_for_user("drafter") as drafter:
             detail = await drafter.get(f"/api/v1/contracts/{cid}")

@@ -10,7 +10,7 @@ from typing import Optional
 from app.core.rbac import require_any_role
 from app.db.database import get_db
 from app.models.contract import User, Department, Role
-from app.utils.auth import create_access_token, verify_password, get_current_user
+from app.utils.auth import create_access_token, verify_password, get_current_user, get_password_hash
 
 router = APIRouter()
 
@@ -21,6 +21,22 @@ class AdminUserUpdate(BaseModel):
     """管理员更新用户角色与状态"""
     role_id: Optional[int] = Field(None, description="角色 ID")
     status: Optional[int] = Field(None, ge=0, le=1, description="1:启用 0:禁用")
+
+
+class AdminUserCreate(BaseModel):
+    """管理员创建用户"""
+    username: str = Field(..., min_length=2, max_length=50)
+    password: str = Field(..., min_length=6, max_length=128)
+    real_name: str = Field(..., min_length=1, max_length=50)
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    department_id: Optional[int] = None
+    role_id: Optional[int] = None
+
+
+class AdminResetPassword(BaseModel):
+    """管理员重置密码"""
+    password: str = Field(..., min_length=6, max_length=128)
 
 
 @router.get("/users", summary="用户列表")
@@ -77,6 +93,68 @@ async def list_users(
         })
     
     return {"code": 200, "data": {"total": total, "page": page, "page_size": page_size, "items": items}}
+
+
+@router.post("/users", summary="创建用户（管理员）")
+async def create_user(
+    body: AdminUserCreate,
+    user: User = Depends(_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """管理员创建新用户"""
+    exists = await db.scalar(select(User).where(User.username == body.username))
+    if exists:
+        raise HTTPException(status_code=400, detail="用户名已存在")
+    if body.role_id is not None:
+        role = await db.get(Role, body.role_id)
+        if not role:
+            raise HTTPException(status_code=400, detail="角色不存在")
+    if body.department_id is not None:
+        dept = await db.get(Department, body.department_id)
+        if not dept:
+            raise HTTPException(status_code=400, detail="部门不存在")
+
+    new_user = User(
+        username=body.username,
+        password_hash=get_password_hash(body.password),
+        real_name=body.real_name,
+        email=body.email,
+        phone=body.phone,
+        department_id=body.department_id,
+        role_id=body.role_id,
+        status=1,
+    )
+    db.add(new_user)
+    await db.flush()
+    return {
+        "code": 200,
+        "data": {
+            "id": new_user.id,
+            "username": new_user.username,
+            "real_name": new_user.real_name,
+            "email": new_user.email,
+            "phone": new_user.phone,
+            "department_id": new_user.department_id,
+            "role_id": new_user.role_id,
+            "status": new_user.status,
+        },
+    }
+
+
+@router.post("/users/{user_id}/reset-password", summary="重置用户密码（管理员）")
+async def reset_user_password(
+    user_id: int,
+    body: AdminResetPassword,
+    user: User = Depends(_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """管理员重置指定用户密码"""
+    target = await db.get(User, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    target.password_hash = get_password_hash(body.password)
+    await db.flush()
+    return {"code": 200, "message": "密码已重置"}
 
 
 @router.put("/users/{user_id}", summary="更新用户（管理员）")

@@ -52,6 +52,14 @@ export const contractsApi = {
 
   dashboard: () => client.get<DashboardData>('/api/v1/contracts/dashboard'),
 
+  update: (id: number, body: Partial<{
+    title: string
+    contract_type: string
+    counterparty_name: string
+    amount: number
+    content: string
+  }>) => client.put<Contract>(`/api/v1/contracts/${id}`, body),
+
   matchFlow: (amount: number) =>
     client.get<FlowMatchResult>(`/api/v1/contracts/match-flow?amount=${encodeURIComponent(amount)}`),
 

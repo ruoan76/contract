@@ -1,22 +1,91 @@
 """
-Storage utilities - MinIO file storage wrapper.
+Storage utilities — 本地 / MinIO 存储抽象。
 """
+from __future__ import annotations
+
 import asyncio
+from abc import ABC, abstractmethod
 from io import BytesIO
+from pathlib import Path
 from typing import Optional
-from urllib.parse import urljoin
 
 from fastapi import UploadFile
 
 from app.core.config import settings
 
 
-class MinIOStorage:
+class StorageBackend(ABC):
+    """文件存储后端抽象。"""
+
+    @abstractmethod
+    async def upload_file(
+        self,
+        file: UploadFile,
+        object_name: str,
+        content_type: Optional[str] = None,
+    ) -> str:
+        """上传文件，返回存储路径或 object key。"""
+
+    @abstractmethod
+    async def download_file(self, object_name: str) -> bytes:
+        """下载文件内容。"""
+
+    @abstractmethod
+    async def delete_file(self, object_name: str) -> bool:
+        """删除文件。"""
+
+    @abstractmethod
+    async def presigned_url(self, object_name: str, expires: int = 3600) -> str:
+        """生成临时访问 URL。"""
+
+
+class LocalStorageBackend(StorageBackend):
+    """本地磁盘存储。"""
+
+    def __init__(self, base_path: Optional[str] = None) -> None:
+        self.base_path = Path(base_path or settings.FILE_STORAGE_PATH)
+        self.base_path.mkdir(parents=True, exist_ok=True)
+
+    def _resolve(self, object_name: str) -> Path:
+        path = self.base_path / object_name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+
+    async def upload_file(
+        self,
+        file: UploadFile,
+        object_name: str,
+        content_type: Optional[str] = None,
+    ) -> str:
+        content = await file.read()
+        target = self._resolve(object_name)
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, target.write_bytes, content)
+        return str(target)
+
+    async def download_file(self, object_name: str) -> bytes:
+        target = self._resolve(object_name)
+        if not target.exists():
+            raise FileNotFoundError(f"文件不存在: {object_name}")
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, target.read_bytes)
+
+    async def delete_file(self, object_name: str) -> bool:
+        target = self._resolve(object_name)
+        if not target.exists():
+            return False
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, target.unlink)
+        return True
+
+    async def presigned_url(self, object_name: str, expires: int = 3600) -> str:
+        target = self._resolve(object_name)
+        return f"file://{target}"
+
+
+class MinIOStorageBackend(StorageBackend):
     """
-    MinIO object storage wrapper.
-    
-    Provides async-friendly file operations using a thread pool executor
-    for blocking MinIO calls.
+    MinIO 对象存储后端（stub 实现，连接失败时由调用方处理）。
     """
 
     def __init__(
@@ -27,26 +96,15 @@ class MinIOStorage:
         bucket: Optional[str] = None,
         secure: bool = False,
     ) -> None:
-        """
-        Initialize MinIO client.
-
-        Args:
-            endpoint: MinIO endpoint (e.g., "localhost:9000")
-            access_key: Access key for authentication
-            secret_key: Secret key for authentication
-            bucket: Default bucket name
-            secure: Use HTTPS if True, HTTP if False
-        """
         self.endpoint = endpoint or settings.MINIO_ENDPOINT
         self.access_key = access_key or settings.MINIO_ACCESS_KEY
         self.secret_key = secret_key or settings.MINIO_SECRET_KEY
         self.bucket = bucket or settings.MINIO_BUCKET
         self.secure = secure
-        self._client: Optional[Minio] = None
+        self._client = None
 
     @property
     def client(self):
-        """Get or create MinIO client instance."""
         from minio import Minio
 
         if self._client is None:
@@ -60,25 +118,18 @@ class MinIOStorage:
 
     @staticmethod
     async def _run_in_executor(func, *args, **kwargs):
-        """Run blocking function in thread pool executor."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
 
     async def ensure_bucket(self) -> None:
-        """Ensure bucket exists, create if not."""
         try:
             exists = await self._run_in_executor(
                 self.client.bucket_exists, self.bucket
             )
             if not exists:
-                await self._run_in_executor(
-                    self.client.make_bucket, self.bucket
-                )
+                await self._run_in_executor(self.client.make_bucket, self.bucket)
         except Exception as exc:
-            if exc.__class__.__name__ == "S3Error":
-                # Bucket might have been created by another process
-                pass
-            else:
+            if exc.__class__.__name__ != "S3Error":
                 raise
 
     async def upload_file(
@@ -87,26 +138,9 @@ class MinIOStorage:
         object_name: str,
         content_type: Optional[str] = None,
     ) -> str:
-        """
-        Upload a file to MinIO.
-
-        Args:
-            file: FastAPI UploadFile object
-            object_name: Object key/path in bucket
-            content_type: MIME type (auto-detected if None)
-
-        Returns:
-            File URL/key
-        """
         await self.ensure_bucket()
-
-        # Read file content
         content = await file.read()
-
-        # Set content type
         ct = content_type or file.content_type or "application/octet-stream"
-
-        # Upload
         await self._run_in_executor(
             self.client.put_object,
             self.bucket,
@@ -115,22 +149,9 @@ class MinIOStorage:
             len(content),
             content_type=ct,
         )
-
         return object_name
 
     async def download_file(self, object_name: str) -> bytes:
-        """
-        Download a file from MinIO.
-
-        Args:
-            object_name: Object key/path in bucket
-
-        Returns:
-            File content as bytes
-
-        Raises:
-            S3Error: If object not found
-        """
         try:
             response = await self._run_in_executor(
                 self.client.get_object, self.bucket, object_name
@@ -142,36 +163,15 @@ class MinIOStorage:
                 await self._run_in_executor(response.release_conn)
         except Exception as e:
             if getattr(e, "code", None) == "NoSuchKey":
-                raise FileNotFoundError(f"Object not found: {object_name}")
+                raise FileNotFoundError(f"Object not found: {object_name}") from e
             raise
 
-    async def presigned_url(
-        self, object_name: str, expires: int = 3600
-    ) -> str:
-        """
-        Generate a presigned URL for temporary access.
-
-        Args:
-            object_name: Object key/path in bucket
-            expires: URL expiration time in seconds (default: 1 hour)
-
-        Returns:
-            Pre-signed URL string
-        """
+    async def presigned_url(self, object_name: str, expires: int = 3600) -> str:
         return await self._run_in_executor(
             self.client.presigned_get_object, self.bucket, object_name, expires
         )
 
     async def delete_file(self, object_name: str) -> bool:
-        """
-        Delete a file from MinIO.
-
-        Args:
-            object_name: Object key/path in bucket
-
-        Returns:
-            True if successful
-        """
         try:
             await self._run_in_executor(
                 self.client.remove_object, self.bucket, object_name
@@ -183,21 +183,29 @@ class MinIOStorage:
             raise
 
 
-# Global instance
-_storage: Optional[MinIOStorage] = None
+# 向后兼容别名
+class MinIOStorage(MinIOStorageBackend):
+    """Deprecated: 使用 MinIOStorageBackend。"""
 
 
-def get_storage() -> MinIOStorage:
-    """
-    Get or create global MinIO storage instance.
+_storage: Optional[StorageBackend] = None
 
-    Returns:
-        MinIOStorage instance
-    """
+
+def get_storage() -> StorageBackend:
+    """按配置返回存储后端实例。"""
     global _storage
     if _storage is None:
-        _storage = MinIOStorage()
+        if settings.FILE_STORAGE == "minio":
+            _storage = MinIOStorageBackend()
+        else:
+            _storage = LocalStorageBackend()
     return _storage
 
 
-__all__ = ["MinIOStorage", "get_storage"]
+__all__ = [
+    "StorageBackend",
+    "LocalStorageBackend",
+    "MinIOStorageBackend",
+    "MinIOStorage",
+    "get_storage",
+]

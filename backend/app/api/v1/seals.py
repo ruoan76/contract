@@ -1,9 +1,11 @@
 """
 用印管理 API
 """
+import os
+import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
@@ -94,6 +96,34 @@ async def approve_seal_endpoint(
         return {"code": 200, "data": data}
     except BusinessError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/{seal_id}/upload-scan", summary="上传用印扫描件")
+async def upload_seal_scan(
+    seal_id: int,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.core.config import settings
+
+    result = await db.execute(select(SealRecord).where(SealRecord.id == seal_id))
+    record = result.scalar_one_or_none()
+    if not record:
+        raise HTTPException(status_code=404, detail="用印记录不存在")
+
+    upload_dir = os.path.join(settings.FILE_STORAGE_PATH or "uploads", "seals")
+    os.makedirs(upload_dir, exist_ok=True)
+    ext = os.path.splitext(file.filename or "scan.pdf")[1] or ".pdf"
+    filename = f"seal_{seal_id}_{uuid.uuid4().hex[:8]}{ext}"
+    path = os.path.join(upload_dir, filename)
+    content = await file.read()
+    with open(path, "wb") as f:
+        f.write(content)
+    record.seal_image_path = path
+    record.status = "completed"
+    await db.flush()
+    return {"code": 200, "data": {"id": record.id, "seal_image_path": path}}
 
 
 @router.get("/records/{contract_id}", summary="用印记录")

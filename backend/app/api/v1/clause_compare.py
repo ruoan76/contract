@@ -1,4 +1,7 @@
 """条款比对 API（V1.1 MVP）"""
+from io import BytesIO
+
+from docx import Document
 from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,9 +21,19 @@ class ClauseCompareRequest(BaseModel):
     right_label: str = "对比版"
 
 
+def _extract_docx_text(raw: bytes) -> str:
+    """从 docx 二进制内容提取段落文本"""
+    doc = Document(BytesIO(raw))
+    paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+    return "\n".join(paragraphs)
+
+
 async def _read_upload_text(file: UploadFile) -> str:
-    """从上传文件中读取文本（优先 UTF-8）"""
+    """从上传文件中读取文本（支持 docx 与纯文本）"""
     raw = await file.read()
+    filename = (file.filename or "").lower()
+    if filename.endswith(".docx"):
+        return _extract_docx_text(raw)
     for encoding in ("utf-8", "gbk", "gb2312", "latin-1"):
         try:
             return raw.decode(encoding)
@@ -53,7 +66,7 @@ async def clause_compare_upload(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """multipart 上传 txt 等文本文件并 diff"""
+    """multipart 上传 txt/docx 等文件并 diff"""
     left_text = await _read_upload_text(left_file)
     right_text = await _read_upload_text(right_file)
     data = compare_texts(left_text, right_text, left_label, right_label)

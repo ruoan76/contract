@@ -45,6 +45,16 @@ function channelLabel(row: NotificationItem) {
   if (row.channel === 'feishu') return '飞书'
   return row.channel
 }
+
+function isSlaOverdue(row: NotificationItem) {
+  if (row.is_read || !row.created_at) return false
+  const created = new Date(row.created_at).getTime()
+  return Date.now() - created > 24 * 60 * 60 * 1000
+}
+
+function rowClassName({ row }: { row: NotificationItem }) {
+  return isSlaOverdue(row) ? 'sla-overdue' : ''
+}
 </script>
 
 <template>
@@ -56,7 +66,13 @@ function channelLabel(row: NotificationItem) {
         <el-button style="margin-left: 8px" @click="load">刷新</el-button>
       </div>
     </div>
-    <el-table v-loading="loading" :data="items" stripe @row-click="openResource">
+    <el-table
+      v-loading="loading"
+      :data="items"
+      stripe
+      :row-class-name="rowClassName"
+      @row-click="openResource"
+    >
       <el-table-column prop="title" label="标题" min-width="160" />
       <el-table-column prop="message" label="内容" min-width="200" show-overflow-tooltip />
       <el-table-column label="渠道" width="90">
@@ -88,5 +104,8 @@ function channelLabel(row: NotificationItem) {
 .muted {
   color: #9ca3af;
   font-size: 13px;
+}
+:deep(.sla-overdue) {
+  background-color: #fef2f2 !important;
 }
 </style>

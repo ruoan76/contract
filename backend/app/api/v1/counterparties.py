@@ -3,7 +3,7 @@
 """
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.rbac import require_role
@@ -15,6 +15,7 @@ from app.services.counterparty_service import (
     add_to_blacklist,
     create_counterparty,
     get_counterparty,
+    import_counterparties_csv,
     list_counterparties,
     update_counterparty,
 )
@@ -34,6 +35,22 @@ async def list_cp(
     data = await list_counterparties(
         db, page=page, page_size=page_size, keyword=keyword, is_blacklist=is_blacklist
     )
+    return {"code": 200, "data": data}
+
+
+@router.post("/import", summary="CSV 批量导入相对方")
+async def import_cp(
+    file: UploadFile = File(...),
+    user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    raw = await file.read()
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = raw.decode("gbk", errors="ignore")
+    data = await import_counterparties_csv(db, text)
+    await db.commit()
     return {"code": 200, "data": data}
 
 

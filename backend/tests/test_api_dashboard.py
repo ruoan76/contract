@@ -60,6 +60,9 @@ class TestDashboardAPI:
         assert len(data["executing"]) >= 1
         assert len(data["expiring_soon"]) >= 1
         assert len(data["expired"]) >= 1
+        assert "stats" in data
+        assert data["stats"]["total"] >= 3
+        assert data["stats"]["executing_count"] >= 1
 
     async def test_upload_contract_file(self, api_client, mock_auth_headers, tmp_path, monkeypatch):
         from app.core import config as cfg

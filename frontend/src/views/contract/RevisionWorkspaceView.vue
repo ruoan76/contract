@@ -7,12 +7,17 @@ import { reviewsApi } from '@/api/reviews'
 import { aiReviewApi } from '@/api/ai-review'
 import { useAuthStore } from '@/stores/auth'
 
+import ContractContextBar from '@/components/ContractContextBar.vue'
+import type { Contract } from '@/types/models'
+
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const contractId = ref<number>(0)
+const contract = ref<Contract | null>(null)
 const content = ref('')
 const changeDesc = ref('修改条款')
+const trackChangeHints = ref<string[]>([])
 const submitting = ref(false)
 
 function resolveId(): number {
@@ -24,7 +29,27 @@ async function load() {
   if (!contractId.value) return
   try {
     const c = await contractsApi.get(contractId.value)
+    contract.value = c
     content.value = c.content || ''
+    try {
+      const latest = await aiReviewApi.latest(contractId.value)
+      const reviewId = latest.review_id
+      if (reviewId) {
+        const issueResp = await aiReviewApi.listIssues(reviewId)
+        const items = issueResp.items || []
+        const commentIssues = items.filter((i) => i.revision_method === 'comment')
+        if (commentIssues.length) {
+          changeDesc.value = commentIssues
+            .map((i) => `${i.clause || ''}: ${i.suggestion || i.description || ''}`)
+            .join('\n')
+        }
+        trackChangeHints.value = items
+          .filter((i) => i.revision_method === 'track_changes')
+          .map((i) => `${i.clause}: ${i.suggestion || i.description || '请使用修订模式修改'}`)
+      }
+    } catch {
+      /* 无 AI 报告时忽略 */
+    }
   } catch (e) {
     console.error(e)
   }
@@ -47,7 +72,7 @@ async function submitRevision() {
     })
     await aiReviewApi.review(contractId.value)
     ElMessage.success(`修订已提交，版本 v${rev.version || 2}`)
-    router.push({ name: 'contract-detail', params: { id: contractId.value } })
+    router.push({ name: 'ai-review', params: { id: contractId.value } })
   } catch (e) {
     ElMessage.error(e instanceof Error ? e.message : '修订失败')
   } finally {
@@ -69,7 +94,16 @@ async function requestReturn() {
 
 <template>
   <div class="page-card">
+    <ContractContextBar :contract="contract" />
     <h2>修订工作台 · 合同 #{{ contractId || '—' }}</h2>
+    <el-alert
+      v-for="(hint, idx) in trackChangeHints"
+      :key="idx"
+      type="warning"
+      :title="hint"
+      :closable="false"
+      style="margin-top: 12px"
+    />
     <el-form label-width="100px" style="max-width: 720px; margin-top: 16px">
       <el-form-item label="修订说明">
         <el-input v-model="changeDesc" />

@@ -32,9 +32,6 @@ _DEFAULT_FLOW_CONFIG: dict[str, Any] = {
         "name": "标准审批",
         "nodes": [
             {"node_id": "dept_approval", "node_name": "部门审批", "approver_role": "部门主管"},
-            {"node_id": "legal_review", "node_name": "法务审查", "approver_role": "法务专员"},
-            {"node_id": "finance_review", "node_name": "财务审查", "approver_role": "财务主管"},
-            {"node_id": "executive_approval", "node_name": "高管审批", "approver_role": "总经理"},
         ],
     },
     "simple": {

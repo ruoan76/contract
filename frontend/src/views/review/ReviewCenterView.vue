@@ -7,7 +7,18 @@ interface PendingItem {
   contract_id: number
   title?: string
   flow_type?: string
-  pending_role?: string
+  pending_roles?: string[]
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  legal: '法务',
+  finance: '财务',
+  executive: '高管',
+}
+
+function formatPendingRoles(roles?: string[]) {
+  if (!roles?.length) return '—'
+  return roles.map((r) => ROLE_LABELS[r] || r).join('、')
 }
 
 const router = useRouter()
@@ -49,7 +60,11 @@ function openWorkspace(row: PendingItem) {
       <el-table-column prop="contract_id" label="合同 ID" width="100" />
       <el-table-column prop="title" label="标题" min-width="200" />
       <el-table-column prop="flow_type" label="流程" width="120" />
-      <el-table-column prop="pending_role" label="待办角色" width="120" />
+      <el-table-column label="待办角色" width="140">
+        <template #default="{ row }">
+          {{ formatPendingRoles(row.pending_roles) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="120">
         <template #default="{ row }">
           <el-button link type="primary" @click.stop="openWorkspace(row)">进入工作台</el-button>

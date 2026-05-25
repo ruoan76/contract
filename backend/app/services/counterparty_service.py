@@ -105,10 +105,43 @@ async def add_to_blacklist(db: AsyncSession, cp_id: int, reason: str) -> dict:
     return _to_dict(cp)
 
 
+async def import_counterparties_csv(db: AsyncSession, text: str) -> dict:
+    """CSV 批量导入：name,credit_code,contact_name,contact_phone"""
+    import csv
+    from io import StringIO
+
+    reader = csv.DictReader(StringIO(text))
+    created = 0
+    skipped = 0
+    errors: list[str] = []
+    for idx, row in enumerate(reader, start=2):
+        name = (row.get("name") or row.get("名称") or "").strip()
+        if not name:
+            skipped += 1
+            continue
+        credit_code = (row.get("credit_code") or row.get("信用代码") or "").strip() or None
+        try:
+            await create_counterparty(
+                db,
+                {
+                    "name": name,
+                    "credit_code": credit_code,
+                    "contact_name": (row.get("contact_name") or row.get("联系人") or "").strip() or None,
+                    "contact_phone": (row.get("contact_phone") or row.get("电话") or "").strip() or None,
+                },
+            )
+            created += 1
+        except BusinessError as e:
+            errors.append(f"行{idx}: {e}")
+            skipped += 1
+    return {"created": created, "skipped": skipped, "errors": errors}
+
+
 async def check_blacklist(
     db: AsyncSession,
     counterparty_id: Optional[int] = None,
     credit_code: Optional[str] = None,
+    counterparty_name: Optional[str] = None,
 ) -> None:
     """校验相对方是否在黑名单，命中则抛出 BusinessError。"""
     cp = None
@@ -117,6 +150,10 @@ async def check_blacklist(
     elif credit_code:
         cp = await db.scalar(
             select(Counterparty).where(Counterparty.credit_code == credit_code)
+        )
+    elif counterparty_name and counterparty_name.strip():
+        cp = await db.scalar(
+            select(Counterparty).where(Counterparty.name == counterparty_name.strip())
         )
     if cp and cp.is_blacklist:
         raise BusinessError(f"相对方「{cp.name}」在黑名单中，无法创建合同")

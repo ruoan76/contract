@@ -31,7 +31,7 @@ class TestReviewOpinionsAPI:
             )
         flow_id = submit.json()["data"]["flow_id"]
 
-        for role in ("approver", "legal", "finance", "executive"):
+        for role in ("approver",):
             async with await client_for_user(role) as client:
                 pending = await client.get("/api/v1/approvals/pending")
                 items = [
@@ -116,7 +116,7 @@ class TestReviewOpinionsAPI:
             )
         flow_id = submit.json()["data"]["flow_id"]
 
-        for role in ("approver", "legal", "finance", "executive"):
+        for role in ("approver",):
             async with await client_for_user(role) as client:
                 pending = await client.get("/api/v1/approvals/pending")
                 items = [
@@ -166,3 +166,63 @@ class TestReviewOpinionsAPI:
         async with await client_for_user("drafter") as drafter:
             detail = await drafter.get(f"/api/v1/contracts/{cid}")
         assert detail.json()["data"]["approval_status"] == "seal_pending"
+
+    async def test_legal_with_stale_ai_rejected(self, client_for_user):
+        """修订后未重跑 AI，法务评审应被拒绝。"""
+        async with await client_for_user("drafter") as drafter:
+            create = await drafter.post(
+                "/api/v1/contracts/",
+                json={
+                    "title": "版本AI测试",
+                    "contract_type": "service",
+                    "counterparty_name": "测试公司",
+                    "amount": 320000,
+                    "content": "第一版内容",
+                },
+            )
+        cid = create.json()["data"]["id"]
+
+        async with await client_for_user("drafter") as drafter:
+            await drafter.post("/api/v1/ai-review/review", json={"contract_id": cid})
+            submit = await drafter.post(
+                "/api/v1/approvals/submit",
+                json={"contract_id": cid, "flow_type": "standard"},
+            )
+        flow_id = submit.json()["data"]["flow_id"]
+
+        async with await client_for_user("approver") as approver:
+            await approver.post(
+                f"/api/v1/approvals/{flow_id}/approve",
+                json={"action": "approve"},
+            )
+
+        async with await client_for_user("legal") as legal:
+            await legal.post(
+                f"/api/v1/reviews/contracts/{cid}/return",
+                json={"role": "legal", "comment": "请修订"},
+            )
+
+        async with await client_for_user("drafter") as drafter:
+            await drafter.post(
+                f"/api/v1/contracts/{cid}/revisions",
+                json={"content": "第二版修订内容", "change_description": "修订"},
+            )
+            submit2 = await drafter.post(
+                "/api/v1/approvals/submit",
+                json={"contract_id": cid, "flow_type": "standard"},
+            )
+            flow_id2 = submit2.json()["data"]["flow_id"]
+
+        async with await client_for_user("approver") as approver:
+            await approver.post(
+                f"/api/v1/approvals/{flow_id2}/approve",
+                json={"action": "approve"},
+            )
+
+        async with await client_for_user("legal") as legal:
+            resp = await legal.post(
+                f"/api/v1/reviews/contracts/{cid}/opinions",
+                json={"role": "legal", "action": "approve"},
+            )
+        assert resp.status_code == 400
+        assert "AI" in resp.json()["detail"]

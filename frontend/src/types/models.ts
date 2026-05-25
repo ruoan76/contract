@@ -37,11 +37,30 @@ export interface ApprovalPendingItem {
   flow_type?: string
 }
 
-export interface DashboardData {
+export interface DashboardBucketItem {
+  id: number
+  contract_no?: string
+  title?: string
+  counterparty_name?: string
+  amount?: number
+  status?: string
+  start_date?: string
+  end_date?: string
+}
+
+export interface DashboardStats {
+  total?: number
   pending_approval?: number
-  in_review?: number
-  sealed_or_archived?: number
-  [key: string]: unknown
+  executing_count?: number
+  expiring_soon_count?: number
+  expired_count?: number
+}
+
+export interface DashboardData {
+  stats?: DashboardStats
+  executing?: DashboardBucketItem[]
+  expiring_soon?: DashboardBucketItem[]
+  expired?: DashboardBucketItem[]
 }
 
 export interface FlowMatchResult {
