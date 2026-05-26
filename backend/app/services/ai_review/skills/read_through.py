@@ -1,18 +1,17 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8
 """S2 通读摘要 Skill。"""
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
 from app.core.config import settings
-from app.services.ai_review.ai_engine import get_engine
+from app.services.ai_review.llm_gateway import LLMCallError, get_llm_gateway
 
 logger = logging.getLogger(__name__)
 
 _READ_THROUGH_PROMPT = """请通读以下合同，输出 JSON（不要 markdown）：
-{
+{{
   "parties": "合同主体摘要",
   "subject": "标的/服务摘要",
   "price": "价款与支付摘要",
@@ -20,11 +19,13 @@ _READ_THROUGH_PROMPT = """请通读以下合同，输出 JSON（不要 markdown�
   "breach": "违约责任摘要",
   "dispute": "争议解决摘要",
   "overall": "一句话总览"
-}
+}}
 合同类型: {contract_type}
 合同正文:
 {text}
 """
+
+_SYSTEM = "你是资深合同审查专家，输出 JSON。"
 
 
 async def run_read_through(
@@ -35,27 +36,39 @@ async def run_read_through(
     """S2：LLM 通读摘要；失败时返回启发式占位。"""
     text = (contract_text or "")[:12000]
     fallback = _heuristic_read_through(text)
+    fallback["_s2_status"] = "heuristic"
 
     if settings.AI_REVIEW_MOCK:
+        fallback["_s2_status"] = "ok"
         return fallback
 
     try:
-        engine = get_engine()
-        prompt = _READ_THROUGH_PROMPT.format(
-            contract_type=contract_type,
-            text=text,
+        gateway = get_llm_gateway()
+        prompt = _READ_THROUGH_PROMPT.format(contract_type=contract_type, text=text)
+        raw, _ = await gateway.complete_json(
+            messages=[{"role": "user", "content": prompt}],
+            caller="s2_read_through",
+            system_prompt=_SYSTEM,
         )
-        raw = await engine._call_llm(prompt)
         if isinstance(raw, dict) and raw.get("overall"):
+            raw["_s2_status"] = "ok"
             return raw
+    except LLMCallError as exc:
+        logger.warning("S2 read_through LLM 失败: %s", exc.error_type)
+        fallback["_s2_status"] = "failed"
     except Exception as exc:
         logger.warning("S2 read_through LLM 失败: %s", exc)
+        fallback["_s2_status"] = "heuristic"
 
     return fallback
 
 
+def get_s2_status(read_through: dict[str, Any]) -> str:
+    """提取 S2 状态：ok | heuristic | failed。"""
+    return str(read_through.get("_s2_status") or "heuristic")
+
+
 def _heuristic_read_through(text: str) -> dict[str, str]:
-    """无 LLM 时的最小摘要。"""
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     title = lines[0][:120] if lines else "合同"
     return {

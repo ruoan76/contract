@@ -24,6 +24,13 @@ export function getToken() {
   return token
 }
 
+/** 清除本地登录态（token 失效或 SECRET_KEY 变更后） */
+export function clearSession() {
+  token = ''
+  sessionStorage.removeItem('api_token')
+  sessionStorage.removeItem('api_current_user')
+}
+
 async function parseResponse(res: Response) {
   const text = await res.text()
   let data: Record<string, unknown> | null = null
@@ -38,7 +45,12 @@ async function parseResponse(res: Response) {
 export async function request<T>(
   method: string,
   path: string,
-  options?: { body?: unknown; headers?: Record<string, string> },
+  options?: {
+    body?: unknown
+    headers?: Record<string, string>
+    _retried?: boolean
+    timeoutMs?: number
+  },
 ): Promise<T> {
   const base = (API_CONFIG.baseUrl || '').replace(/\/$/, '')
   const url = base + path
@@ -51,17 +63,34 @@ export async function request<T>(
     headers['Content-Type'] = 'application/json'
   }
 
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: options?.body
-      ? options.body instanceof FormData
-        ? options.body
-        : JSON.stringify(options.body)
-      : undefined,
-  })
+  const signal =
+    options?.timeoutMs != null && options.timeoutMs > 0
+      ? AbortSignal.timeout(options.timeoutMs)
+      : undefined
+
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method,
+      headers,
+      body: options?.body
+        ? options.body instanceof FormData
+          ? options.body
+          : JSON.stringify(options.body)
+        : undefined,
+      signal,
+    })
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'TimeoutError') {
+      throw new ApiError('请求超时，请稍后重试', 408)
+    }
+    throw e
+  }
 
   const data = await parseResponse(res)
+  if (res.status === 401 && !options?._retried) {
+    clearSession()
+  }
   if (!res.ok) {
     const detail = data?.detail ?? data?.message ?? res.statusText
     const msg = typeof detail === 'string' ? detail : JSON.stringify(detail)
@@ -75,7 +104,8 @@ export async function request<T>(
 
 export const client = {
   get: <T>(path: string) => request<T>('GET', path),
-  post: <T>(path: string, body?: unknown) => request<T>('POST', path, { body }),
+  post: <T>(path: string, body?: unknown, opts?: { timeoutMs?: number }) =>
+    request<T>('POST', path, { body, ...opts }),
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, { body }),
   health: async () => {

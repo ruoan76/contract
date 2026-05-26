@@ -12,12 +12,13 @@ from pydantic import BaseModel, Field
 
 from app.core.config import settings
 from app.services.ai_review.clause_parser import Clause
-from app.services.ai_review.risk_scorer import calculate_risk_score, RiskScore
-from app.services.ai_review.seed_store import (
-    get_risk_labels,
-    get_review_checklists,
-    get_contract_type_map,
+from app.services.ai_review.llm_gateway import LLMCallError, get_llm_gateway
+from app.services.ai_review.prompt_builder import (
+    build_dimension_prompt,
+    sanitize_label_id,
 )
+from app.services.ai_review.risk_scorer import calculate_risk_score, RiskScore
+from app.services.ai_review.seed_store import get_contract_type_map
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +122,11 @@ class Issue(BaseModel):
     keyword: str = Field(description="问题关键词")
     severity: str = Field(description="严重程度: low/medium/high/critical")
     description: str = Field(description="问题描述")
+    label_id: Optional[str] = None
+    gate_id: Optional[str] = None
+    reasoning: Optional[str] = None
+    evidence_quote: Optional[str] = None
+    legal_basis_candidate: Optional[str] = None
 
 
 class DimensionScore(BaseModel):
@@ -130,6 +136,9 @@ class DimensionScore(BaseModel):
     score: float = Field(description="得分 0-100")
     issues: List[Issue] = Field(default_factory=list, description="问题列表")
     summary: str = Field(default="", description="维度摘要")
+    status: str = Field(default="ok", description="ok | degraded | failed")
+    checklist_coverage: List[dict[str, Any]] = Field(default_factory=list)
+    error_type: Optional[str] = Field(default=None, description="json_parse | timeout | ...")
 
 
 class DimensionRequest(BaseModel):
@@ -183,19 +192,15 @@ class AIReviewEngine:
     """AI 合同审查引擎"""
 
     def __init__(self) -> None:
-        self._client = openai.AsyncOpenAI(
-            api_key=settings.AI_API_KEY,
-            base_url=settings.AI_BASE_URL,
-        )
+        self._gateway = get_llm_gateway()
         self._model = settings.AI_MODEL
-        self._temperature = settings.AI_TEMPERATURE
-        self._max_tokens = settings.AI_MAX_TOKENS
 
     async def review(
         self,
         full_text: str,
         clauses: List[Clause],
         contract_type: str = "other",
+        profile_key: str | None = None,
     ) -> ReviewResult:
         """执行多维度合同审查。
 
@@ -208,41 +213,69 @@ class AIReviewEngine:
             ReviewResult 包含全部审查结果
         """
         contract_type = self._resolve_contract_type(contract_type)
+        resolved_profile = profile_key or contract_type
 
-        # 加载种子数据
-        risk_labels = self._safe_load(get_risk_labels, fallback={"items": []})
-        checklists = self._safe_load(get_review_checklists, fallback={"items": []})
-
-        # 并行执行五维审查
         dimension_tasks = [
-            self._review_one_dimension(DimensionRequest(
+            self._review_one_dimension(
                 contract_text=full_text,
                 clauses=clauses,
                 contract_type=contract_type,
+                profile_key=resolved_profile,
                 dimension=dim,
-                checklist=checklists.get("items", []),
-                risk_labels=risk_labels.get("items", []),
-            ))
+            )
             for dim in DIMENSION_PROMPTS
         ]
 
         dimension_results: List[DimensionScore] = []
         gathered = await asyncio.gather(*dimension_tasks, return_exceptions=True)
 
-        for result in gathered:
+        for idx, result in enumerate(gathered):
+            dim_name = list(DIMENSION_PROMPTS.keys())[idx] if idx < len(DIMENSION_PROMPTS) else "unknown"
             if isinstance(result, Exception):
                 logger.warning("维度审查异常: %s", result)
                 dimension_results.append(
-                    DimensionScore(dimension="unknown", score=50.0, issues=[], summary="审查失败")
+                    DimensionScore(
+                        dimension=dim_name,
+                        score=0.0,
+                        issues=[],
+                        summary="维度审查失败",
+                        status="failed",
+                        error_type=type(result).__name__,
+                    )
                 )
             else:
                 dimension_results.append(result)
+
+        # 失败维度单维重试一次（缓解 json_parse / 瞬时超时）
+        for idx, ds in enumerate(dimension_results):
+            if ds.status != "failed":
+                continue
+            dim = ds.dimension
+            logger.info("重试失败维度: %s", dim)
+            try:
+                dimension_results[idx] = await self._review_one_dimension(
+                    contract_text=full_text,
+                    clauses=clauses,
+                    contract_type=contract_type,
+                    profile_key=resolved_profile,
+                    dimension=dim,
+                )
+            except Exception as exc:
+                logger.warning("维度重试仍失败 %s: %s", dim, exc)
 
         # 汇总条款级审查结果
         clause_reviews = self._generate_clause_reviews(clauses, dimension_results)
 
         # 计算综合风险分
-        risk_data = calculate_risk_score(clause_reviews, dimension_results)
+        dim_dicts = [
+            {
+                "dimension": d.dimension,
+                "score": d.score,
+                "status": d.status,
+            }
+            for d in dimension_results
+        ]
+        risk_data = calculate_risk_score(clause_reviews, dim_dicts)
 
         # 生成总体建议
         recommendation = self._build_recommendation(dimension_results, risk_data)
@@ -259,77 +292,112 @@ class AIReviewEngine:
                 "issue_count": sum(len(d.issues) for d in dimension_results),
                 "contract_type": contract_type,
                 "model_version": self._model,
+                "dimension_statuses": [d.status for d in dimension_results],
+                "checklist_coverage": [d.checklist_coverage for d in dimension_results],
+                "statistics": risk_data.get("statistics", {}),
             },
         )
 
     async def _review_one_dimension(
-        self, request: DimensionRequest,
+        self,
+        *,
+        contract_text: str,
+        clauses: List[Clause],
+        contract_type: str,
+        profile_key: str,
+        dimension: str,
     ) -> DimensionScore:
-        """执行单个维度的 LLM 审查。
-
-        Args:
-            request: 维度审查请求
-
-        Returns:
-            DimensionScore 结果
-        """
-        prompt = self._build_dimension_prompt(request)
-
-        try:
-            llm_result = await self._call_llm(prompt)
-            return DimensionScore.model_validate(llm_result)
-        except openai.APITimeoutError as e:
-            logger.error("LLM 超时 (%s): %s", request.dimension, e)
-            return DimensionScore(
-                dimension=request.dimension,
-                score=50.0,
-                summary="LLM 调用超时，请使用人工审查",
-            )
-        except openai.APIStatusError as e:
-            logger.error("LLM 状态错误 (%s): %s", request.dimension, e)
-            return DimensionScore(
-                dimension=request.dimension,
-                score=50.0,
-                summary="LLM 服务不可用，请使用人工审查",
-            )
-        except Exception as e:
-            logger.error("LLM 审查失败 (%s): %s", request.dimension, e)
-            return DimensionScore(
-                dimension=request.dimension,
-                score=50.0,
-                summary="审查过程中发生错误，请使用人工审查",
-            )
-
-    def _build_dimension_prompt(self, request: DimensionRequest) -> str:
-        """构建单个维度审查的 prompt。
-
-        Args:
-            request: 维度审查请求
-
-        Returns:
-            完整 prompt 字符串
-        """
-        # 提取与维度相关的条款
-        relevant_clauses = self._filter_relevant_clauses(
-            request.clauses, request.dimension
+        instruction = DIMENSION_PROMPTS.get(dimension, "")
+        user_prompt = build_dimension_prompt(
+            dimension=dimension,
+            dimension_instruction=instruction,
+            contract_text=contract_text,
+            clauses=clauses,
+            contract_type=contract_type,
+            profile_key=profile_key,
         )
 
-        clauses_text = ""
-        for c in relevant_clauses[:10]:  # 限制最多 10 条，避免上下文过长
-            clauses_text += f"\n[条款 {c.clause_id}] {c.title}\n{c.content[:500]}\n"
+        try:
+            llm_result, _meta = await self._gateway.complete_json(
+                messages=[{"role": "user", "content": user_prompt}],
+                caller=f"dim_{dimension}",
+                system_prompt=_SYSTEM_PROMPT,
+            )
+            return self._parse_dimension_result(dimension, llm_result)
+        except LLMCallError as e:
+            logger.error("LLM 审查失败 (%s): %s", dimension, e.error_type)
+            return DimensionScore(
+                dimension=dimension,
+                score=0.0,
+                summary=f"LLM 调用失败: {e.error_type}",
+                status="failed",
+                error_type=e.error_type,
+            )
+        except Exception as e:
+            logger.error("LLM 审查失败 (%s): %s", dimension, e)
+            return DimensionScore(
+                dimension=dimension,
+                score=0.0,
+                summary="审查过程中发生错误",
+                status="failed",
+                error_type=type(e).__name__,
+            )
 
-        checklist_text = ""
-        for item in request.checklist[:10]:
-            checklist_text += f"- {item.get('item', '')}: {item.get('description', '')}\n"
+    def _parse_dimension_result(self, dimension: str, raw: dict) -> DimensionScore:
+        """解析 LLM JSON 为 DimensionScore。"""
+        issues_raw = raw.get("issues") or []
+        parsed_issues: list[Issue] = []
+        for item in issues_raw:
+            if not isinstance(item, dict):
+                continue
+            parsed_issues.append(
+                Issue(
+                    keyword=str(item.get("keyword") or ""),
+                    severity=str(item.get("severity") or "medium"),
+                    description=str(item.get("description") or ""),
+                    label_id=sanitize_label_id(item.get("label_id")),
+                    gate_id=item.get("gate_id"),
+                    reasoning=item.get("reasoning"),
+                    evidence_quote=item.get("evidence_quote"),
+                    legal_basis_candidate=item.get("legal_basis_candidate"),
+                )
+            )
+        coverage = raw.get("checklist_coverage") or []
+        if not isinstance(coverage, list):
+            coverage = []
+        try:
+            score = float(raw.get("score", 50))
+        except (TypeError, ValueError):
+            score = 50.0
+        return DimensionScore(
+            dimension=raw.get("dimension") or dimension,
+            score=score,
+            issues=parsed_issues,
+            summary=str(raw.get("summary") or ""),
+            status="ok",
+            checklist_coverage=coverage,
+        )
 
-        return (
-            f"{_SYSTEM_PROMPT}\n\n"
-            f"{DIMENSION_PROMPTS[request.dimension]}\n\n"
-            f"合同类型: {request.contract_type}\n\n"
-            f"合同全文:\n{request.contract_text[:8000]}\n\n"
-            f"重点条款:\n{clauses_text}\n\n"
-            f"审查清单:\n{checklist_text}\n\n"
-            f"请直接输出 JSON，不要包含 markdown 标记或其他格式。"
+    async def _review_one_dimension_legacy(
+        self, request: DimensionRequest,
+    ) -> DimensionScore:
+        """保留兼容测试。"""
+        return await self._review_one_dimension(
+            contract_text=request.contract_text,
+            clauses=request.clauses,
+            contract_type=request.contract_type,
+            profile_key=request.contract_type,
+            dimension=request.dimension,
+        )
+
+    def _build_dimension_prompt(self, request: DimensionRequest) -> str:
+        """兼容旧调用。"""
+        return build_dimension_prompt(
+            dimension=request.dimension,
+            dimension_instruction=DIMENSION_PROMPTS.get(request.dimension, ""),
+            contract_text=request.contract_text,
+            clauses=request.clauses,
+            contract_type=request.contract_type,
         )
 
     def _filter_relevant_clauses(
@@ -351,45 +419,13 @@ class AIReviewEngine:
         return [c for c in clauses if c.section_type in target_types]
 
     async def _call_llm(self, prompt: str) -> dict:
-        """调用 LLM 获取审查结果。
-
-        Args:
-            prompt: 提示词
-
-        Returns:
-            LLM 输出的 JSON dict
-
-        Raises:
-            ValueError: JSON 解析失败
-        """
-        response = await self._client.chat.completions.create(
-            model=self._model,
-            messages=[
-                {"role": "system", "content": _SYSTEM_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=self._temperature,
-            max_tokens=self._max_tokens,
-            response_format={"type": "json_object"},
+        """调用 LLM（供 read_through / self_correction 使用）。"""
+        result, _ = await self._gateway.complete_json(
+            messages=[{"role": "user", "content": prompt}],
+            caller="legacy_call",
+            system_prompt=_SYSTEM_PROMPT,
         )
-
-        raw_text = response.choices[0].message.content or "{}"
-
-        # 处理可能的 markdown 代码块
-        if raw_text.startswith("```"):
-            # 移除 ```json 和 ``` 标记
-            lines = raw_text.strip().split("\n")
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            raw_text = "\n".join(lines)
-
-        try:
-            return json.loads(raw_text)
-        except json.JSONDecodeError as e:
-            logger.error("LLM JSON 解析失败: %s", e)
-            raise ValueError(f"LLM 输出非合法 JSON: {raw_text[:200]}") from e
+        return result
 
     def _generate_clause_reviews(
         self,
@@ -542,16 +578,10 @@ async def review_contract(
     contract_text: str,
     clauses: List[Clause],
     contract_type: str = "other",
+    profile_key: str | None = None,
 ) -> ReviewResult:
-    """合同审查快捷函数。
-
-    Args:
-        contract_text: 合同全文
-        clauses: 条款列表
-        contract_type: 合同类型
-
-    Returns:
-        ReviewResult 审查结果
-    """
+    """合同审查快捷函数。"""
     engine = get_engine()
-    return await engine.review(contract_text, clauses, contract_type)
+    return await engine.review(
+        contract_text, clauses, contract_type, profile_key=profile_key
+    )

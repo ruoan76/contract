@@ -383,50 +383,64 @@ sequenceDiagram
 
 ## 十一、分期路线图
 
+### Phase AI-2.5：模型能力深化（2–3 周，Pilot 必做）— **已实现 2026-05-25**
+
+> 详细设计见 [ai-review-capability-hardening-design.md](./ai-review-capability-hardening-design.md)
+
+| 交付 | 状态 |
+|------|------|
+| `prompt_builder.py` + Schema 扩展（label_id/reasoning/evidence_quote/checklist_coverage） | ✅ |
+| `llm_gateway.py` + `review_completeness` | ✅ |
+| `revision_router.py` | ✅ |
+| rule_engine Batch-1（币种/单方解除/争议缺失等） | ✅ |
+| gates_v2 消费 checklist_coverage | ✅ |
+| 前端：不完整审查警告 + reasoning 展示 | ✅ |
+
 ### Phase AI-0：基线稳固（1 周，部分已完成）
 
 - [x] MLX 同步审查链路  
 - [x] 评审门禁 + 版本校验  
 - [x] 工作台 AI 摘要  
 - [x] gates/rules 启发式（runner）  
-- [ ] 单元测试覆盖 orchestrator 接口草案  
+- [x] orchestrator 单元测试 + Issue 持久化  
 
-### Phase AI-1：Session + 规则 + Schema（2–3 周）
+### Phase AI-1：Session + 规则 + Schema（2–3 周）— **大部分已完成**
 
-| 交付 | 说明 |
+| 交付 | 状态 |
 |------|------|
-| `AiReviewOrchestrator` | 实现 S2→S3→S6→aggregate，替换 runner 直调 ai_engine |
-| `rule_engine.py` | 消费 checklist `auto_detectable` + thresholds |
-| 统一 Issue Schema | runner/mock/engine 输出一致；写入 clause_reviews |
-| `ai-review` UI | 15 标签筛选、legal_basis 列、source 徽章 |
-| 上传→审查 | 合同 upload 完成后可选自动 `start_review` |
+| `AiReviewOrchestrator` S2→S3→S6→aggregate | ✅ |
+| `rule_engine.py` checklist + thresholds | ✅ |
+| 统一 Issue Schema | ✅ |
+| `ai-review` UI 标签/legal_basis/source | ✅ |
+| 上传→审查 | 部分 |
 
-**验收**：MLX 路径 issue 含 label_id、gate_id；预付款规则与 Mock 一致；无法务误读 DEMO gates。
+**验收**：MLX 路径 issue 含 label_id、gate_id；预付款规则与 Mock 一致。
 
-### Phase AI-2：RAG + 人机协同（3–4 周）
+### Phase AI-2：RAG + 人机协同（3–4 周）— **部分已完成**
 
-| 交付 | 说明 |
+| 交付 | 状态 |
 |------|------|
-| `rag_service.py` | risk_templates + 法规片段 BM25 |
-| S5 knowledge_research | 高风险 issue 必须有 basis 或 `needs_research` |
-| Self-Correction | S6 后 1 次质检 LLM |
-| `ai_review_issues` 表 | 逐条 API + 工作台确认 UI |
-| `POST .../confirm` | reviewed 状态 |
-| revision_method | revision-workspace 分 comment/track_changes |
+| `rag_service.py` BM25/keyword | ✅ BM25 |
+| S5 knowledge_research + guardrail | ✅ |
+| Self-Correction | ✅ |
+| `ai_review_issues` 表 + 确认 API | ✅ |
+| `POST .../confirm` | ✅ |
+| revision_method 路由 | ✅ |
 
-**验收**：high 级 issue 90%+ 有 legal_basis；法务可在工作台确认/误报。
+**验收**：high 级 issue 90%+ 有 legal_basis 或 needs_research（见 metrics API）。
 
-### Phase AI-3：模板偏离 + 智能调度（4–6 周）
+### Phase AI-3：生产化与长文本（3–4 周）— **已实现 2026-05-25**
 
-| 交付 | 说明 |
+| 交付 | 状态 |
 |------|------|
-| clause_standards 消费 | clause-compare 偏离 → 追加 S6 |
-| Policy YAML | purchase/sales 等 ai_profile 包 |
-| Map-Reduce 长合同 | >20 页自动分段 |
-| RiskAlert 自动 | high/critical → 消息中心 |
-| Celery 生产化 | SYNC=0，监控与重试 |
+| BM25 RAG | ✅ |
+| `text_segmenter` Map-Reduce | ✅ |
+| Celery sync wrapper + retry API + 验收脚本 | ✅ |
+| review 限流 + 状态统一 | ✅ |
+| `metrics.py` + KPI 端点 | ✅ |
+| 生产配置门禁（Mock in prod） | ✅ |
 
-### Phase AI-4：持续优化（持续）
+### Phase AI-4（原 AI-3 模板偏离）与持续优化
 
 - Chroma 法规向量库  
 - 误报数据集 → Prompt 自动迭代  

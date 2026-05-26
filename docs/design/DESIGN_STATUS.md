@@ -10,6 +10,7 @@
 
 | 版本 | 日期 | 说明 |
 |------|------|------|
+| 1.1.1 | 2026-05-25 | AI 审查能力补强 v1.0：Phase AI-2.5/AI-3 落地（prompt_builder、llm_gateway、completeness、revision_router、rule Batch-1、gates_v2、BM25 RAG、text_segmenter、Celery sync、metrics、生产门禁）；详见 [ai-review-capability-hardening-design.md](../plans/ai-review-capability-hardening-design.md) |
 | 1.1.0 | 2026-05-19 | V1.1+P2：模板审批/委托/版本 API/Stretch/5 E2E/DEMO 全绿 |
 | 1.0.0-final | 2026-05-19 | V1 全路线：17/17 页、通知事件、模板/条款比对 MVP、E2E CI |
 | 1.0.0 | 2026-05-19 | Vue3 Phase 3：review-history、列表分页筛选、高管角色、审批历史时间线、Playwright CI |

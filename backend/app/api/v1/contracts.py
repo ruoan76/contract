@@ -64,6 +64,8 @@ async def create(
             creator_id=user.id,
             db=db,
         )
+        # 立即提交，避免客户端连发 submit 时读不到未 flush 的草稿
+        await db.commit()
         return {"code": 200, "data": result}
     except BusinessError as e:
         if "黑名单" in str(e):
@@ -235,11 +237,16 @@ async def upload(
                     username=user.username,
                 )
                 result["auto_review"] = review_data
+        await db.commit()
         return {"code": 200, "data": result}
     except BusinessError as e:
         if "not found" in str(e):
             raise HTTPException(status_code=404, detail="合同不存在")
         raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"上传失败: {e}") from e
 
 
 @router.post("/{contract_id}/revisions", summary="提交修订")

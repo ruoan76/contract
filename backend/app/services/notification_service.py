@@ -28,6 +28,7 @@ async def create_notification(
     )
     db.add(n)
     await db.flush()
+    await db.refresh(n)
     return {
         "id": n.id,
         "title": n.title,

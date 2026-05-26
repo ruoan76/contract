@@ -2,9 +2,12 @@
 """AI 审查 Issue 统一 Schema（Mock / 规则 / LLM 共用）。"""
 from __future__ import annotations
 
+import re
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
+
+from app.core.config import settings
 
 # 条款 section_type → contract-review-pro dimension
 DIMENSION_ALIASES: dict[str, str] = {
@@ -58,6 +61,10 @@ class AiReviewIssue(BaseModel):
     needs_research: bool = False
     rule_id: Optional[str] = None
     issues: list[dict[str, Any]] = Field(default_factory=list)
+    reasoning: Optional[str] = None
+    evidence_quote: Optional[str] = None
+    snippet_id: Optional[str] = None
+    checklist_item_id: Optional[int] = None
 
     def model_dump_public(self) -> dict[str, Any]:
         """写入 clause_reviews JSON 的 dict。"""
@@ -90,12 +97,34 @@ def demo_issue_to_schema(raw: dict[str, Any]) -> AiReviewIssue:
     )
 
 
+def _normalize_text(text: str) -> str:
+    """去标点与空白，便于跨段去重。"""
+    t = re.sub(r"[\s\W_]+", "", (text or "").lower())
+    return t[:60]
+
+
+def _dedup_key(item: AiReviewIssue) -> str:
+    """去重键：维度 + 归一化标题/描述/证据 + label。"""
+    dim = normalize_dimension(item.dimension)
+    if item.checklist_item_id is not None:
+        return f"ck:{item.checklist_item_id}"
+    if item.rule_id:
+        return f"rule:{item.rule_id}"
+    title_n = _normalize_text(item.title or item.clause or "")
+    desc_n = _normalize_text(item.description or "")
+    evidence_n = _normalize_text(item.evidence_quote or "")
+    label = item.label_id or ""
+    if label and title_n:
+        return f"{dim}|label:{label}|{title_n}"
+    return f"{dim}|{title_n}|{desc_n}|{evidence_n}|{label}"
+
+
 def merge_issues(*groups: list[AiReviewIssue]) -> list[AiReviewIssue]:
-    """合并多源 issue，按 clause+description 去重，保留较高风险项。"""
+    """合并多源 issue，去重后按风险排序。"""
     dedup: dict[str, AiReviewIssue] = {}
     for group in groups:
         for item in group:
-            key = f"{item.clause}|{item.description}|{item.rule_id or item.label_id or ''}"
+            key = _dedup_key(item)
             existing = dedup.get(key)
             if existing is None:
                 dedup[key] = item
@@ -103,10 +132,37 @@ def merge_issues(*groups: list[AiReviewIssue]) -> list[AiReviewIssue]:
                 dedup[key] = item
     merged = list(dedup.values())
     merged.sort(
-        key=lambda x: RISK_ORDER.get(x.risk_level, 0),
+        key=lambda x: (RISK_ORDER.get(x.risk_level, 0), x.confidence),
         reverse=True,
     )
     return merged
+
+
+def cap_issues_by_dimension(
+    issues: list[AiReviewIssue],
+    *,
+    max_per_dim: int | None = None,
+) -> list[AiReviewIssue]:
+    """每维保留 top-N（按风险与置信度），规则类 issue 不受限。"""
+    limit = max_per_dim if max_per_dim is not None else settings.AI_REVIEW_MAX_ISSUES_PER_DIM
+    rules = [i for i in issues if i.source == "rule" or i.rule_id]
+    rest = [i for i in issues if i not in rules]
+    by_dim: dict[str, list[AiReviewIssue]] = {}
+    for item in rest:
+        dim = normalize_dimension(item.dimension)
+        by_dim.setdefault(dim, []).append(item)
+    capped: list[AiReviewIssue] = list(rules)
+    for dim_items in by_dim.values():
+        dim_items.sort(
+            key=lambda x: (RISK_ORDER.get(x.risk_level, 0), x.confidence),
+            reverse=True,
+        )
+        capped.extend(dim_items[:limit])
+    capped.sort(
+        key=lambda x: (RISK_ORDER.get(x.risk_level, 0), x.confidence),
+        reverse=True,
+    )
+    return capped
 
 
 def issues_to_clause_reviews_json(issues: list[AiReviewIssue]) -> list[dict[str, Any]]:

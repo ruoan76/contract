@@ -72,10 +72,14 @@ const router = createRouter({
           meta: { title: '审查报告' },
         },
         {
-          path: 'clause-compare',
+          path: 'contracts/:id/clause-compare',
           name: 'clause-compare',
           component: () => import('@/views/ai/ClauseCompareView.vue'),
-          meta: { title: '条款比对' },
+          meta: { title: '条款比对', drilldown: true },
+        },
+        {
+          path: 'clause-compare',
+          redirect: { name: 'contracts' },
         },
         {
           path: 'review-center',
@@ -144,7 +148,13 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, _from, next) => {
-  if (import.meta.env.VITE_SKIP_AUTH === '1') {
+  const auth = useAuthStore()
+  if (import.meta.env.VITE_SKIP_AUTH === '1' && !to.meta.public) {
+    try {
+      await auth.ensureAuth()
+    } catch (e) {
+      console.error('演示登录失败', e)
+    }
     next()
     return
   }
@@ -152,7 +162,6 @@ router.beforeEach(async (to, _from, next) => {
     next()
     return
   }
-  const auth = useAuthStore()
   if (!auth.user && !getToken()) {
     next({ name: 'login', query: { redirect: to.fullPath } })
     return

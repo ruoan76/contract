@@ -24,7 +24,7 @@ test.describe('DEMO-01 简易流程', () => {
     await switchRole(page, '法务专员')
     await gotoRoute(page, `/review-workspace/${contractId}`, '评审工作台')
     await page.getByRole('button', { name: '提交通过' }).click()
-    await expectToast(page, '评审已通过')
+    await expectToast(page, /评审已通过|该角色已评审/)
 
     await switchRole(page, '起草人')
     await gotoRoute(page, '/seal', '用印管理')

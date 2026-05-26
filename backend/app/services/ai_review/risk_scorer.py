@@ -156,25 +156,43 @@ def calculate_risk_score(
             issues = cr.issues
             risk_score_val = cr.risk_score if hasattr(cr, "risk_score") else 0.0
         else:
-            cid = cr.get("clause_id", "unknown")
+            cid = cr.get("clause_id") or cr.get("clause") or cr.get("clause_ref") or f"issue_{clause_count}"
             issues = cr.get("issues", [])
             risk_score_val = cr.get("risk_score", 0.0)
 
-        clause_scores[cid] = risk_score_val
-        total_severity_score += risk_score_val
-
-        for issue in issues:
-            issue_dict = {
-                "keyword": issue.keyword if hasattr(issue, "keyword") else issue.get("keyword", ""),
-                "severity": issue.severity if hasattr(issue, "severity") else issue.get("severity", "low"),
-                "description": issue.description if hasattr(issue, "description") else issue.get("description", ""),
+        if issues:
+            clause_scores[cid] = risk_score_val
+            total_severity_score += risk_score_val
+            for issue in issues:
+                issue_dict = {
+                    "keyword": issue.keyword if hasattr(issue, "keyword") else issue.get("keyword", ""),
+                    "severity": issue.severity if hasattr(issue, "severity") else issue.get("severity", "low"),
+                    "description": issue.description if hasattr(issue, "description") else issue.get("description", ""),
+                    "clause_id": cid,
+                }
+                severity = issue_dict["severity"]
+                if severity == "critical":
+                    critical_issues.append(issue_dict)
+                elif severity == "high":
+                    high_issues.append(issue_dict)
+        else:
+            rl = (
+                cr.get("risk_level") if isinstance(cr, dict) else getattr(cr, "risk_level", None)
+            ) or "medium"
+            rl = str(rl).lower()
+            score_val = _SEVERITY_WEIGHTS.get(rl, 15.0)
+            clause_scores[cid] = score_val
+            total_severity_score += score_val
+            flat_issue = {
+                "keyword": (cr.get("title") or cr.get("clause") or "") if isinstance(cr, dict) else "",
+                "severity": rl,
+                "description": (cr.get("description") or "") if isinstance(cr, dict) else "",
                 "clause_id": cid,
             }
-            severity = issue_dict["severity"]
-            if severity == "critical":
-                critical_issues.append(issue_dict)
-            elif severity == "high":
-                high_issues.append(issue_dict)
+            if rl == "critical":
+                critical_issues.append(flat_issue)
+            elif rl == "high":
+                high_issues.append(flat_issue)
 
     # 条款风险分 + 维度风险分按比例混合
     clause_avg = (total_severity_score / clause_count) if clause_count > 0 else 0.0
@@ -182,6 +200,15 @@ def calculate_risk_score(
     final_score = min(100.0, max(0.0, final_score))
 
     risk_level = _lookup_risk_level(final_score)
+    score_floor_applied = False
+    if critical_issues:
+        # 存在 critical 级 issue 时，综合等级不低于 high，分数不低于 70
+        if final_score < 70.0:
+            final_score = 70.0
+            score_floor_applied = True
+        if risk_level in ("low", "medium"):
+            risk_level = "high"
+            score_floor_applied = True
 
     issue_count = len(critical_issues) + len(high_issues)
 
@@ -199,6 +226,7 @@ def calculate_risk_score(
             "high_count": len(high_issues),
             "dimension_score": round(dim_score, 2),
             "clause_avg_score": round(clause_avg, 2),
+            "score_floor_applied": score_floor_applied,
         },
     }
 

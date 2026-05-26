@@ -1,8 +1,13 @@
 """
 应用配置
 """
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from typing import List, Optional
+
+# 本地开发默认可写目录（避免 macOS /data 只读导致上传 500）
+_BACKEND_ROOT = Path(__file__).resolve().parents[2]
+_DEFAULT_FILE_STORAGE_PATH = str(_BACKEND_ROOT / "data" / "contract-files")
 
 
 class Settings(BaseSettings):
@@ -44,10 +49,24 @@ class Settings(BaseSettings):
     AI_AUTO_REVIEW_ON_UPLOAD: bool = False
     AI_REVIEW_SELF_CORRECT: bool = True
     AI_REQUIRE_CONFIRM: bool = False
+    AI_REQUEST_TIMEOUT: float = 120.0
+    AI_REVIEW_SEGMENT_THRESHOLD: int = 12000
+    AI_REVIEW_SEGMENT_SIZE: int = 10000
+    AI_REVIEW_MAX_ISSUES_PER_DIM: int = 15
+    AI_REVIEW_MAX_CONCURRENT: int = 2
+    AI_RAG_MODE: str = "keyword"  # keyword | bm25 | chroma
+    AI_RAG_BM25_MIN_SCORE: float = 1.5
+    AI_PROMPT_VERSION: str = "pb-v1.0"
+    AI_ALLOW_MOCK_IN_PROD: bool = False
     FILE_STORAGE: str = "local"  # local | minio
-    FILE_STORAGE_PATH: str = "/data/contract-files"
+    FILE_STORAGE_PATH: str = _DEFAULT_FILE_STORAGE_PATH
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     ALLOWED_FILE_TYPES: List[str] = ["pdf", "doc", "docx", "jpg", "png"]
+    # 扫描 PDF OCR（EasyOCR）
+    AI_OCR_ENABLED: bool = True
+    AI_OCR_MIN_CHARS: int = 200
+    AI_OCR_MAX_PAGES: int = 40
+    CONTRACT_CONTENT_MAX_CHARS: int = 500_000
     
     # MinIO 配置（可选）
     MINIO_ENDPOINT: str = "localhost:9000"

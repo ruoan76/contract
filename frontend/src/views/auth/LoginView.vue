@@ -26,7 +26,8 @@ async function login() {
       `/api/v1/system/login?${q.toString()}`,
     )
     setToken(data.token)
-    await auth.initAuth()
+    sessionStorage.setItem('api_current_user', JSON.stringify(data.user))
+    auth.user = data.user as import('@/types/models').ApiUser
     ElMessage.success(`欢迎，${data.user.username}`)
     router.push({ name: 'dashboard' })
   } catch (e) {

@@ -115,6 +115,11 @@ function goAiReview() {
   router.push({ name: 'ai-review', params: { id: String(contractId.value) } })
 }
 
+function goClauseCompare() {
+  if (!contractId.value) return
+  router.push({ name: 'clause-compare', params: { id: String(contractId.value) } })
+}
+
 function stepTitle(step: unknown, idx: number) {
   const s = step as { node_name?: string }
   return s.node_name || `步骤 ${idx + 1}`
@@ -145,7 +150,10 @@ function stepDesc(step: unknown) {
       <el-card v-if="aiSummary" shadow="never" class="ai-summary" style="margin-bottom: 16px">
         <template #header>
           <span>AI 风险摘要</span>
-          <el-button link type="primary" style="float: right" @click="goAiReview">查看报告</el-button>
+          <span style="float: right">
+            <el-button link type="primary" @click="goClauseCompare">条款比对</el-button>
+            <el-button link type="primary" @click="goAiReview">查看报告</el-button>
+          </span>
         </template>
         <el-descriptions :column="3" size="small">
           <el-descriptions-item label="风险等级">{{ aiSummary.risk_level || '—' }}</el-descriptions-item>

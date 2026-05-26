@@ -92,6 +92,35 @@ curl -s http://127.0.0.1:8000/health
 
 前端：合同 →「AI 报告」→「触发审查」。
 
+## 5.1 扫描 PDF + OCR 验收
+
+扫描件（无文字层）在 `AI_OCR_ENABLED=1` 时由 EasyOCR 回退提取正文（依赖 `easyocr`，首次会下载模型）。
+
+| 变量 | 默认 | 说明 |
+|------|------|------|
+| `AI_OCR_ENABLED` | `true` | 关闭则仅 PyMuPDF 文本层 |
+| `AI_OCR_MIN_CHARS` | `200` | 低于此字数触发 OCR |
+| `AI_OCR_MAX_PAGES` | `40` | 超限返回 400 |
+
+**一键脚本**（需 API:8000、MLX、`pip install easyocr`）：
+
+```bash
+cd backend
+python3 scripts/test_lanzhou_tobacco_pdf_review.py
+# 仅解析+建单：--skip-review
+# 指定 PDF：--pdf /path/to/contract.pdf
+```
+
+环境变量：`OCR_PARSE_TIMEOUT`（默认 900s）、`AI_REVIEW_TIMEOUT`（默认 1800s）。
+
+**前端**：新建合同 → 智能起草 → 上传 PDF/DOCX/TXT，调用 `POST /api/v1/contracts/parse`（32 页扫描件约 2–3 分钟）。
+
+**单页 OCR 冒烟**（不经过 HTTP）：
+
+```bash
+python3 scripts/ocr_smoke_one_page.py "/path/to/scan.pdf"
+```
+
 ## 6. 相关代码
 
 - 引擎：`app/services/ai_review/ai_engine.py`

@@ -31,12 +31,16 @@ class RuleEngine:
         *,
         contract_type: str = "other",
         amount: Optional[float] = None,
+        counterparty_blacklisted: bool = False,
     ) -> list[AiReviewIssue]:
         text = (contract_text or "").strip()
         issues: list[AiReviewIssue] = []
         issues.extend(self._check_prepayment(text))
         issues.extend(self._check_auto_detectable(text))
         issues.extend(self._check_amount_threshold(amount))
+        issues.extend(self._check_batch1_rules(text))
+        if counterparty_blacklisted:
+            issues.extend(self._check_blacklist())
         return issues
 
     def _check_prepayment(self, text: str) -> list[AiReviewIssue]:
@@ -170,10 +174,132 @@ class RuleEngine:
         ]
 
 
+    def _check_batch1_rules(self, text: str) -> list[AiReviewIssue]:
+        """Batch-1：金额/日期/格式 + 关键词红线。"""
+        issues: list[AiReviewIssue] = []
+
+        if re.search(r"[￥¥]\s*[\d,]+", text) and re.search(r"USD|EUR|\$|美元|欧元", text, re.I):
+            issues.append(
+                AiReviewIssue(
+                    clause="价款条款",
+                    dimension="finance_check",
+                    label_id="L06",
+                    gate_id="gate_consistency",
+                    risk_level="medium",
+                    confidence=0.9,
+                    title="币种混用",
+                    description="合同内同时出现人民币与外币表述，存在币种混用风险",
+                    suggestion="建议统一币种并明确汇率与结算方式",
+                    legal_basis="审查清单",
+                    source="rule",
+                    rule_id="CK-46",
+                    revision_method="comment",
+                )
+            )
+
+        if re.search(r"单方.{0,6}(解除|终止|撤销)", text):
+            issues.append(
+                AiReviewIssue(
+                    clause="解除条款",
+                    dimension="risk_assessment",
+                    label_id="L08",
+                    gate_id="gate_clause",
+                    risk_level="high",
+                    confidence=0.88,
+                    title="单方解除权",
+                    description="存在单方解除/终止表述，可能对我方不利",
+                    suggestion="建议改为双方协商或限定法定解除条件",
+                    legal_basis="民法典合同编",
+                    source="rule",
+                    rule_id="CK-47",
+                )
+            )
+
+        if re.search(r"放弃.{0,4}诉权|无限.{0,4}责任", text):
+            issues.append(
+                AiReviewIssue(
+                    clause="责任条款",
+                    dimension="risk_assessment",
+                    label_id="L08",
+                    gate_id="gate_clause",
+                    risk_level="critical",
+                    confidence=0.92,
+                    title="责任限制异常",
+                    description="存在放弃诉权或无限责任表述",
+                    suggestion="建议删除或限缩责任范围",
+                    legal_basis="民法典",
+                    source="rule",
+                    rule_id="CK-48",
+                )
+            )
+
+        if not re.search(r"争议|仲裁|管辖|诉讼", text):
+            issues.append(
+                AiReviewIssue(
+                    clause="争议解决",
+                    dimension="risk_assessment",
+                    label_id="L11",
+                    gate_id="gate_clause",
+                    risk_level="high",
+                    confidence=0.85,
+                    title="争议解决条款缺失",
+                    description="未发现争议解决/管辖/仲裁条款",
+                    suggestion="建议补充争议解决方式与管辖约定",
+                    legal_basis="审查清单",
+                    source="rule",
+                    rule_id="CK-50",
+                )
+            )
+
+        if "签字" in text or "盖章" in text:
+            if not re.search(r"(签字|盖章|签署).{0,20}(_{3,}|【|：|:|\s)", text):
+                issues.append(
+                        AiReviewIssue(
+                            clause="签署页",
+                            dimension="compliance_check",
+                            label_id="L03",
+                            gate_id="gate_consistency",
+                            risk_level="medium",
+                            confidence=0.75,
+                            title="签署栏不明确",
+                            description="提及签字/盖章但未发现明确签署栏位",
+                            suggestion="建议补充签署页与授权信息",
+                            source="rule",
+                            rule_id="CK-49",
+                        )
+                    )
+
+        return issues
+
+    def _check_blacklist(self) -> list[AiReviewIssue]:
+        return [
+            AiReviewIssue(
+                clause="相对方",
+                dimension="compliance_check",
+                label_id="L03",
+                gate_id="gate_subject",
+                risk_level="critical",
+                confidence=0.99,
+                title="相对方黑名单",
+                description="交易相对方处于黑名单状态",
+                suggestion="禁止与该相对方签约，须升级审批",
+                legal_basis="集团相对方管理制度",
+                source="rule",
+                rule_id="TH-BLACKLIST",
+            )
+        ]
+
+
 def run_rule_engine(
     contract_text: str,
     *,
     contract_type: str = "other",
     amount: Optional[float] = None,
+    counterparty_blacklisted: bool = False,
 ) -> list[AiReviewIssue]:
-    return RuleEngine().run(contract_text, contract_type=contract_type, amount=amount)
+    return RuleEngine().run(
+        contract_text,
+        contract_type=contract_type,
+        amount=amount,
+        counterparty_blacklisted=counterparty_blacklisted,
+    )

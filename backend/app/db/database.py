@@ -27,6 +27,15 @@ def _get_async_session():
     return _async_session
 
 
+def reset_async_engine() -> None:
+    """Celery prefork 子进程须重置 async engine，避免 event loop 冲突。"""
+    global _engine, _async_session
+    if _engine is not None:
+        _engine.sync_engine.dispose()
+    _engine = None
+    _async_session = None
+
+
 async def get_db() -> AsyncSession:
     async with _get_async_session()() as session:
         try:

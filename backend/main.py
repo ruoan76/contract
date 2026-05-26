@@ -49,6 +49,13 @@ async def lifespan(app: FastAPI):
     print(f"📊 数据库: {settings.DATABASE_URL}")
     print(f"🤖 AI 模型: {settings.AI_MODEL}")
 
+    if settings.ENVIRONMENT == "production" and settings.AI_REVIEW_MOCK:
+        if not settings.AI_ALLOW_MOCK_IN_PROD:
+            raise RuntimeError(
+                "生产环境禁止 AI_REVIEW_MOCK=1，请设置 AI_REVIEW_MOCK=0 或 AI_ALLOW_MOCK_IN_PROD=1"
+            )
+        print("⚠️  警告: 生产环境启用了 AI Mock 模式")
+
     # 创建数据库表
     if engine is not None and Base is not None:
         try:

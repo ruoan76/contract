@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { reviewsApi } from '@/api/reviews'
 import { aiReviewApi, labelName } from '@/api/ai-review'
+import { ApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useContractContext } from '@/composables/useContractContext'
 import ContractContextBar from '@/components/ContractContextBar.vue'
@@ -45,6 +46,7 @@ interface WorkspaceData {
   ai_issues?: AiIssueRow[]
   opinions?: Array<{ role: string; action: string; comment?: string; reviewer_name?: string }>
   required_roles?: string[]
+  ai_gate?: { ready?: boolean; message?: string | null }
 }
 
 const ROLE_TABS = [
@@ -61,7 +63,27 @@ const workspace = ref<WorkspaceData | null>(null)
 const activeTab = ref('legal')
 const comment = ref('审核通过')
 const loading = ref(false)
+const aiRetrying = ref(false)
 const demoStep = ref(0)
+
+const AI_READY = new Set(['ai_done', 'reviewed', 'confirmed'])
+
+const aiGateReady = computed(() => {
+  if (workspace.value?.ai_gate?.ready === false) return false
+  if (workspace.value?.ai_gate?.ready === true) return true
+  const st = workspace.value?.ai_summary?.review_status
+  return !!st && AI_READY.has(st)
+})
+
+const aiGateMessage = computed(() => {
+  if (workspace.value?.ai_gate?.message) return workspace.value.ai_gate.message
+  const st = workspace.value?.ai_summary?.review_status
+  if (!st) return '请先完成 AI 审查后再提交评审'
+  if (st === 'reviewing') return 'AI 审查进行中，请稍后再提交评审'
+  if (st === 'failed') return 'AI 审查失败，请重新触发审查后再提交评审'
+  if (!AI_READY.has(st)) return '请先完成 AI 审查后再提交评审'
+  return ''
+})
 
 const visibleTabs = computed(() => {
   const required = workspace.value?.required_roles || ['legal']
@@ -141,9 +163,37 @@ async function load() {
 onMounted(load)
 watch(contractId, load)
 
+async function retryAiReview() {
+  if (!contractId.value) return
+  aiRetrying.value = true
+  try {
+    await aiReviewApi.review(contractId.value)
+    ElMessage.success('已重新触发 AI 审查，请稍候刷新')
+    for (let i = 0; i < 24; i++) {
+      await new Promise((r) => setTimeout(r, 5000))
+      await load()
+      const st = workspace.value?.ai_summary?.review_status
+      if (st === 'ai_done' || st === 'failed') break
+    }
+    if (aiGateReady.value) {
+      ElMessage.success('AI 审查已完成，可提交评审')
+    } else if (workspace.value?.ai_summary?.review_status === 'failed') {
+      ElMessage.error(aiGateMessage.value || 'AI 审查仍失败')
+    }
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '触发 AI 审查失败')
+  } finally {
+    aiRetrying.value = false
+  }
+}
+
 async function submitOpinion() {
   if (!contractId.value) {
     ElMessage.warning('请指定合同')
+    return
+  }
+  if (!aiGateReady.value) {
+    ElMessage.warning(aiGateMessage.value || '请先完成 AI 审查')
     return
   }
   const role = activeTab.value
@@ -161,7 +211,8 @@ async function submitOpinion() {
       router.push({ name: 'seal' })
     }
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : '提交失败')
+    const msg = e instanceof ApiError ? e.message : e instanceof Error ? e.message : '提交失败'
+    ElMessage.error(msg)
   }
 }
 
@@ -185,6 +236,21 @@ async function returnForRevision() {
     <el-steps v-if="(workspace?.required_roles?.length || 0) > 1" :active="demoStep" finish-status="success" style="margin: 12px 0">
       <el-step v-for="(hint, idx) in demoHints" :key="idx" :title="hint" />
     </el-steps>
+    <el-alert
+      v-if="!aiGateReady"
+      type="warning"
+      :title="aiGateMessage || 'AI 审查未就绪'"
+      :closable="false"
+      style="margin: 12px 0"
+    >
+      <template #default>
+        <p style="margin: 0 0 8px">提交评审前须完成 AI 初筛（状态：{{ workspace?.ai_summary?.review_status || '无' }}）。</p>
+        <el-button size="small" type="primary" :loading="aiRetrying" @click="retryAiReview">
+          重新触发 AI 审查
+        </el-button>
+        <el-button size="small" link type="primary" @click="goAiReport">查看 AI 报告</el-button>
+      </template>
+    </el-alert>
     <el-alert
       v-if="workspace?.contract?.flow_type === 'simple'"
       type="info"
@@ -270,7 +336,7 @@ async function returnForRevision() {
         <div style="margin-top: 12px; display: flex; gap: 8px">
           <el-button
             type="primary"
-            :disabled="approvedRoles.has(tab.key)"
+            :disabled="approvedRoles.has(tab.key) || !aiGateReady"
             @click="submitOpinion"
           >
             {{ approvedRoles.has(tab.key) ? '已完成' : '提交通过' }}

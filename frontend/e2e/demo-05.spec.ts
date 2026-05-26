@@ -34,6 +34,6 @@ test.describe('DEMO-05 退回修订', () => {
     await gotoRoute(page, `/contracts/${contractId}/revision`, '修订工作台')
     await page.locator('textarea').first().fill('修订后的合同正文内容')
     await page.getByRole('button', { name: '提交修订' }).click()
-    await expectToast(page, /修订/)
+    await expectToast(page, /修订已提交/)
   })
 })

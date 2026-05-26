@@ -112,23 +112,36 @@ async def _get_current_version_id(db: AsyncSession, contract: Contract) -> Optio
 
 async def _ensure_ai_gate(db: AsyncSession, contract_id: int) -> None:
     """法务评审前须完成 AI 审查，且审查版本与当前合同版本一致。"""
+    ready, message = await _check_ai_gate(db, contract_id)
+    if not ready:
+        raise HTTPException(status_code=400, detail=message)
+
+
+async def _check_ai_gate(db: AsyncSession, contract_id: int) -> tuple[bool, str]:
+    """返回 (是否满足门禁, 提示文案)。"""
     contract = await db.get(Contract, contract_id)
     if not contract:
         raise HTTPException(status_code=404, detail="合同不存在")
 
     ai = await _get_latest_ai(db, contract_id)
-    if not ai or ai.review_status not in AI_READY_STATUSES:
-        raise HTTPException(status_code=400, detail="请先完成 AI 审查后再提交评审")
+    if not ai:
+        return False, "请先完成 AI 审查后再提交评审"
+
+    if ai.review_status == "reviewing":
+        return False, "AI 审查进行中，请稍后再提交评审"
+    if ai.review_status == "failed":
+        return False, "AI 审查失败，请重新触发审查后再提交评审"
+    if ai.review_status not in AI_READY_STATUSES:
+        return False, "请先完成 AI 审查后再提交评审"
 
     if settings.AI_REQUIRE_CONFIRM and ai.review_status not in ("reviewed", "confirmed"):
-        raise HTTPException(status_code=400, detail="请先确认 AI 审查报告后再提交评审")
+        return False, "请先确认 AI 审查报告后再提交评审"
 
     current_version_id = await _get_current_version_id(db, contract)
     if current_version_id and ai.version_id != current_version_id:
-        raise HTTPException(
-            status_code=400,
-            detail="合同内容已修订，请重新触发 AI 审查后再提交评审",
-        )
+        return False, "合同内容已修订，请重新触发 AI 审查后再提交评审"
+
+    return True, ""
 
 
 async def get_pending_reviews(
@@ -248,6 +261,7 @@ async def get_review_workspace(db: AsyncSession, contract_id: int) -> dict:
     ]
 
     flow_type = _infer_flow_type(contract)
+    ai_ready, ai_gate_message = await _check_ai_gate(db, contract_id)
 
     return {
         "contract": {
@@ -262,6 +276,7 @@ async def get_review_workspace(db: AsyncSession, contract_id: int) -> dict:
         "ai_issues": ai_issues,
         "opinions": opinions,
         "required_roles": _required_roles(flow_type),
+        "ai_gate": {"ready": ai_ready, "message": ai_gate_message or None},
     }
 
 
@@ -387,7 +402,10 @@ async def submit_revision(
     if not contract:
         raise HTTPException(status_code=404, detail="合同不存在")
     if contract.status != "draft":
-        raise HTTPException(status_code=400, detail="仅草稿状态可提交修订")
+        raise HTTPException(
+            status_code=400,
+            detail=f"仅草稿状态可提交修订（当前：{contract.status}，需先完成法务退回）",
+        )
 
     ver_result = await db.execute(
         select(func.max(ContractVersion.version)).where(

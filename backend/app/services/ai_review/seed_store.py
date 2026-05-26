@@ -57,6 +57,11 @@ def get_cuad_bridge() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def get_contract_type_profiles() -> dict[str, Any]:
+    return _read_json("contract_type_profiles.json")
+
+
+@lru_cache(maxsize=1)
 def get_risk_templates_purchase() -> dict[str, Any]:
     return _read_json("risk_templates.purchase.json")
 
@@ -69,6 +74,7 @@ def reload_cache() -> None:
         get_revision_routing,
         get_review_checklists,
         get_contract_type_map,
+        get_contract_type_profiles,
         get_cuad_bridge,
         get_risk_templates_purchase,
     ):

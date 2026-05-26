@@ -23,6 +23,7 @@ import {
 import { NAV_ITEMS, ROUTE_TITLES } from '@/router/nav'
 import { canAccessRoute } from '@/router/permissions'
 import { useAuthStore } from '@/stores/auth'
+import { getToken } from '@/api/client'
 import { ROLE_LABELS } from '@/api/config'
 import type { AppRole } from '@/types/models'
 
@@ -83,12 +84,12 @@ async function onRoleChange(role: AppRole) {
 }
 
 onMounted(async () => {
-  if (!auth.user) {
-    try {
+  try {
+    if (import.meta.env.VITE_SKIP_AUTH !== '1' && (!getToken() || !auth.user)) {
       await auth.initAuth()
-    } catch (e) {
-      console.error('初始化演示账号失败', e)
     }
+  } catch (e) {
+    console.error('初始化认证失败', e)
   }
 })
 

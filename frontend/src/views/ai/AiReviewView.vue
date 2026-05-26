@@ -12,13 +12,16 @@ import {
 import { useContractContext } from '@/composables/useContractContext'
 import ContractContextBar from '@/components/ContractContextBar.vue'
 import AiGateSummary from '@/components/AiGateSummary.vue'
-import { contractsApi } from '@/api/contracts'
+import AiChecklistMatrix from '@/components/AiChecklistMatrix.vue'
 import type { Contract } from '@/types/models'
+import type { ChecklistMatrix } from '@/api/ai-review'
 
 const router = useRouter()
-const { contractId } = useContractContext()
+const { contractId, fetchContract } = useContractContext()
 const contract = ref<Contract | null>(null)
+const contractMissing = ref(false)
 const result = ref<AiReviewSummary | null>(null)
+const checklistMatrix = ref<ChecklistMatrix | null>(null)
 const loading = ref(false)
 const polling = ref(false)
 const filterRiskLevel = ref('')
@@ -39,7 +42,8 @@ const riskLabel = computed(() => {
 
 const riskType = computed(() => {
   const level = result.value?.risk_level
-  if (level === 'high' || level === 'critical') return 'danger'
+  if (level === 'critical') return 'danger'
+  if (level === 'high') return 'danger'
   if (level === 'medium') return 'warning'
   return 'success'
 })
@@ -69,16 +73,109 @@ const isReviewing = computed(
   () => result.value?.review_status === 'reviewing' || result.value?.review_status === 'pending',
 )
 
+const ENGINE_DIMENSION_LABELS: Record<string, string> = {
+  compliance: '合规性',
+  risk: '风险条款',
+  financial: '财务条款',
+  capability: '履约能力',
+  anomaly: '异常检测',
+}
+
+function dimensionLabel(key: string) {
+  return ENGINE_DIMENSION_LABELS[key] || key
+}
+
+const failedDimensions = computed(() => {
+  const detail = result.value?.completeness_detail as
+    | { failed_dimensions?: string[] }
+    | undefined
+  if (detail?.failed_dimensions?.length) {
+    return detail.failed_dimensions
+  }
+  const dims = (result.value?.summary as { dimensions?: { dimension?: string; status?: string }[] })
+    ?.dimensions
+  if (!dims?.length) return []
+  return dims
+    .filter((d) => d.status === 'failed' && d.dimension)
+    .map((d) => d.dimension as string)
+})
+
+const pinnedCriticalIssues = computed(() => {
+  const items = result.value?.clause_reviews || []
+  return items.filter((c) => c.risk_level === 'critical')
+})
+
+const scoreFloorHint = computed(() => {
+  const stats = (result.value?.summary as { statistics?: { score_floor_applied?: boolean } })
+    ?.statistics
+  if (!stats?.score_floor_applied) return ''
+  return '存在 critical 级风险，综合风险分/等级已按策略保底（不低于 high / 70 分）'
+})
+
+const truncationHint = computed(() => {
+  const summary = result.value?.summary as
+    | { clause_reviews_truncated?: boolean; issues_total?: number; clause_reviews_count?: number }
+    | undefined
+  if (!summary?.clause_reviews_truncated) return ''
+  return `条款列表已截断展示 ${summary.clause_reviews_count ?? '?'} / ${summary.issues_total ?? '?'} 条，完整数据请导出或查看清单矩阵。`
+})
+
+const completenessAlert = computed(() => {
+  const c =
+    result.value?.review_completeness ||
+    (result.value?.summary as { review_completeness?: string } | undefined)?.review_completeness
+  if (!c || c === 'full') return null
+  const failedNames = failedDimensions.value
+    .map((d) => dimensionLabel(d))
+    .join('、')
+  const failedPart = failedNames ? `未成功维度：${failedNames}。` : ''
+  if (c === 'failed') {
+    return {
+      type: 'error' as const,
+      title: 'AI 审查失败',
+      desc: `请稍后重试或联系管理员，暂勿仅依据风险分决策。${failedPart}`,
+    }
+  }
+  return {
+    type: 'warning' as const,
+    title: '审查未完整完成',
+    desc: `部分维度未成功分析，结论仅供参考，请法务重点复核。${failedPart}`,
+  }
+})
+
 async function load() {
-  if (!contractId.value) return
+  contractMissing.value = false
+  if (!contractId.value) {
+    contract.value = null
+      result.value = null
+      checklistMatrix.value = null
+      return
+  }
   loading.value = true
   try {
-    contract.value = await contractsApi.get(contractId.value)
+    const c = await fetchContract(contractId.value)
+    if (!c) {
+      contractMissing.value = true
+      contract.value = null
+      result.value = null
+      ElMessage.warning('合同不存在，请从列表重新选择')
+      return
+    }
+    contract.value = c
     try {
-      result.value = await aiReviewApi.latest(contractId.value)
+      const [latest, matrix] = await Promise.all([
+        aiReviewApi.latest(contractId.value),
+        aiReviewApi.checklistMatrix(contractId.value).catch(() => null),
+      ])
+      result.value = latest
+      checklistMatrix.value = matrix
     } catch {
       result.value = null
+      checklistMatrix.value = null
     }
+  } catch (e) {
+    console.error(e)
+    ElMessage.error(e instanceof Error ? e.message : '加载失败')
   } finally {
     loading.value = false
   }
@@ -98,7 +195,12 @@ function startPolling() {
   pollTimer = setInterval(async () => {
     if (!contractId.value) return
     try {
-      result.value = await aiReviewApi.latest(contractId.value)
+      const [latest, matrix] = await Promise.all([
+        aiReviewApi.latest(contractId.value),
+        aiReviewApi.checklistMatrix(contractId.value).catch(() => null),
+      ])
+      result.value = latest
+      checklistMatrix.value = matrix
       if (!isReviewing.value) {
         stopPolling()
         ElMessage.success('AI 审查已完成')
@@ -136,21 +238,28 @@ async function runReview() {
 }
 
 function exportPdf() {
-  if (result.value?.review_id) {
-    aiReviewApi
-      .downloadReport(result.value.review_id, 'pdf')
-      .then((blob) => {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `ai-review-${result.value?.review_id}.pdf`
-        a.click()
-        URL.revokeObjectURL(url)
-      })
-      .catch(() => window.print())
+  if (!result.value?.review_id) {
+    window.print()
     return
   }
-  window.print()
+  aiReviewApi
+    .downloadReport(result.value.review_id, 'pdf')
+    .then(({ blob, filename, contentType }) => {
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+      if (contentType.includes('html')) {
+        ElMessage.warning('PDF 引擎不可用，已下载 HTML 报告，可用浏览器打印为 PDF')
+      } else {
+        ElMessage.success('报告已下载')
+      }
+    })
+    .catch((e) => {
+      ElMessage.error(e instanceof Error ? e.message : '报告下载失败')
+    })
 }
 
 function submitLegalReview() {
@@ -178,6 +287,11 @@ function sourceLabel(source?: string) {
   return source || '—'
 }
 
+function goClauseCompare() {
+  if (!contractId.value) return
+  router.push({ name: 'clause-compare', params: { id: String(contractId.value) } })
+}
+
 async function sendFeedback(type: 'false_positive' | 'false_negative') {
   if (!result.value?.review_id) return
   try {
@@ -192,12 +306,30 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
 <template>
   <div v-loading="loading" class="page-card ai-report">
     <ContractContextBar :contract="contract" />
+    <el-alert
+      v-if="completenessAlert"
+      :type="completenessAlert.type"
+      :title="completenessAlert.title"
+      :description="completenessAlert.desc"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 12px"
+    />
+    <el-alert
+      v-if="truncationHint"
+      type="info"
+      :title="truncationHint"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 12px"
+    />
     <AiGateSummary v-if="result?.gates" :gates="result.gates" />
     <div class="page-toolbar">
       <h2>AI 审查报告</h2>
       <div class="toolbar-actions">
         <el-tag v-if="polling" type="info">审查中…</el-tag>
         <el-button type="primary" @click="runReview">触发审查</el-button>
+        <el-button v-if="contractId" @click="goClauseCompare">条款比对</el-button>
         <el-button v-if="result" type="success" @click="submitLegalReview">提交法务评审</el-button>
         <el-button
           v-if="result?.review_id && result.review_status === 'ai_done'"
@@ -209,10 +341,17 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
         <el-button v-if="result" @click="exportPdf">导出 PDF</el-button>
       </div>
     </div>
-    <el-empty v-if="!result" description="暂无审查报告，请先触发审查" />
+    <el-empty v-if="!contractId" description="请从合同列表选择一份合同">
+      <el-button type="primary" @click="router.push({ name: 'contracts' })">去合同列表</el-button>
+    </el-empty>
+    <el-empty v-else-if="contractMissing" description="合同不存在，可能已被删除或数据库已重置">
+      <el-button type="primary" @click="router.push({ name: 'contracts' })">去合同列表</el-button>
+    </el-empty>
+    <el-empty v-else-if="!result" description="暂无审查报告，请先触发审查" />
     <template v-else>
       <div class="filters">
         <el-select v-model="filterRiskLevel" clearable placeholder="风险等级" style="width: 140px">
+          <el-option label="极高风险" value="critical" />
           <el-option label="高风险" value="high" />
           <el-option label="中风险" value="medium" />
           <el-option label="低风险" value="low" />
@@ -234,14 +373,53 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
         <el-descriptions-item label="状态">{{ result.review_status || '-' }}</el-descriptions-item>
         <el-descriptions-item label="风险等级">
           <el-tag :type="riskType">{{ riskLabel }}</el-tag>
+          <span v-if="scoreFloorHint" class="score-floor-hint">{{ scoreFloorHint }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="风险分">{{ result.risk_score ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item v-if="pinnedCriticalIssues.length" label="Critical 条数">
+          {{ pinnedCriticalIssues.length }}
+        </el-descriptions-item>
         <el-descriptions-item label="审查时间">{{ result.review_time ?? '-' }}</el-descriptions-item>
       </el-descriptions>
+      <el-card shadow="never" class="checklist-section">
+        <template #header>审查清单矩阵</template>
+        <AiChecklistMatrix :matrix="checklistMatrix" />
+        <el-empty v-if="!checklistMatrix" description="暂无清单矩阵数据" />
+      </el-card>
       <div style="margin-top: 16px">
         <el-button size="small" @click="sendFeedback('false_positive')">标记误报</el-button>
         <el-button size="small" @click="sendFeedback('false_negative')">标记漏报</el-button>
       </div>
+      <el-card
+        v-if="pinnedCriticalIssues.length"
+        shadow="never"
+        class="critical-block"
+      >
+        <template #header>需优先处理（Critical）</template>
+        <el-table :data="pinnedCriticalIssues" stripe size="small">
+          <el-table-column prop="clause" label="条款" min-width="140" />
+          <el-table-column label="标签" width="110">
+            <template #default="{ row }">{{ labelName(row.label_id) }}</template>
+          </el-table-column>
+          <el-table-column prop="risk_level" label="风险" width="90" />
+          <el-table-column label="来源" width="80">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.source === 'rule' ? 'warning' : 'info'">
+                {{ sourceLabel(row.source) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="legal_basis" label="法律依据" min-width="160" show-overflow-tooltip />
+          <el-table-column label="推理/依据" min-width="200">
+            <template #default="{ row }">
+              <div v-if="row.reasoning" class="reasoning-cell">{{ row.reasoning }}</div>
+              <div v-if="row.evidence_quote" class="evidence-quote">{{ row.evidence_quote }}</div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="confidence" label="置信度" width="80" />
+          <el-table-column prop="suggestion" label="建议" min-width="180" show-overflow-tooltip />
+        </el-table>
+      </el-card>
       <el-card v-if="result.rule_violations?.length" shadow="never" class="rules-block">
         <template #header>采购规则引擎</template>
         <el-table :data="result.rule_violations" stripe size="small">
@@ -267,6 +445,13 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
             </template>
           </el-table-column>
           <el-table-column prop="legal_basis" label="法律依据" min-width="160" show-overflow-tooltip />
+          <el-table-column label="推理/依据" min-width="200">
+            <template #default="{ row }">
+              <div v-if="row.reasoning" class="reasoning-cell">{{ row.reasoning }}</div>
+              <div v-if="row.evidence_quote" class="evidence-quote">{{ row.evidence_quote }}</div>
+              <span v-if="!row.reasoning && !row.evidence_quote">—</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="confidence" label="置信度" width="80" />
           <el-table-column prop="suggestion" label="建议" min-width="180" show-overflow-tooltip />
         </el-table>
@@ -287,8 +472,22 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
   gap: 8px;
   margin-bottom: 12px;
 }
+.checklist-section {
+  margin-top: 16px;
+}
+.critical-block {
+  margin-top: 16px;
+  border-color: var(--el-color-danger-light-5);
+}
 .rules-block {
   margin-top: 16px;
+}
+.score-floor-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-color-warning);
+  font-weight: normal;
 }
 .dimension-block {
   margin-top: 20px;
@@ -303,5 +502,17 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
   .el-button {
     display: none !important;
   }
+}
+.reasoning-cell {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-bottom: 4px;
+}
+.evidence-quote {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  font-style: italic;
+  border-left: 3px solid var(--el-color-primary-light-5);
+  padding-left: 8px;
 }
 </style>

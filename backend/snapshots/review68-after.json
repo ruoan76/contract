@@ -1,0 +1,92 @@
+{
+  "review_id": "REV-20260526131721-e54b71a7",
+  "contract_id": null,
+  "review_status": "ai_done",
+  "risk_level": "medium",
+  "risk_score": 49.5,
+  "review_completeness": "partial",
+  "failed_dimensions": [],
+  "degraded_dimensions": [],
+  "dimension_errors": {},
+  "segment_count": 3,
+  "per_segment_status": null,
+  "dimensions": [
+    {
+      "dimension": "compliance",
+      "score": 75.0,
+      "summary": "该服务合同主体合法，经过招投标程序，基本合规。主要风险点在于：1. 合同生效条款存在笔误且定义模糊；2. 文件解释顺序规则（时间在后为准）过于绝对，易引发合同内容冲突风险；3. 保密协议中的仲裁机构约定不明确，可能导致仲裁协议无效；4. 乙方资质需进一步核实是否符合烟草行业特定要求。建议修正生效条款，明确仲裁机构，并细化文件解释优先级。",
+      "status": "ok"
+    },
+    {
+      "dimension": "risk",
+      "score": 65.0,
+      "summary": "本合同在风险条款方面存在显著缺失。主要问题在于主合同完全缺失通用的违约责任条款和赔偿上限条款，导致一方违约时另一方缺乏明确的救济手段和风险控制边界。虽然附件四针对质保服务设定了考核扣款机制，但这仅覆盖了部分风险。保密协议相对完善，但争议解决条款仅存在于保密协议中，且仲裁机构表述需核实。建议补充主合同的违约责任章节，明确违约情形、违约金计算方式及赔偿上限，并将争议解决条款统一至主合同中。",
+      "status": "ok"
+    },
+    {
+      "dimension": "financial",
+      "score": 65.0,
+      "summary": "该合同在财务条款方面存在显著缺陷。虽然合同总价（195.8万元）及分项明细清晰，且附件详细规定了质保服务考核标准，但**缺失核心的付款计划条款**。合同未约定预付款、进度款、验收款及质保金的具体支付比例、支付时间及触发条件，也未明确发票类型及税率。此外，质保金机制虽提及与考核挂钩，但未明确预留比例和退还条件。建议补充详细的《付款进度表》，明确各阶段付款金额、发票要求及支付期限，以规避财务结算风险。",
+      "status": "ok"
+    },
+    {
+      "dimension": "capability",
+      "score": 75.0,
+      "summary": "该合同在履约能力方面存在主要缺陷：一是**交付周期缺失**，未约定系统开发及实施的具体时间节点，仅以‘随项目实施开展’模糊带过，导致履约期限不明；二是**验收标准与质保考核混淆**，合同详细规定了质保期的服务考核指标（如可用性99%），但缺乏项目完工后的‘竣工验收’标准和流程，可能导致交付物质量争议及付款纠纷；三是**质量标准侧重运维而非开发**，对软件开发阶段的功能实现、代码质量缺乏量化标准。建议补充详细的项目里程碑计划、明确的验收测试方案及验收通过标准。",
+      "status": "ok"
+    },
+    {
+      "dimension": "anomaly",
+      "score": 0.0,
+      "summary": "LLM 调用失败: json_parse",
+      "status": "failed"
+    }
+  ],
+  "checklist_summary": {
+    "total": 60,
+    "pass": 35,
+    "fail": 10,
+    "unknown": 15
+  },
+  "gates": {
+    "gate_validity": {
+      "status": "warn",
+      "summary": "清单效力项 4 项未通过"
+    },
+    "gate_subject": {
+      "status": "pass",
+      "summary": "甲方：甘肃省烟草公司兰州市公司；乙方：浪潮软件股份有限公司"
+    },
+    "gate_clause": {
+      "status": "fail",
+      "summary": "60 项条款风险待处理"
+    },
+    "gate_consistency": {
+      "status": "warn",
+      "summary": "形式/一致性检查见规则项"
+    },
+    "gate_output": {
+      "status": "warn",
+      "summary": "审查未完整完成，请法务重点复核"
+    }
+  },
+  "score_floor_applied": null,
+  "critical_issue_count": null,
+  "issue_count_summary": 64,
+  "clause_reviews_count": 48,
+  "issues_total": 64,
+  "clause_reviews_truncated": false,
+  "risk_distribution": {
+    "critical": 2,
+    "high": 13,
+    "medium": 33
+  },
+  "source_distribution": {
+    "llm": 35,
+    "rule": 1,
+    "rag": 12
+  },
+  "model_version": "mlx-community/Qwen3.6-35B-A3B-4bit",
+  "review_duration_seconds": null,
+  "pipeline_stats": null
+}

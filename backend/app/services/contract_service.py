@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.db.database import async_session
 from app.exceptions import BusinessError
 from app.models.contract import Contract, ContractVersion
+from app.services.contract_parse_service import _guess_file_type, extract_bytes_to_text
 
 logger = logging.getLogger(__name__)
 
@@ -759,6 +760,8 @@ async def save_contract_upload(
         raise BusinessError(f"Contract {contract_id} not found")
 
     file_hash = hashlib.sha256(content).hexdigest()
+    # DB file_type 列为 VARCHAR(10)，存扩展名 pdf/docx，不存完整 MIME
+    stored_type = _guess_file_type(filename, content_type)[:10]
 
     if settings.FILE_STORAGE == "minio":
         from app.utils.storage import get_storage
@@ -781,10 +784,13 @@ async def save_contract_upload(
             raise BusinessError(f"MinIO 上传失败: {exc}") from exc
     else:
         storage_dir = os.path.join(settings.FILE_STORAGE_PATH, "contracts", contract.contract_no)
-        os.makedirs(storage_dir, exist_ok=True)
-        local_path = os.path.join(storage_dir, filename)
-        with open(local_path, "wb") as f:
-            f.write(content)
+        try:
+            os.makedirs(storage_dir, exist_ok=True)
+            local_path = os.path.join(storage_dir, filename)
+            with open(local_path, "wb") as f:
+                f.write(content)
+        except OSError as exc:
+            raise BusinessError(f"文件存储失败，请检查 FILE_STORAGE_PATH（{settings.FILE_STORAGE_PATH}）: {exc}") from exc
 
     ver_result = await db.execute(
         select(ContractVersion)
@@ -793,18 +799,35 @@ async def save_contract_upload(
         .limit(1)
     )
     version = ver_result.scalar_one_or_none()
+    extracted_text = ""
+    extracted_meta: dict = {}
+    if stored_type in ("pdf", "docx", "txt"):
+        try:
+            extracted_text, extracted_meta = await extract_bytes_to_text(
+                content, filename, content_type
+            )
+        except Exception as exc:
+            logger.warning("上传文件正文提取失败 contract_id=%s: %s", contract_id, exc)
+
     if version:
         version.file_path = local_path
-        version.file_type = content_type
+        version.file_type = stored_type
         version.file_size = len(content)
         version.file_hash = file_hash
+        if extracted_text.strip():
+            version.content = extracted_text
         await db.flush()
+
+    if extracted_text.strip():
+        contract.content = extracted_text
 
     return {
         "contract_id": contract_id,
         "file_path": local_path,
-        "file_type": content_type,
+        "file_type": stored_type,
         "file_size": len(content),
         "file_hash": file_hash,
         "version_id": version.id if version else None,
+        "char_count": len(extracted_text),
+        "ocr_used": bool(extracted_meta.get("ocr_used")),
     }

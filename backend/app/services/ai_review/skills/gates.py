@@ -7,6 +7,68 @@ from typing import Any
 from app.services.ai_review.issue_schema import AiReviewIssue
 
 
+def build_gates_v2(
+    issues: list[AiReviewIssue],
+    *,
+    dimensions: list[dict[str, Any]] | None = None,
+    read_through: dict[str, Any] | None = None,
+    checklist_coverage: list[list[dict[str, Any]]] | None = None,
+    review_completeness: str = "full",
+) -> dict[str, dict[str, str]]:
+    """v2：结合 checklist_coverage 与 completeness。"""
+    gates = build_gates(
+        issues,
+        dimensions=dimensions,
+        read_through=read_through,
+    )
+
+    cov_lists = checklist_coverage or []
+    flat_cov = [item for sub in cov_lists for item in sub if isinstance(item, dict)]
+
+    validity_fails = sum(
+        1 for c in flat_cov
+        if c.get("status") == "fail" and _cov_gate(c, "gate_validity")
+    )
+    if validity_fails and gates["gate_validity"]["status"] == "pass":
+        gates["gate_validity"] = {
+            "status": "warn",
+            "summary": f"清单效力项 {validity_fails} 项未通过",
+        }
+
+    consistency_fails = sum(
+        1 for c in flat_cov if c.get("status") == "fail" and _cov_gate(c, "gate_consistency")
+    )
+    if consistency_fails:
+        gates["gate_consistency"] = {
+            "status": "warn",
+            "summary": f"一致性清单 {consistency_fails} 项待处理",
+        }
+
+    if review_completeness != "full":
+        gates["gate_output"] = {
+            "status": "warn" if review_completeness == "partial" else "fail",
+            "summary": "审查未完整完成，请法务重点复核",
+        }
+
+    return gates
+
+
+def _cov_gate(item: dict, gate_id: str) -> bool:
+    """简化：按 item_id 范围推断 gate（完整版可查 checklist JSON）。"""
+    iid = item.get("item_id")
+    if iid is None:
+        return False
+    try:
+        n = int(iid)
+    except (TypeError, ValueError):
+        return False
+    if gate_id == "gate_validity":
+        return n <= 20
+    if gate_id == "gate_consistency":
+        return n >= 40
+    return False
+
+
 def build_gates(
     issues: list[AiReviewIssue],
     *,

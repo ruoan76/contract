@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { contractsApi, resolveFlowType, mapFlowTypeForApi } from '@/api/contracts'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElLoading } from 'element-plus'
+import { contractsApi, resolveFlowType, mapFlowTypeForApi, type ContractParseFields } from '@/api/contracts'
 import { approvalsApi } from '@/api/approvals'
 import { aiReviewApi } from '@/api/ai-review'
 import { counterpartiesApi, type CounterpartyItem } from '@/api/counterparties'
@@ -12,12 +12,14 @@ import { debounce } from '@/utils/debounce'
 import type { Contract, FlowMatchResult } from '@/types/models'
 
 const DRAFT_KEY = 'contract-draft'
+const PARSEABLE_EXT = new Set(['pdf', 'docx', 'txt', 'doc'])
 
 type CreateMode = 'blank' | 'template' | 'history' | 'ai-parse'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
-const mode = ref<CreateMode>('blank')
+const mode = ref<CreateMode>('ai-parse')
 const submitting = ref(false)
 const flowDialogVisible = ref(false)
 const flowMatch = ref<FlowMatchResult | null>(null)
@@ -37,6 +39,7 @@ const selectedTemplateId = ref<number | null>(null)
 const selectedHistoryId = ref<number | null>(null)
 const pendingFile = ref<File | null>(null)
 const parseLoading = ref(false)
+const parseStatus = ref<{ char_count?: number; ocr_used?: boolean } | null>(null)
 
 function restoreDraft() {
   try {
@@ -51,18 +54,98 @@ function restoreDraft() {
   }
 }
 
-const saveDraft = debounce(() => {
+function saveDraftImmediate() {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...form, mode: mode.value }))
   } catch {
     /* 存储满等情况 */
   }
-}, 400)
+}
+
+function fileExtension(name: string): string {
+  return name.split('.').pop()?.toLowerCase() || ''
+}
+
+function isParseableFile(file: File): boolean {
+  return PARSEABLE_EXT.has(fileExtension(file.name))
+}
+
+function titleFromFilename(filename: string): string {
+  return filename.replace(/\.[^.]+$/, '').slice(0, 120)
+}
+
+function inferContractType(
+  fields: ContractParseFields,
+  fullText: string,
+  filename: string,
+): string {
+  const hint = `${fullText.slice(0, 800)} ${filename}`
+  if (/建设|信息化|开发|服务项目|技术服务/.test(hint)) return 'service'
+  if (fields.contract_type) return fields.contract_type
+  return 'purchase'
+}
+
+function fillFormFromParse(
+  data: Awaited<ReturnType<typeof contractsApi.parse>>,
+  file: File,
+): { char_count?: number; ocr_used?: boolean } {
+  const f = data.fields || {}
+  const full = f.full_text || f.text_preview || ''
+  form.content = full.slice(0, 500_000)
+  form.title = String(f.title || titleFromFilename(file.name)).slice(0, 120)
+  if (f.party_b) form.counterparty_name = String(f.party_b).slice(0, 80)
+  else if (f.party_a) form.counterparty_name = String(f.party_a).slice(0, 80)
+  if (f.amount != null && f.amount > 0) form.amount = f.amount
+  form.contract_type = inferContractType(f, full, file.name)
+  const status = {
+    char_count: data.char_count ?? f.char_count,
+    ocr_used: data.ocr_used ?? f.ocr_used,
+  }
+  parseStatus.value = status
+  return status
+}
+
+async function applyParsedFile(file: File): Promise<boolean> {
+  if (!isParseableFile(file)) {
+    ElMessage.warning('仅支持 PDF、DOCX、TXT 格式自动解析')
+    return false
+  }
+  parseLoading.value = true
+  pendingFile.value = file
+  parseStatus.value = null
+  const loading = ElLoading.service({
+    lock: true,
+    text: '正在解析合同，扫描件 OCR 可能需要数分钟…',
+    background: 'rgba(0, 0, 0, 0.35)',
+  })
+  try {
+    const data = await contractsApi.parse(file)
+    const status = fillFormFromParse(data, file)
+    saveDraftImmediate()
+    const ocrHint = status.ocr_used ? '（已 OCR）' : ''
+    ElMessage.success(
+      `解析完成${ocrHint}：约 ${status.char_count ?? 0} 字，请核对字段`,
+    )
+    return true
+  } catch (e) {
+    ElMessage.warning(e instanceof Error ? e.message : '解析失败，请手动补全字段')
+    return false
+  } finally {
+    loading.close()
+    parseLoading.value = false
+  }
+}
+
+const saveDraft = debounce(saveDraftImmediate, 400)
 
 watch(form, saveDraft, { deep: true })
 watch(mode, saveDraft)
 
 onMounted(async () => {
+  const q = route.query.mode
+  if (q === 'blank' || q === 'template' || q === 'history' || q === 'ai-parse') {
+    mode.value = q
+  }
   restoreDraft()
   try {
     const [cpRes, tplRes, listRes] = await Promise.all([
@@ -128,16 +211,19 @@ async function submit() {
     localStorage.removeItem(DRAFT_KEY)
     flowDialogVisible.value = true
     ElMessage.success(`合同 #${created.id} 已提交审批`)
-    try {
-      await aiReviewApi.review(created.id)
-      ElMessage.success('AI 初筛已触发')
-    } catch (e) {
-      ElMessage.warning(
-        e instanceof Error
-          ? `AI 初筛未成功：${e.message}，请稍后在「AI 审查报告」手动触发`
-          : 'AI 初筛未成功，请稍后在「AI 审查报告」手动触发',
-      )
-    }
+    // AI 初筛后台执行，避免阻塞提交反馈（MLX 同步审查可能耗时数分钟）
+    void (async () => {
+      try {
+        await aiReviewApi.review(created.id)
+        ElMessage.success('AI 初筛已触发')
+      } catch (e) {
+        ElMessage.warning(
+          e instanceof Error
+            ? `AI 初筛未成功：${e.message}，请稍后在「AI 审查报告」手动触发`
+            : 'AI 初筛未成功，请稍后在「AI 审查报告」手动触发',
+        )
+      }
+    })()
   } catch (e) {
     ElMessage.error(e instanceof Error ? e.message : '提交失败')
   } finally {
@@ -158,32 +244,28 @@ function goLegalReview() {
   }
 }
 
-async function onParseFile(file: File) {
-  parseLoading.value = true
-  pendingFile.value = file
-  try {
-    const text = await file.text()
-    form.content = text.slice(0, 8000)
-    const titleMatch = text.match(/合同名称[：:]\s*(.+)/)
-    const cpMatch = text.match(/相对方[：:]\s*(.+)/)
-    const amtMatch = text.match(/金额[：:]\s*([\d,]+)/)
-    if (titleMatch) form.title = titleMatch[1].trim().slice(0, 100)
-    if (cpMatch) form.counterparty_name = cpMatch[1].trim().slice(0, 80)
-    if (amtMatch) form.amount = Number(amtMatch[1].replace(/,/g, '')) || form.amount
-    ElMessage.success('已解析文件内容（演示模式，请核对字段）')
-  } catch {
-    ElMessage.warning('解析失败，请手动补全字段')
-  } finally {
-    parseLoading.value = false
-  }
-  return false
+/** Element Plus 需返回 Promise，否则异步解析未完成就结束 */
+function onParseFile(file: File) {
+  return applyParsedFile(file).then(() => false)
 }
 
 function onPendingUpload(file: File) {
+  if (isParseableFile(file)) {
+    return applyParsedFile(file).then(() => false)
+  }
   pendingFile.value = file
   ElMessage.info(`已选择附件：${file.name}，提交后将自动上传`)
   return false
 }
+
+const attachmentLabel = computed(() =>
+  mode.value === 'ai-parse' ? '上传合同文件' : '附件（可选）',
+)
+
+const contentHint = computed(() => {
+  if (!parseStatus.value?.char_count) return ''
+  return `共 ${parseStatus.value.char_count} 字，完整正文已写入，提交后一并保存`
+})
 
 const flowSteps = () => {
   const steps = flowMatch.value?.steps
@@ -198,7 +280,9 @@ const flowSteps = () => {
 const modeHint = computed(() => {
   if (mode.value === 'template') return '从已发布模板套用正文与标题'
   if (mode.value === 'history') return '引用历史合同字段快速起草'
-  if (mode.value === 'ai-parse') return '上传合同文本，AI 自动解析字段（演示）'
+  if (mode.value === 'ai-parse') {
+    return '上传 PDF/DOCX/TXT 后自动解析并填写下方字段（扫描件 OCR 约需数分钟）'
+  }
   return '空白起草，填写全部字段'
 })
 
@@ -254,15 +338,39 @@ function templateLabel(t: ContractTemplate) {
       </el-form-item>
     </el-form>
 
-    <el-form v-if="mode === 'ai-parse'" label-width="100px" style="max-width: 640px; margin-bottom: 16px">
-      <el-form-item label="上传合同">
-        <el-upload :auto-upload="true" :show-file-list="false" :before-upload="onParseFile">
-          <el-button type="primary" :loading="parseLoading">上传 TXT 解析</el-button>
+    <el-form label-width="120px" style="max-width: 640px">
+      <el-form-item v-if="mode === 'ai-parse'" label="上传合同文件" required>
+        <el-upload
+          drag
+          :auto-upload="true"
+          :show-file-list="false"
+          accept=".pdf,.docx,.txt,.doc"
+          :disabled="parseLoading"
+          :before-upload="onParseFile"
+        >
+          <div class="upload-dragger-inner">
+            <p>拖拽或点击上传 PDF / DOCX / TXT</p>
+            <p class="upload-dragger-sub">上传后自动解析标题、金额、相对方与正文（扫描件 OCR 约 2–4 分钟）</p>
+          </div>
         </el-upload>
+        <el-upload
+          class="upload-fallback"
+          :auto-upload="true"
+          :show-file-list="false"
+          accept=".pdf,.docx,.txt,.doc"
+          :disabled="parseLoading"
+          :before-upload="onParseFile"
+        >
+          <el-button type="primary" plain :loading="parseLoading" style="margin-top: 8px">
+            选择文件解析
+          </el-button>
+        </el-upload>
+        <p v-if="parseStatus" class="parse-status">
+          已提取 {{ parseStatus.char_count ?? 0 }} 字
+          <span v-if="parseStatus.ocr_used"> · 扫描件 OCR</span>
+        </p>
+        <span v-if="pendingFile" class="pending-file">{{ pendingFile.name }}</span>
       </el-form-item>
-    </el-form>
-
-    <el-form label-width="100px" style="max-width: 640px">
       <el-form-item label="合同标题" required>
         <el-input v-model="form.title" />
       </el-form-item>
@@ -290,11 +398,18 @@ function templateLabel(t: ContractTemplate) {
         <el-input-number v-model="form.amount" :min="1" :step="1000" style="width: 100%" />
       </el-form-item>
       <el-form-item label="合同正文">
-        <el-input v-model="form.content" type="textarea" :rows="4" />
+        <el-input v-model="form.content" type="textarea" :rows="6" />
+        <p v-if="contentHint" class="content-hint">{{ contentHint }}</p>
       </el-form-item>
-      <el-form-item label="附件（可选）">
-        <el-upload :auto-upload="true" :show-file-list="false" :before-upload="onPendingUpload">
-          <el-button>选择附件</el-button>
+      <el-form-item v-if="mode !== 'ai-parse'" :label="attachmentLabel">
+        <el-upload
+          :auto-upload="true"
+          :show-file-list="false"
+          accept=".pdf,.docx,.txt,.doc"
+          :disabled="parseLoading"
+          :before-upload="onPendingUpload"
+        >
+          <el-button :loading="parseLoading">选择附件</el-button>
         </el-upload>
         <span v-if="pendingFile" class="pending-file">{{ pendingFile.name }}</span>
       </el-form-item>
@@ -333,5 +448,24 @@ function templateLabel(t: ContractTemplate) {
   margin-left: 8px;
   font-size: 12px;
   color: #6b7280;
+}
+.parse-status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #059669;
+}
+.content-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.upload-dragger-inner {
+  padding: 12px 0;
+  color: #374151;
+}
+.upload-dragger-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af;
 }
 </style>

@@ -25,7 +25,22 @@ celery_app.conf.update(
     timezone="Asia/Shanghai",
     task_track_started=True,
     result_expiry=3600,
+    task_routes={
+        "ai_review.contract_review": {"queue": "ai_review"},
+        "notification.send_approval_reminder": {"queue": "notifications"},
+        "notification.send_contract_signed": {"queue": "notifications"},
+    },
 )
+
+
+@celery_app.on_after_configure.connect
+def _setup_worker_process_init(sender, **kwargs):
+    from celery.signals import worker_process_init
+
+    @worker_process_init.connect
+    def _reset_db_engine(**_kwargs):
+        from app.db.database import reset_async_engine
+        reset_async_engine()
 
 
 # 自定义 Celery Base Task

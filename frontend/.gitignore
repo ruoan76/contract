@@ -4,4 +4,5 @@ dist
 .cache
 .env
 .env.local
+.env.production.local
 *.local

@@ -17,6 +17,30 @@ export interface ContractUploadResult {
   file_type?: string
   file_size?: number
   version_id?: number
+  char_count?: number
+  ocr_used?: boolean
+}
+
+export interface ContractParseFields {
+  title?: string
+  party_a?: string
+  party_b?: string
+  amount?: number
+  contract_type?: string
+  text_preview?: string
+  full_text?: string
+  char_count?: number
+  ocr_used?: boolean
+  needs_ocr?: boolean
+  confidence?: number
+}
+
+export interface ContractParseResult {
+  filename: string
+  fields: ContractParseFields
+  extracted_metadata?: Record<string, unknown>
+  ocr_used?: boolean
+  char_count?: number
 }
 
 export const contractsApi = {
@@ -48,6 +72,13 @@ export const contractsApi = {
     const fd = new FormData()
     fd.append('file', file)
     return client.post<ContractUploadResult>(`/api/v1/contracts/${id}/upload`, fd)
+  },
+
+  /** OCR 扫描件可能耗时数分钟，默认 15 分钟超时 */
+  parse: (file: File, timeoutMs = 900_000) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return client.post<ContractParseResult>('/api/v1/contracts/parse', fd, { timeoutMs })
   },
 
   dashboard: () => client.get<DashboardData>('/api/v1/contracts/dashboard'),

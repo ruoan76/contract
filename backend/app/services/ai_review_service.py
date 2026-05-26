@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.contract import AIReview, ContractVersion
 
+from app.services.ai_review.context_loader import load_review_context
 from app.services.ai_review.issue_schema import AiReviewIssue
 from app.services.ai_review.runner import apply_payload_to_ai_review, run_contract_ai_review
 from app.services.ai_review.orchestrator import build_mock_payload
@@ -21,43 +22,21 @@ from app.services.ai_review_issue_service import replace_review_issues
 
 logger = logging.getLogger(__name__)
 
-# 导入Celery任务 - 假设已定义
-# from app.celery_tasks.ai_review_tasks import execute_review_task
 
-# 为了代码可运行，这里使用动态导入
-try:
-    from app.celery_tasks.ai_review_tasks import execute_contract_review as execute_review_task
-except ImportError:
-    class execute_review_task:
-        @staticmethod
-        def delay(contract_id: int, version_id: int, review_id: str) -> str:
-            return f"celery_task_{uuid.uuid4().hex[:8]}"
-        
-        @staticmethod
-        def AsyncResult(task_id: str):
-            return CeleryAsyncResult(task_id)
+async def _review_created_at_iso(db: AsyncSession, ai_review: AIReview) -> str | None:
+    """flush 后读取 server default 字段，避免 async 懒加载 MissingGreenlet。"""
+    await db.refresh(ai_review, attribute_names=["created_at"])
+    return ai_review.created_at.isoformat() if ai_review.created_at else None
+
+def _get_celery_review_task():
+    """延迟导入 Celery 任务，避免与 ai_review_tasks 循环依赖导致静默降级为 stub。"""
+    from app.celery_tasks.ai_review_tasks import execute_contract_review
+    return execute_contract_review
 
 
-class CeleryAsyncResult:
-    """模拟 Celery AsyncResult"""
-    def __init__(self, task_id: str):
-        self.id = task_id
-        self._status = "PENDING"
-        self._result = None
-    
-    @property
-    def status(self) -> str:
-        return self._status
-    
-    @property
-    def result(self):
-        return self._result
-    
-    def ready(self) -> bool:
-        return self._status in ["SUCCESS", "FAILURE"]
-    
-    def successful(self) -> bool:
-        return self._status == "SUCCESS"
+def _celery_async_result(task_id: str):
+    from app.celery_tasks import celery_app
+    return celery_app.AsyncResult(task_id)
 
 
 async def persist_review_result(
@@ -83,6 +62,23 @@ async def persist_review_result(
         db, ai_review.review_id, contract_id, version_id, issues
     )
     await db.flush()
+
+
+async def _ensure_no_parallel_review(
+    db: AsyncSession,
+    contract_id: int,
+    version_id: int,
+) -> None:
+    """同合同版本已有 reviewing 时拒绝重复触发。"""
+    result = await db.execute(
+        select(AIReview).where(
+            AIReview.contract_id == contract_id,
+            AIReview.version_id == version_id,
+            AIReview.review_status == "reviewing",
+        )
+    )
+    if result.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="该版本审查进行中，请稍候")
 
 
 async def start_review(
@@ -116,7 +112,9 @@ async def start_review(
     
     if not version:
         raise HTTPException(status_code=404, detail="合同版本不存在")
-    
+
+    await _ensure_no_parallel_review(db, contract_id, version_id)
+
     # 生成 review_id
     review_id = f"REV-{datetime.now():%Y%m%d%H%M%S}-{uuid.uuid4().hex[:8]}"
     
@@ -141,7 +139,7 @@ async def start_review(
             "status": "ai_done",
             "user_id": user_id,
             "username": username,
-            "created_at": ai_review.created_at.isoformat() if ai_review.created_at else None,
+            "created_at": await _review_created_at_iso(db, ai_review),
         }
 
     # 本地 MLX：同步调用引擎（无需 Redis/Celery）
@@ -162,10 +160,19 @@ async def start_review(
         ai_review.review_status = "reviewing"
         await db.flush()
         try:
+            ctx = await load_review_context(
+                db,
+                contract_id=contract_id,
+                contract_type=contract.contract_type,
+                amount=contract.amount,
+                counterparty_name=contract.counterparty_name,
+            )
             payload = await run_contract_ai_review(
                 text,
-                contract_type=contract.contract_type or "other",
-                amount=contract.amount,
+                contract_type=ctx.contract_type,
+                amount=ctx.amount,
+                profile_key=ctx.profile_key,
+                counterparty_blacklisted=ctx.counterparty_blacklisted,
             )
             await persist_review_result(
                 db, ai_review, payload, contract_id, version_id
@@ -186,19 +193,23 @@ async def start_review(
             "status": "ai_done",
             "user_id": user_id,
             "username": username,
-            "created_at": ai_review.created_at.isoformat() if ai_review.created_at else None,
+            "created_at": await _review_created_at_iso(db, ai_review),
         }
 
     # 调用 Celery 异步任务
     try:
-        celery_result = execute_review_task.delay(contract_id, version_id, review_id)
+        celery_result = _get_celery_review_task().delay(contract_id, version_id, review_id)
         task_id = celery_result.id if hasattr(celery_result, "id") else celery_result
     except Exception as e:
-        logger.error(f"Failed to dispatch Celery task: {e}")
-        # 如果 Celery 不可用，设置为失败状态
+        logger.error("Failed to dispatch Celery task: %s", e, exc_info=True)
         ai_review.review_status = "failed"
         await db.flush()
-        raise HTTPException(status_code=503, detail="AI审查服务暂时不可用")
+        hint = (
+            "异步审查不可用：请确认 Redis 与 Celery worker 已启动，"
+            "或在本机 .env 设置 AI_REVIEW_SYNC=1 走同步 MLX。"
+        )
+        detail = f"{hint} ({e})" if settings.DEBUG else "AI审查服务暂时不可用，请检查 Redis/Celery 或改用同步审查"
+        raise HTTPException(status_code=503, detail=detail) from e
     
     # 更新审查记录
     ai_review.review_status = "reviewing"
@@ -213,7 +224,7 @@ async def start_review(
         "status": "reviewing",
         "user_id": user_id,
         "username": username,
-        "created_at": ai_review.created_at.isoformat() if ai_review.created_at else None,
+        "created_at": await _review_created_at_iso(db, ai_review),
     }
 
 
@@ -242,14 +253,12 @@ async def get_review_status(
     
     # 查询Celery状态（如果任务正在执行）
     status = review.review_status
-    
-    if status == "reviewing" and hasattr(review, "celery_task_id") and review.celery_task_id:
+
+    if status == "reviewing" and review.celery_task_id:
         try:
-            celery_result = execute_review_task.AsyncResult(review.celery_task_id)
+            celery_result = _celery_async_result(review.celery_task_id)
             if celery_result.ready():
-                if celery_result.successful():
-                    status = "completed"
-                else:
+                if not celery_result.successful():
                     status = "failed"
         except Exception:
             pass
@@ -307,7 +316,7 @@ async def get_review_result(
         "model_version": review.model_version,
         "review_duration_seconds": review.review_duration_seconds,
         "reviewer_id": review.reviewer_id,
-        "created_at": review.created_at.isoformat() if review.created_at else None,
+        "created_at": (await _review_created_at_iso(db, review)),
     }
 
 
@@ -343,30 +352,32 @@ async def retry_review(
             detail=f"仅失败的审查可重试，当前状态: {review.review_status}"
         )
     
-    # 生成新的 review_id
+    # 生成新的 review 记录（不 mutate 原 review_id）
     new_review_id = f"REV-{datetime.now():%Y%m%d%H%M%S}-{uuid.uuid4().hex[:8]}"
-    
-    # 更新审查记录
-    review.review_id = new_review_id
-    review.review_status = "pending"
-    review.celery_task_id = None
+    new_review = AIReview(
+        contract_id=review.contract_id,
+        version_id=review.version_id,
+        review_id=new_review_id,
+        review_status="pending",
+    )
+    db.add(new_review)
     await db.flush()
-    
-    # 调用Celery异步任务
+
     try:
-        celery_result = execute_review_task.delay(
+        celery_result = _get_celery_review_task().delay(
             review.contract_id, review.version_id, new_review_id
         )
         task_id = celery_result.id if hasattr(celery_result, "id") else celery_result
     except Exception as e:
-        logger.error(f"Failed to dispatch retry Celery task: {e}")
-        raise HTTPException(status_code=503, detail="AI审查服务暂时不可用")
-    
-    # 更新状态为reviewing
-    review.review_status = "reviewing"
-    review.celery_task_id = task_id
+        logger.error("Failed to dispatch retry Celery task: %s", e)
+        new_review.review_status = "failed"
+        await db.flush()
+        raise HTTPException(status_code=503, detail="AI审查服务暂时不可用") from e
+
+    new_review.review_status = "reviewing"
+    new_review.celery_task_id = task_id
     await db.flush()
-    
+
     return {
         "review_id": new_review_id,
         "contract_id": review.contract_id,

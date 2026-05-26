@@ -12,7 +12,7 @@ test.describe('DEMO-04 黑名单拦截', () => {
 
     const targetRow = page
       .locator('.el-table__body tr')
-      .filter({ hasNot: page.locator('td').filter({ hasText: '得力集团' }) })
+      .filter({ hasText: '测试供应商' })
       .first()
     const nameCell = targetRow.locator('td').nth(1)
     await expect(nameCell).toBeVisible({ timeout: 15000 })

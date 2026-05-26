@@ -14,3 +14,5 @@
 | [user-stories.md](./user-stories.md) | 用户故事 |
 | [improvements.md](./improvements.md) | 改进建议汇总 |
 | [contract-review-pro-seeds.md](./contract-review-pro-seeds.md) | contract-review-pro CSV 种子数据落库规划（MIT） |
+| [ai-review-flow.md](./ai-review-flow.md) | **AI 审查端到端流程**（入口、编排、API、门禁、前端旅程） |
+| [ai-review-capability-hardening-design.md](../plans/ai-review-capability-hardening-design.md) | **AI 审查能力补强详细设计**（gap 分析、模块设计、分期验收） |

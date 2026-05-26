@@ -96,6 +96,29 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
     pages, tables, metadata = await loop.run_in_executor(None, _read)
 
     full_text = "\n".join(pages)
+    ocr_used = False
+    ocr_page_count = 0
+
+    if (
+        settings.AI_OCR_ENABLED
+        and len(full_text.strip()) < settings.AI_OCR_MIN_CHARS
+    ):
+        from app.services.ai_review.ocr import ocr_pdf_pages
+
+        logger.info(
+            "PDF 可提取文字过少（%s 字），启用 OCR 回退: %s",
+            len(full_text.strip()),
+            path,
+        )
+
+        def _run_ocr() -> list[str]:
+            return ocr_pdf_pages(path, max_pages=settings.AI_OCR_MAX_PAGES)
+
+        ocr_pages = await loop.run_in_executor(None, _run_ocr)
+        pages = ocr_pages
+        full_text = "\n".join(pages)
+        ocr_used = True
+        ocr_page_count = len(ocr_pages)
 
     return ExtractedText(
         full_text=full_text,
@@ -105,6 +128,8 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
             "file_type": file_type,
             "page_count": len(pages),
             "source_metadata": metadata,
+            "ocr_used": ocr_used,
+            "ocr_page_count": ocr_page_count,
         },
     )
 

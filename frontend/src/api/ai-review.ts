@@ -1,4 +1,4 @@
-import { client } from './client'
+import { API_CONFIG, client, getToken } from './client'
 
 export interface AiClauseReview {
   clause?: string
@@ -13,6 +13,8 @@ export interface AiClauseReview {
   gate_id?: string
   revision_method?: string
   needs_research?: boolean
+  reasoning?: string
+  evidence_quote?: string
 }
 
 export interface AiReviewIssue {
@@ -60,6 +62,9 @@ export interface AiReviewSummary {
   clause_reviews?: AiClauseReview[]
   rule_violations?: AiRuleViolation[]
   gates?: Record<string, AiGateItem>
+  review_completeness?: 'full' | 'partial' | 'failed'
+  completeness_detail?: Record<string, unknown>
+  checklist_summary?: { total?: number; pass?: number; fail?: number; unknown?: number }
 }
 
 /** 15 类风险标签（与 seeds risk_labels 对齐） */
@@ -113,6 +118,35 @@ export function groupClausesByDimension(clauses: AiClauseReview[] = []) {
   }))
 }
 
+export interface ChecklistMatrixItem {
+  id: number
+  item: string
+  description?: string
+  gate_id?: string
+  conclusion: 'pass' | 'fail' | 'unknown'
+  risk_level?: string
+  ai_suggestion?: string
+  evidence?: string
+}
+
+export interface ChecklistMatrixCategory {
+  name: string
+  items: ChecklistMatrixItem[]
+}
+
+export interface ChecklistMatrix {
+  review_id?: string
+  total: number
+  pass: number
+  fail: number
+  unknown: number
+  attention?: number
+  coverage_rate?: number
+  mlx_evaluated_count?: number
+  risk_stats?: { critical?: number; high?: number; medium?: number; low?: number }
+  categories: ChecklistMatrixCategory[]
+}
+
 export interface AiReviewPollResult {
   review_id: string
   status: string
@@ -125,6 +159,20 @@ export interface AiReviewPollResult {
   clauses?: AiClauseReview[]
 }
 
+function filenameFromDisposition(header: string | null, fallback: string): string {
+  if (!header) return fallback
+  const match = /filename="?([^";\n]+)"?/.exec(header)
+  return match?.[1]?.trim() || fallback
+}
+
+function extensionFromContentType(contentType: string | null, requested: string): string {
+  const ct = (contentType || '').toLowerCase()
+  if (ct.includes('pdf')) return 'pdf'
+  if (ct.includes('html')) return 'html'
+  if (ct.includes('json')) return 'json'
+  return requested
+}
+
 export const aiReviewApi = {
   review: (contractId: number) =>
     client.post<{ review_id?: string; status?: string }>('/api/v1/ai-review/review', {
@@ -134,17 +182,21 @@ export const aiReviewApi = {
   latest: (contractId: number) =>
     client.get<AiReviewSummary>(`/api/v1/ai-review/contracts/${contractId}/latest-review`),
 
+  checklistMatrix: (contractId: number) =>
+    client.get<ChecklistMatrix>(`/api/v1/ai-review/contracts/${contractId}/checklist-matrix`),
+
   result: (reviewId: string) =>
     client.get<AiReviewPollResult>(`/api/v1/ai-review/${reviewId}/result`),
 
   feedback: (reviewId: string, type: 'false_positive' | 'false_negative', comment?: string) =>
     client.post<unknown>(`/api/v1/ai-review/${reviewId}/feedback`, { type, comment }),
 
-  listIssues: (reviewId: string, page = 1, pageSize = 50) =>
-    client.get<{ items: AiReviewIssue[]; page: number; page_size: number }>(
-      `/api/v1/ai-review/${reviewId}/issues`,
-      { params: { page, page_size: pageSize } },
-    ),
+  listIssues: (reviewId: string, page = 1, pageSize = 50) => {
+    const q = new URLSearchParams({ page: String(page), page_size: String(pageSize) })
+    return client.get<{ items: AiReviewIssue[]; page: number; page_size: number }>(
+      `/api/v1/ai-review/${reviewId}/issues?${q.toString()}`,
+    )
+  },
 
   patchIssue: (issueId: number, humanStatus: string, humanComment?: string) =>
     client.patch<{ id: number; human_status: string }>(`/api/v1/ai-review/issue/${issueId}`, {
@@ -159,9 +211,28 @@ export const aiReviewApi = {
     ),
 
   downloadReport: async (reviewId: string, format = 'pdf') => {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
-    const res = await fetch(`${base}/api/v1/ai-review/${reviewId}/report?format=${format}`)
-    if (!res.ok) throw new Error('报告下载失败')
-    return res.blob()
+    const base = (API_CONFIG.baseUrl || '').replace(/\/$/, '')
+    const url = `${base}/api/v1/ai-review/${reviewId}/report?format=${format}`
+    const headers: Record<string, string> = {}
+    const token = getToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+    const res = await fetch(url, { headers })
+    if (!res.ok) {
+      let msg = '报告下载失败'
+      try {
+        const err = await res.json()
+        msg = String(err.detail || err.message || msg)
+      } catch {
+        /* 非 JSON 错误体 */
+      }
+      throw new Error(msg)
+    }
+    const blob = await res.blob()
+    const ext = extensionFromContentType(res.headers.get('Content-Type'), format)
+    const filename = filenameFromDisposition(
+      res.headers.get('Content-Disposition'),
+      `ai-review-${reviewId}.${ext}`,
+    )
+    return { blob, filename, contentType: res.headers.get('Content-Type') || '' }
   },
 }

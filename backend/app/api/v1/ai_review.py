@@ -15,13 +15,27 @@ from app.services.ai_review_service import (
     get_review_result,
     submit_feedback,
     confirm_review,
+    retry_review,
 )
+from app.services.ai_review.metrics import get_metrics_summary
 from app.services.ai_review_issue_service import list_review_issues, update_issue_human_status
 from app.services.ai_review_report_service import generate_review_report
 from app.utils.auth import get_current_user
 from app.exceptions import BusinessError
 
 router = APIRouter()
+
+
+@router.get("/metrics/summary", summary="AI 审查 KPI 摘要")
+async def metrics_summary(
+    days: int = Query(30, ge=1, le=365),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if user.role not in ("admin", "system"):
+        raise HTTPException(status_code=403, detail="需要管理员权限")
+    data = await get_metrics_summary(db, days=days)
+    return {"code": 200, "data": data}
 
 
 @router.post("/review", summary="发起合同审查")
@@ -58,13 +72,18 @@ async def review_contract(
         raise HTTPException(status_code=404, detail="合同版本不存在")
     
     # 启动审查
-    result = await start_review(
-        db=db,
-        contract_id=contract.id,
-        version_id=version.id,
-        user_id=user.id,
-        username=user.username,
-    )
+    try:
+        result = await start_review(
+            db=db,
+            contract_id=contract.id,
+            version_id=version.id,
+            user_id=user.id,
+            username=user.username,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI 审查失败: {e}") from e
     
     return {
         "code": 200,
@@ -207,6 +226,52 @@ async def confirm_ai_review(
     return {"code": 200, "data": data}
 
 
+@router.post("/{review_id}/retry", summary="重试失败的审查")
+async def retry_ai_review(
+    review_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    data = await retry_review(db, review_id, user.id)
+    return {"code": 200, "data": data}
+
+
+@router.get("/contracts/{contract_id}/checklist-matrix", summary="审查清单矩阵")
+async def get_checklist_matrix(
+    contract_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """聚合种子清单、coverage 与 issues，供清单矩阵 UI。"""
+    import json
+
+    from app.models.contract import AIReview
+    from app.services.ai_review.checklist_matrix_service import build_checklist_matrix
+
+    result = await db.execute(
+        select(AIReview)
+        .where(AIReview.contract_id == contract_id)
+        .order_by(AIReview.created_at.desc())
+        .limit(1)
+    )
+    review = result.scalar_one_or_none()
+    if not review:
+        return {"code": 200, "data": None}
+
+    def _parse(raw: str | None):
+        if not raw:
+            return None
+        try:
+            return json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            return None
+
+    summary = _parse(review.summary) or {}
+    clause_reviews = _parse(review.clause_reviews) or []
+    matrix = build_checklist_matrix(summary, clause_reviews)
+    matrix["review_id"] = review.review_id
+    return {"code": 200, "data": matrix}
+
+
 @router.get("/contracts/{contract_id}/latest-review", summary="最新审查结果")
 async def get_latest_review(
     contract_id: int,
@@ -234,7 +299,7 @@ async def get_latest_review(
     review = result.scalar_one_or_none()
 
     if not review:
-        raise HTTPException(status_code=404, detail="暂无审查记录")
+        return {"code": 200, "data": None}
 
     summary = _parse_json_field(review.summary) or {}
     gates = summary.get("gates") if isinstance(summary, dict) else None
@@ -255,6 +320,9 @@ async def get_latest_review(
             "rule_violations": _parse_json_field(review.rule_violations),
             "gates": gates,
             "summary": summary,
+            "review_completeness": summary.get("review_completeness") if isinstance(summary, dict) else None,
+            "completeness_detail": summary.get("completeness_detail") if isinstance(summary, dict) else None,
+            "checklist_summary": summary.get("checklist_summary") if isinstance(summary, dict) else None,
             "review_time": review.created_at,
         },
     }

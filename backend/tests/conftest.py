@@ -343,15 +343,30 @@ def mock_openai_client():
     mock_resp = MagicMock()
     mock_resp.choices = [MagicMock()]
     mock_resp.choices[0].message.content = (
-        '{"dimension":"compliance","score":85.0,"issues":[],"summary":"pass"}'
+        '{"dimension":"compliance","score":85.0,"issues":[],"summary":"pass","checklist_coverage":[]}'
     )
     mock_client = AsyncMock()
     mock_client.chat.completions.create = AsyncMock(return_value=mock_resp)
+
+    async def _complete_json(*, messages, caller, system_prompt=None, max_retries=2):
+        raw = mock_resp.choices[0].message.content
+        import json
+        from app.services.ai_review.llm_gateway import LLMCallMeta
+        return json.loads(raw), LLMCallMeta(
+            caller=caller, latency_ms=1, prompt_hash="test", success=True
+        )
+
     with patch(
-        "app.services.ai_review.ai_engine.openai.AsyncOpenAI",
+        "app.services.ai_review.llm_gateway.AsyncOpenAI",
         return_value=mock_client,
     ):
-        yield mock_client
+        with patch(
+            "app.services.ai_review.ai_engine.get_llm_gateway"
+        ) as mock_gw_factory:
+            gw = MagicMock()
+            gw.complete_json = AsyncMock(side_effect=_complete_json)
+            mock_gw_factory.return_value = gw
+            yield mock_client
 
 
 @pytest.fixture

@@ -95,6 +95,14 @@ async def seed() -> None:
             )
             await session.commit()
 
+        # E2E demo-04 会拉黑相对方，重复 seed 时恢复默认状态
+        for cp_name in ("得力集团", "华为技术", "测试供应商"):
+            cp = await session.scalar(select(Counterparty).where(Counterparty.name == cp_name))
+            if cp:
+                cp.is_blacklist = 0
+                cp.blacklist_reason = None
+        await session.commit()
+
         from app.models.template import ContractTemplate
 
         tpl_exists = await session.scalar(

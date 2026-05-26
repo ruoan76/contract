@@ -51,7 +51,7 @@ export async function approveFirstPending(page: Page, contractId?: number) {
   const row = contractId
     ? table.locator('tr').filter({ hasText: String(contractId) })
     : table.locator('tr').first()
-  const approveBtn = row.getByRole('button', { name: '通过' })
+  const approveBtn = row.getByRole('button', { name: '通过' }).first()
   await approveBtn.waitFor({ state: 'visible', timeout: 15000 })
   await approveBtn.click()
   const input = page.locator('.el-message-box__input input')
@@ -76,7 +76,7 @@ export async function completeApprovalChain(
       const row = contractId
         ? table.locator('tr').filter({ hasText: String(contractId) })
         : table.locator('tr').first()
-      const approveBtn = row.getByRole('button', { name: '通过' })
+      const approveBtn = row.getByRole('button', { name: '通过' }).first()
       if (await approveBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
         await approveFirstPending(page, contractId)
         await expectToast(page, '审批通过')
