@@ -1,23 +1,17 @@
 import { test, expect } from '@playwright/test'
 import { expectToast, gotoRoute, switchRole } from './helpers'
 
-const API = 'http://127.0.0.1:8000'
-
-async function adminToken(request: import('@playwright/test').APIRequestContext) {
-  const login = await request.post(`${API}/api/v1/system/login?username=admin&password=123456`)
-  const token = (await login.json()).data?.token as string
-  expect(token).toBeTruthy()
-  return token
-}
-
-/** DEMO-04：拉黑相对方 → 创建合同被拒绝 */
-test.describe('DEMO-04 黑名单拦截', () => {
-  test('拉黑 → 创建拒绝', async ({ page, request }) => {
+/** 新建合同选黑名单相对方时前端拦截（与 DEMO-04 同路径，断言 MessageBox） */
+test.describe('UX 黑名单起草拦截', () => {
+  test('选黑名单后提交被阻止', async ({ page, request }) => {
     test.setTimeout(90000)
-
-    const token = await adminToken(request)
+    const API = 'http://127.0.0.1:8000'
     const suffix = Date.now()
-    const cpName = `E2E黑名单${suffix}`
+    const cpName = `UX黑名单${suffix}`
+
+    const login = await request.post(`${API}/api/v1/system/login?username=admin&password=123456`)
+    const token = (await login.json()).data?.token as string
+
     const created = await request.post(`${API}/api/v1/counterparties/`, {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       data: {
@@ -25,7 +19,6 @@ test.describe('DEMO-04 黑名单拦截', () => {
         credit_code: `91110000${String(suffix).slice(-8)}`,
       },
     })
-    expect(created.ok()).toBeTruthy()
     const cpId = (await created.json()).data?.id as number
     expect(cpId).toBeGreaterThan(0)
 
@@ -53,7 +46,7 @@ test.describe('DEMO-04 黑名单拦截', () => {
     await page.getByRole('option', { name: `${cpName}（黑名单）` }).click({ timeout: 15000 })
 
     await page.getByRole('button', { name: '提交审批' }).click()
-    const blockDialog = page.getByRole('dialog').filter({ hasText: '黑名单' })
+    const blockDialog = page.getByRole('dialog').filter({ hasText: '黑名单拦截' })
     await expect(blockDialog).toBeVisible({ timeout: 10000 })
     await blockDialog.getByRole('button', { name: '知道了' }).click()
     await expectToast(page, /黑名单/)

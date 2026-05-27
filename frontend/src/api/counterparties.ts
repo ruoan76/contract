@@ -12,7 +12,11 @@ export const counterpartiesApi = {
   create: (body: { name: string; credit_code: string }) =>
     client.post<{ id: number }>('/api/v1/counterparties/', body),
 
-  list: () => client.get<{ items?: CounterpartyItem[] }>('/api/v1/counterparties/'),
+  list: (params?: { page_size?: number }) => {
+    let path = '/api/v1/counterparties/'
+    if (params?.page_size) path += `?page_size=${params.page_size}`
+    return client.get<{ items?: CounterpartyItem[] }>(path)
+  },
 
   importCsv: (file: File) => {
     const fd = new FormData()

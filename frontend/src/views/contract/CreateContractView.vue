@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElLoading } from 'element-plus'
+import { ElMessage, ElLoading, ElMessageBox } from 'element-plus'
 import { contractsApi, resolveFlowType, mapFlowTypeForApi, type ContractParseFields } from '@/api/contracts'
 import { approvalsApi } from '@/api/approvals'
 import { aiReviewApi } from '@/api/ai-review'
@@ -46,6 +46,8 @@ const parseStatus = ref<{
   party_parse_warning?: boolean
   counterparty_corrections?: string[]
 } | null>(null)
+
+const ocrConfirmChecked = ref(false)
 
 /** 解析开始前表单快照，用于避免覆盖用户已修改字段 */
 const preParseSnapshot = ref<{
@@ -136,6 +138,7 @@ function fillFormFromParse(
     counterparty_corrections: f.counterparty_corrections,
   }
   parseStatus.value = status
+  ocrConfirmChecked.value = false
   return status
 }
 
@@ -186,6 +189,41 @@ const saveDraft = debounce(saveDraftImmediate, 400)
 watch(form, saveDraft, { deep: true })
 watch(mode, saveDraft)
 
+function isBlacklisted(name: string): boolean {
+  const cp = counterparties.value.find((c) => c.name === name)
+  if (!cp) return false
+  return Number(cp.is_blacklist) === 1
+}
+
+/** 提交前刷新相对方列表，避免缓存导致黑名单漏检 */
+async function ensureNotBlacklisted(name: string): Promise<boolean> {
+  if (!name.trim()) return true
+  if (isBlacklisted(name)) return false
+  try {
+    const res = await counterpartiesApi.list({ page_size: 100 })
+    counterparties.value = res.items || []
+  } catch {
+    /* 刷新失败时沿用本地列表 */
+  }
+  return !isBlacklisted(name)
+}
+
+const needsOcrConfirm = computed(() => {
+  if (mode.value !== 'ai-parse' || !parseStatus.value) return false
+  if (parseStatus.value.party_parse_warning) return true
+  const c = parseStatus.value.confidence
+  return c != null && c < 0.6
+})
+
+watch(
+  () => form.counterparty_name,
+  (name) => {
+    if (name && isBlacklisted(name)) {
+      ElMessage.warning(`相对方「${name}」已在黑名单中，无法提交审批`)
+    }
+  },
+)
+
 onMounted(async () => {
   const q = route.query.mode
   if (q === 'blank' || q === 'template' || q === 'history' || q === 'ai-parse') {
@@ -194,7 +232,7 @@ onMounted(async () => {
   restoreDraft()
   try {
     const [cpRes, tplRes, listRes] = await Promise.all([
-      counterpartiesApi.list(),
+      counterpartiesApi.list({ page_size: 100 }),
       templatesApi.list({ status: 'published', page_size: 50 }).catch(() => ({ items: [] })),
       contractsApi.list({ page: 1, page_size: 20 }),
     ])
@@ -230,6 +268,30 @@ async function submit() {
   if (!form.title || !form.counterparty_name || !form.amount) {
     ElMessage.warning('请填写必填项')
     return
+  }
+  if (!(await ensureNotBlacklisted(form.counterparty_name))) {
+    await ElMessageBox.alert(
+      `相对方「${form.counterparty_name}」已被列入黑名单，无法提交审批。请更换相对方或在相对方管理中解除黑名单。`,
+      '黑名单拦截',
+      { type: 'error', confirmButtonText: '知道了' },
+    )
+    ElMessage.error('该相对方在黑名单中，已阻止提交')
+    return
+  }
+  if (needsOcrConfirm.value) {
+    if (!ocrConfirmChecked.value) {
+      ElMessage.warning('请先勾选「我已核对 OCR 解析字段」')
+      return
+    }
+    try {
+      await ElMessageBox.confirm(
+        '解析结果可能存在 OCR 识别错误，请确认已人工核对标题、相对方与金额后再提交。',
+        'OCR 字段确认',
+        { confirmButtonText: '已核对，继续提交', cancelButtonText: '返回修改', type: 'warning' },
+      )
+    } catch {
+      return
+    }
   }
   submitting.value = true
   try {
@@ -458,8 +520,21 @@ function templateLabel(t: ContractTemplate) {
           placeholder="选择或输入相对方"
           style="width: 100%"
         >
-          <el-option v-for="cp in counterparties" :key="cp.id" :label="cp.name" :value="cp.name" />
+          <el-option
+            v-for="cp in counterparties"
+            :key="cp.id"
+            :label="cp.is_blacklist ? `${cp.name}（黑名单）` : cp.name"
+            :value="cp.name"
+          />
         </el-select>
+        <el-alert
+          v-if="isBlacklisted(form.counterparty_name)"
+          type="error"
+          :closable="false"
+          show-icon
+          title="该相对方在黑名单中，无法提交审批"
+          style="margin-top: 8px"
+        />
       </el-form-item>
       <el-form-item label="金额（元）" required>
         <el-input-number v-model="form.amount" :min="1" :step="1000" style="width: 100%" />
@@ -479,6 +554,11 @@ function templateLabel(t: ContractTemplate) {
           <el-button :loading="parseLoading">选择附件</el-button>
         </el-upload>
         <span v-if="pendingFile" class="pending-file">{{ pendingFile.name }}</span>
+      </el-form-item>
+      <el-form-item v-if="needsOcrConfirm" label="OCR 确认">
+        <el-checkbox v-model="ocrConfirmChecked" data-testid="ocr-confirm-checkbox">
+          我已核对 OCR 解析的标题、相对方、金额与正文，确认无误后再提交
+        </el-checkbox>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :loading="submitting" @click="submit">提交审批</el-button>

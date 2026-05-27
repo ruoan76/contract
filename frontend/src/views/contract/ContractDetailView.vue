@@ -12,8 +12,15 @@ import { aiReviewApi, type AiReviewSummary } from '@/api/ai-review'
 import { useContractContext } from '@/composables/useContractContext'
 import type { Contract } from '@/types/models'
 import ContractContextBar from '@/components/ContractContextBar.vue'
+import { useAuthStore } from '@/stores/auth'
+import {
+  LIFECYCLE_STAGES,
+  lifecycleActiveIndex,
+  suggestNextAction,
+} from '@/utils/contractLifecycle'
 
 const router = useRouter()
+const auth = useAuthStore()
 const { contractId } = useContractContext()
 const loading = ref(true)
 const saving = ref(false)
@@ -25,6 +32,8 @@ const aiSummary = ref<AiReviewSummary | null>(null)
 const flowHistory = ref<{ flow_type?: string; status?: string; steps?: unknown[] } | null>(null)
 
 const isDraft = computed(() => contract.value?.status === 'draft')
+const lifecycleIndex = computed(() => lifecycleActiveIndex(contract.value?.status))
+const nextAction = computed(() => suggestNextAction(contract.value, auth.role))
 const attachmentVersions = computed(() =>
   versions.value.filter((v) => v.file_path),
 )
@@ -129,12 +138,35 @@ function stepDesc(step: unknown) {
   const s = step as { approver_name?: string }
   return s.approver_name || ''
 }
+
+function goNextAction() {
+  const action = nextAction.value
+  if (!action) return
+  router.push({
+    name: action.route,
+    params: action.params,
+    query: action.query,
+  })
+}
 </script>
 
 <template>
   <div v-loading="loading" class="page-card">
     <ContractContextBar :contract="contract" />
     <template v-if="contract">
+      <el-card shadow="never" style="margin-bottom: 16px">
+        <template #header>合同生命周期</template>
+        <el-steps :active="lifecycleIndex" finish-status="success" align-center>
+          <el-step v-for="stage in LIFECYCLE_STAGES" :key="stage.key" :title="stage.label" />
+        </el-steps>
+        <div v-if="nextAction" class="next-action">
+          <span class="next-hint">建议下一步：</span>
+          <el-button type="primary" plain size="small" @click="goNextAction">
+            {{ nextAction.label }}
+          </el-button>
+        </div>
+      </el-card>
+
       <el-card v-if="flowHistory?.steps?.length" shadow="never" style="margin-bottom: 16px">
         <template #header>审批进度（{{ flowHistory.flow_type || '—' }} / {{ flowHistory.status || '—' }}）</template>
         <el-steps :active="flowHistory.steps.length" finish-status="success" align-center>
@@ -258,5 +290,15 @@ function stepDesc(step: unknown) {
 .ai-summary :deep(.el-card__header) {
   display: flex;
   align-items: center;
+}
+.next-action {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.next-hint {
+  font-size: 13px;
+  color: #6b7280;
 }
 </style>

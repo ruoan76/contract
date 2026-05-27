@@ -79,7 +79,9 @@ const router = createRouter({
         },
         {
           path: 'clause-compare',
-          redirect: { name: 'contracts' },
+          name: 'clause-compare-hub',
+          component: () => import('@/views/ai/ClauseCompareHubView.vue'),
+          meta: { title: '条款比对' },
         },
         {
           path: 'review-center',

@@ -8,25 +8,25 @@ export const ROLE_VISIBLE_ROUTES: Record<AppRole, string[]> = {
   ],
   approver: [
     'dashboard', 'messages', 'contracts', 'create', 'templates', 'ai-review',
-    'clause-compare', 'approvals', 'archives', 'review-center', 'review-workspace',
+    'clause-compare-hub', 'clause-compare', 'approvals', 'archives', 'review-center', 'review-workspace',
     'review-history', 'counterparties', 'config', 'contract-detail', 'approval-history',
   ],
   legal: [
-    'dashboard', 'contracts', 'ai-review', 'clause-compare', 'seal', 'archives',
+    'dashboard', 'contracts', 'ai-review', 'clause-compare-hub', 'clause-compare', 'seal', 'archives',
     'review-center', 'review-workspace', 'review-history', 'templates', 'contract-detail',
   ],
   finance: [
-    'dashboard', 'contracts', 'ai-review', 'clause-compare', 'archives',
+    'dashboard', 'contracts', 'ai-review', 'clause-compare-hub', 'clause-compare', 'archives',
     'review-center', 'review-workspace', 'review-history', 'contract-detail',
   ],
   executive: [
-    'dashboard', 'contracts', 'ai-review', 'clause-compare', 'archives',
+    'dashboard', 'contracts', 'ai-review', 'clause-compare-hub', 'clause-compare', 'archives',
     'review-center', 'review-workspace', 'review-history', 'contract-detail',
   ],
   archivist: ['dashboard', 'contracts', 'seal', 'archives', 'contract-detail'],
   admin: [
     'dashboard', 'messages', 'contracts', 'create', 'templates', 'ai-review',
-    'clause-compare', 'review-center', 'review-workspace', 'review-history',
+    'clause-compare-hub', 'clause-compare', 'review-center', 'review-workspace', 'review-history',
     'approvals', 'seal', 'archives', 'counterparties', 'config', 'users', 'audit',
     'contract-detail', 'approval-history', 'revision-workspace',
   ],

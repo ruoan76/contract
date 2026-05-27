@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { approvalsApi } from '@/api/approvals'
 import { usersApi, type SystemUser } from '@/api/users'
 import type { ApprovalPendingItem } from '@/types/models'
+
 const loading = ref(true)
 const items = ref<ApprovalPendingItem[]>([])
 const selected = ref<ApprovalPendingItem[]>([])
@@ -11,6 +12,27 @@ const delegateVisible = ref(false)
 const delegateTarget = ref<ApprovalPendingItem | null>(null)
 const delegateUserId = ref<number | null>(null)
 const userOptions = ref<SystemUser[]>([])
+
+function rowTitle(row: ApprovalPendingItem): string {
+  return row.contract_title || row.title || `合同 #${row.contract_id}`
+}
+
+function riskLabel(level?: string): string {
+  const map: Record<string, string> = {
+    low: '低',
+    medium: '中',
+    high: '高',
+    unknown: '未知',
+  }
+  return map[level || 'unknown'] || level || '未知'
+}
+
+function riskTagType(level?: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (level === 'high') return 'danger'
+  if (level === 'medium') return 'warning'
+  if (level === 'low') return 'success'
+  return 'info'
+}
 
 async function load() {
   loading.value = true
@@ -26,7 +48,22 @@ async function load() {
 
 onMounted(load)
 
+async function confirmHighRisk(row: ApprovalPendingItem): Promise<boolean> {
+  if (row.ai_risk_level !== 'high') return true
+  try {
+    await ElMessageBox.confirm(
+      `合同「${rowTitle(row)}」AI 风险等级为「高」，请确认已审阅 AI 审查报告后再通过。`,
+      '高风险二次确认',
+      { type: 'warning', confirmButtonText: '继续通过', cancelButtonText: '取消' },
+    )
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function approve(row: ApprovalPendingItem) {
+  if (!(await confirmHighRisk(row))) return
   try {
     const { value } = await ElMessageBox.prompt('请输入审批意见', '通过审批', {
       confirmButtonText: '通过',
@@ -38,7 +75,9 @@ async function approve(row: ApprovalPendingItem) {
     ElMessage.success('审批通过')
     await load()
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : '审批失败')
+    if (e !== 'cancel') {
+      ElMessage.error(e instanceof Error ? e.message : '审批失败')
+    }
   }
 }
 
@@ -96,6 +135,18 @@ async function batchApprove() {
     ElMessage.warning('请先选择待办')
     return
   }
+  const highRisk = selected.value.filter((r) => r.ai_risk_level === 'high')
+  if (highRisk.length) {
+    try {
+      await ElMessageBox.confirm(
+        `所选 ${selected.value.length} 项中有 ${highRisk.length} 项 AI 高风险，确认批量通过？`,
+        '高风险批量确认',
+        { type: 'warning' },
+      )
+    } catch {
+      return
+    }
+  }
   for (const row of selected.value) {
     try {
       await approvalsApi.approve(row.flow_id, 'approve', '批量通过')
@@ -130,8 +181,20 @@ async function batchApprove() {
       <el-table-column type="selection" width="48" />
       <el-table-column prop="flow_id" label="流程 ID" width="100" />
       <el-table-column prop="contract_id" label="合同 ID" width="100" />
-      <el-table-column prop="contract_title" label="标题" min-width="200" />
+      <el-table-column label="标题" min-width="200">
+        <template #default="{ row }">{{ rowTitle(row) }}</template>
+      </el-table-column>
       <el-table-column prop="flow_type" label="流程类型" width="120" />
+      <el-table-column label="当前步骤" width="100">
+        <template #default="{ row }">{{ row.current_step ?? '—' }}</template>
+      </el-table-column>
+      <el-table-column label="AI 风险" width="100">
+        <template #default="{ row }">
+          <el-tag :type="riskTagType(row.ai_risk_level)" size="small">
+            {{ riskLabel(row.ai_risk_level) }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="260">
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="approve(row)">通过</el-button>

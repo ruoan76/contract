@@ -32,7 +32,7 @@ export async function gotoRoute(page: Page, path: string, heading?: string) {
 
 /** 等待 Element Plus 全局消息 */
 export async function expectToast(page: Page, text: string | RegExp) {
-  await expect(page.locator('.el-message').filter({ hasText: text })).toBeVisible({
+  await expect(page.locator('.el-message').filter({ hasText: text }).first()).toBeVisible({
     timeout: 15000,
   })
 }

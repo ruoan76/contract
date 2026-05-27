@@ -646,9 +646,12 @@ async def get_pending_approvals(
                 "contract_id": contract.id,
                 "contract_no": contract.contract_no,
                 "title": contract.title,
+                "contract_title": contract.title,
                 "amount": contract.amount,
                 "current_node": flow.current_node_id,
+                "current_step": flow.current_step,
                 "flow_type": flow.flow_type,
+                "ai_risk_level": contract.risk_level or "unknown",
                 "created_at": flow.created_at,
             }
         )

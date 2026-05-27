@@ -33,8 +33,10 @@ export interface ApprovalPendingItem {
   flow_id: number
   contract_id: number
   contract_title?: string
+  title?: string
   current_step?: number
   flow_type?: string
+  ai_risk_level?: string
 }
 
 export interface DashboardBucketItem {
