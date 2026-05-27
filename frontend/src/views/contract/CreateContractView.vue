@@ -39,7 +39,20 @@ const selectedTemplateId = ref<number | null>(null)
 const selectedHistoryId = ref<number | null>(null)
 const pendingFile = ref<File | null>(null)
 const parseLoading = ref(false)
-const parseStatus = ref<{ char_count?: number; ocr_used?: boolean } | null>(null)
+const parseStatus = ref<{
+  char_count?: number
+  ocr_used?: boolean
+  confidence?: number
+  party_parse_warning?: boolean
+  counterparty_corrections?: string[]
+} | null>(null)
+
+/** 解析开始前表单快照，用于避免覆盖用户已修改字段 */
+const preParseSnapshot = ref<{
+  title: string
+  counterparty_name: string
+  amount: number
+} | null>(null)
 
 function restoreDraft() {
   try {
@@ -88,18 +101,39 @@ function inferContractType(
 function fillFormFromParse(
   data: Awaited<ReturnType<typeof contractsApi.parse>>,
   file: File,
-): { char_count?: number; ocr_used?: boolean } {
+): {
+  char_count?: number
+  ocr_used?: boolean
+  confidence?: number
+  party_parse_warning?: boolean
+  counterparty_corrections?: string[]
+} {
   const f = data.fields || {}
   const full = f.full_text || f.text_preview || ''
   form.content = full.slice(0, 500_000)
-  form.title = String(f.title || titleFromFilename(file.name)).slice(0, 120)
-  if (f.party_b) form.counterparty_name = String(f.party_b).slice(0, 80)
-  else if (f.party_a) form.counterparty_name = String(f.party_a).slice(0, 80)
-  if (f.amount != null && f.amount > 0) form.amount = f.amount
+  const parsedTitle = String(f.title || titleFromFilename(file.name)).slice(0, 120)
+  const snap = preParseSnapshot.value
+  if (!snap || form.title === snap.title) {
+    form.title = parsedTitle
+  }
+  const parsedCounterparty = f.party_b
+    ? String(f.party_b).slice(0, 80)
+    : f.party_a
+      ? String(f.party_a).slice(0, 80)
+      : ''
+  if (parsedCounterparty && (!snap || form.counterparty_name === snap.counterparty_name)) {
+    form.counterparty_name = parsedCounterparty
+  }
+  if (f.amount != null && f.amount > 0 && (!snap || form.amount === snap.amount)) {
+    form.amount = f.amount
+  }
   form.contract_type = inferContractType(f, full, file.name)
   const status = {
     char_count: data.char_count ?? f.char_count,
     ocr_used: data.ocr_used ?? f.ocr_used,
+    confidence: f.confidence,
+    party_parse_warning: f.party_parse_warning,
+    counterparty_corrections: f.counterparty_corrections,
   }
   parseStatus.value = status
   return status
@@ -113,6 +147,11 @@ async function applyParsedFile(file: File): Promise<boolean> {
   parseLoading.value = true
   pendingFile.value = file
   parseStatus.value = null
+  preParseSnapshot.value = {
+    title: form.title,
+    counterparty_name: form.counterparty_name,
+    amount: form.amount,
+  }
   const loading = ElLoading.service({
     lock: true,
     text: '正在解析合同，扫描件 OCR 可能需要数分钟…',
@@ -123,9 +162,15 @@ async function applyParsedFile(file: File): Promise<boolean> {
     const status = fillFormFromParse(data, file)
     saveDraftImmediate()
     const ocrHint = status.ocr_used ? '（已 OCR）' : ''
-    ElMessage.success(
-      `解析完成${ocrHint}：约 ${status.char_count ?? 0} 字，请核对字段`,
-    )
+    if (status.party_parse_warning || (status.confidence != null && status.confidence < 0.6)) {
+      ElMessage.warning(
+        `解析完成${ocrHint}：约 ${status.char_count ?? 0} 字。相对方或字段疑似 OCR 错误，请人工核对后再提交。`,
+      )
+    } else {
+      ElMessage.success(
+        `解析完成${ocrHint}：约 ${status.char_count ?? 0} 字，请核对字段`,
+      )
+    }
     return true
   } catch (e) {
     ElMessage.warning(e instanceof Error ? e.message : '解析失败，请手动补全字段')
@@ -211,19 +256,21 @@ async function submit() {
     localStorage.removeItem(DRAFT_KEY)
     flowDialogVisible.value = true
     ElMessage.success(`合同 #${created.id} 已提交审批`)
-    // AI 初筛后台执行，避免阻塞提交反馈（MLX 同步审查可能耗时数分钟）
-    void (async () => {
-      try {
-        await aiReviewApi.review(created.id)
-        ElMessage.success('AI 初筛已触发')
-      } catch (e) {
-        ElMessage.warning(
-          e instanceof Error
-            ? `AI 初筛未成功：${e.message}，请稍后在「AI 审查报告」手动触发`
-            : 'AI 初筛未成功，请稍后在「AI 审查报告」手动触发',
-        )
-      }
-    })()
+    // E2E / 演示环境跳过后台 AI，避免同步审查长时间占库导致审批 500
+    if (import.meta.env.VITE_E2E !== '1') {
+      void (async () => {
+        try {
+          await aiReviewApi.review(created.id)
+          ElMessage.success('AI 初筛已触发')
+        } catch (e) {
+          ElMessage.warning(
+            e instanceof Error
+              ? `AI 初筛未成功：${e.message}，请稍后在「AI 审查报告」手动触发`
+              : 'AI 初筛未成功，请稍后在「AI 审查报告」手动触发',
+          )
+        }
+      })()
+    }
   } catch (e) {
     ElMessage.error(e instanceof Error ? e.message : '提交失败')
   } finally {
@@ -365,10 +412,30 @@ function templateLabel(t: ContractTemplate) {
             选择文件解析
           </el-button>
         </el-upload>
-        <p v-if="parseStatus" class="parse-status">
+        <p v-if="parseStatus" class="parse-status" :class="{ 'parse-status-warn': parseStatus.party_parse_warning }">
           已提取 {{ parseStatus.char_count ?? 0 }} 字
           <span v-if="parseStatus.ocr_used"> · 扫描件 OCR</span>
+          <span v-if="parseStatus.confidence != null"> · 置信度 {{ Math.round(parseStatus.confidence * 100) }}%</span>
         </p>
+        <el-alert
+          v-if="parseStatus?.party_parse_warning"
+          type="warning"
+          :closable="false"
+          show-icon
+          title="相对方名称疑似 OCR 识别错误，请在下方的「相对方」字段中核对或修正。"
+          style="margin-top: 8px"
+        />
+        <el-alert
+          v-if="parseStatus?.counterparty_corrections?.length"
+          type="info"
+          :closable="false"
+          style="margin-top: 8px"
+        >
+          <template #title>已尝试与相对方库匹配校正</template>
+          <ul class="correction-list">
+            <li v-for="(line, i) in parseStatus.counterparty_corrections" :key="i">{{ line }}</li>
+          </ul>
+        </el-alert>
         <span v-if="pendingFile" class="pending-file">{{ pendingFile.name }}</span>
       </el-form-item>
       <el-form-item label="合同标题" required>
@@ -453,6 +520,14 @@ function templateLabel(t: ContractTemplate) {
   margin-top: 8px;
   font-size: 12px;
   color: #059669;
+}
+.parse-status-warn {
+  color: #d97706;
+}
+.correction-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
 }
 .content-hint {
   margin-top: 6px;

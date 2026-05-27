@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     AI_RAG_BM25_MIN_SCORE: float = 1.5
     AI_PROMPT_VERSION: str = "pb-v1.0"
     AI_ALLOW_MOCK_IN_PROD: bool = False
+    # Playwright E2E：跳过 AI 门禁（不测 MLX 实机）
+    E2E_BYPASS_AI_GATE: bool = False
     FILE_STORAGE: str = "local"  # local | minio
     FILE_STORAGE_PATH: str = _DEFAULT_FILE_STORAGE_PATH
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
@@ -66,6 +68,12 @@ class Settings(BaseSettings):
     AI_OCR_ENABLED: bool = True
     AI_OCR_MIN_CHARS: int = 200
     AI_OCR_MAX_PAGES: int = 40
+    AI_OCR_DPI: int = 300
+    AI_OCR_MIN_CONFIDENCE: float = 0.5
+    AI_OCR_PREPROCESS: bool = True
+    AI_OCR_PAGE_MIN_CHARS: int = 50
+    AI_OCR_GIBBERISH_RATIO: float = 0.35
+    AI_PARSE_LLM_MAX_CHARS: int = 12000
     CONTRACT_CONTENT_MAX_CHARS: int = 500_000
     
     # MinIO 配置（可选）

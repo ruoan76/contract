@@ -1,4 +1,4 @@
-"""合同文件解析 — 文本提取 + 字段识别（支持 mock）"""
+"""合同文件解析 — 文本提取 + 字段识别（支持 mock / LLM）"""
 from __future__ import annotations
 
 import os
@@ -7,9 +7,15 @@ import tempfile
 from typing import Any, Optional
 
 from fastapi import UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.services.ai_review.text_extractor import extract_text
+from app.services.parse_llm_service import (
+    detect_party_parse_warning,
+    extract_fields_with_llm,
+    fuzzy_match_counterparty_names,
+)
 
 
 def _guess_file_type(filename: str, content_type: Optional[str]) -> str:
@@ -70,11 +76,7 @@ def _mock_parse_fields(text: str, filename: str) -> dict[str, Any]:
         except ValueError:
             fn_amount = None
 
-    party_parse_warning = False
-    for name in (party_a, party_b):
-        if name and re.search(r"软住|公同|有限公[^司]|责任公[^司]", name):
-            party_parse_warning = True
-            break
+    party_parse_warning = detect_party_parse_warning(party_a, party_b)
 
     if amount is None and fn_amount is not None:
         amount = fn_amount
@@ -100,7 +102,31 @@ def _mock_parse_fields(text: str, filename: str) -> dict[str, Any]:
         "end_date": None,
         "confidence": confidence,
         "mock": True,
+        "parse_source": "regex",
     }
+
+
+def _merge_llm_fields(
+    base: dict[str, Any],
+    llm: dict[str, Any],
+) -> dict[str, Any]:
+    """LLM 字段覆盖正则结果（非空时）。"""
+    merged = dict(base)
+    merged["mock"] = False
+    merged["parse_source"] = "llm"
+    for key in ("title", "party_a", "party_b", "amount", "contract_type", "confidence"):
+        val = llm.get(key)
+        if val is not None and val != "":
+            merged[key] = val
+    if llm.get("confidence") is not None:
+        merged["confidence"] = llm["confidence"]
+    merged["party_parse_warning"] = detect_party_parse_warning(
+        merged.get("party_a"),
+        merged.get("party_b"),
+    )
+    if merged["party_parse_warning"]:
+        merged["confidence"] = min(float(merged.get("confidence") or 0.75), 0.55)
+    return merged
 
 
 async def extract_bytes_to_text(
@@ -143,11 +169,14 @@ async def extract_bytes_to_text(
     return text, extracted_metadata
 
 
-async def parse_contract_file(file: UploadFile) -> dict[str, Any]:
+async def parse_contract_file(
+    file: UploadFile,
+    db: AsyncSession | None = None,
+) -> dict[str, Any]:
     """
     上传合同文件，提取文本并返回解析字段。
 
-    AI_PARSE_MOCK=1（默认）时使用启发式 mock；否则同样返回启发式结果并标记 mock=False。
+    AI_PARSE_MOCK=1（默认）时使用启发式正则；AI_PARSE_MOCK=0 时尝试 LLM 结构化提取。
     """
     filename = file.filename or "upload.txt"
     content = await file.read()
@@ -163,6 +192,29 @@ async def parse_contract_file(file: UploadFile) -> dict[str, Any]:
     use_mock = settings.AI_PARSE_MOCK
     fields = _mock_parse_fields(text, filename)
     fields["mock"] = use_mock
+
+    if not use_mock and text.strip():
+        llm_fields = await extract_fields_with_llm(text, filename)
+        if llm_fields:
+            fields = _merge_llm_fields(fields, llm_fields)
+
+    if db is not None:
+        party_a, party_b, corrections = await fuzzy_match_counterparty_names(
+            db,
+            fields.get("party_a"),
+            fields.get("party_b"),
+        )
+        if party_a is not None:
+            fields["party_a"] = party_a
+        if party_b is not None:
+            fields["party_b"] = party_b
+        if corrections:
+            fields["counterparty_corrections"] = corrections
+            fields["party_parse_warning"] = detect_party_parse_warning(
+                fields.get("party_a"),
+                fields.get("party_b"),
+            )
+
     fields["text_preview"] = text[:500]
     fields["full_text"] = text
     fields["file_type"] = file_type

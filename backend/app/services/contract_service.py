@@ -77,24 +77,23 @@ def _bucket_filter_conditions(bucket: str, today: date, expiring_threshold: date
 
 async def _generate_contract_no(db: AsyncSession) -> str:
     """
-    生成合同编号: CON-YYYYMM-XXXX
-    
-    Args:
-        db: 数据库会话
-        
-    Returns:
-        合同编号字符串
+    生成合同编号: CON-YYYYMM-XXXX（取当月最大序号 +1，避免 count 与并发重复）
     """
     today = date.today()
     prefix = f"{CONTRACT_NO_PREFIX}-{today:%Y%m}-"
-    
+
     result = await db.execute(
-        select(func.count(Contract.id)).where(
+        select(func.max(Contract.contract_no)).where(
             Contract.contract_no.like(f"{prefix}%")
         )
     )
-    count = result.scalar() or 0
-    seq = count + 1
+    last_no = result.scalar()
+    seq = 1
+    if last_no:
+        try:
+            seq = int(str(last_no).rsplit("-", 1)[-1]) + 1
+        except ValueError:
+            seq = 1
     return f"{prefix}{seq:04d}"
 
 
@@ -195,7 +194,7 @@ async def create_contract(
             creator_id=creator_id,
             department_id=department_id,
         )
-        
+
         session.add(contract)
         await session.flush()
         

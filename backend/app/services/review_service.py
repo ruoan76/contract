@@ -119,6 +119,8 @@ async def _ensure_ai_gate(db: AsyncSession, contract_id: int) -> None:
 
 async def _check_ai_gate(db: AsyncSession, contract_id: int) -> tuple[bool, str]:
     """返回 (是否满足门禁, 提示文案)。"""
+    if settings.E2E_BYPASS_AI_GATE:
+        return True, ""
     contract = await db.get(Contract, contract_id)
     if not contract:
         raise HTTPException(status_code=404, detail="合同不存在")

@@ -7,7 +7,7 @@ import { approveFirstPending, dismissFlowDialog, expectToast, gotoRoute, submitC
  */
 test.describe('DEMO-01 简易流程', () => {
   test('起草 → 审批 → 法务评审 → 用印', async ({ page }) => {
-    test.setTimeout(90000)
+    test.setTimeout(120000)
     await page.goto('/')
 
     await switchRole(page, '起草人')

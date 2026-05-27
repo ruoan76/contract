@@ -33,6 +33,9 @@ export interface ContractParseFields {
   ocr_used?: boolean
   needs_ocr?: boolean
   confidence?: number
+  party_parse_warning?: boolean
+  counterparty_corrections?: string[]
+  parse_source?: string
 }
 
 export interface ContractParseResult {

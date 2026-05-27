@@ -4,6 +4,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.exc import DataError, IntegrityError
 from typing import Optional
 
 from app.core.config import settings
@@ -34,12 +35,13 @@ router = APIRouter()
 async def parse_contract(
     file: UploadFile = File(...),
     user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """上传合同文件，提取文本并返回结构化字段（默认 mock 模式）。"""
     from app.services.contract_parse_service import parse_contract_file
 
     try:
-        data = await parse_contract_file(file)
+        data = await parse_contract_file(file, db=db)
         return {"code": 200, "data": data}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -52,25 +54,43 @@ async def create(
     db: AsyncSession = Depends(get_db),
 ):
     """创建新合同"""
-    try:
-        result = await create_contract(
-            title=body.title,
-            contract_type=body.contract_type,
-            counterparty_name=body.counterparty_name,
-            counterparty_id=body.counterparty_id,
-            counterparty_credit_code=body.counterparty_credit_code,
-            amount=body.amount,
-            content=body.content,
-            creator_id=user.id,
-            db=db,
-        )
-        # 立即提交，避免客户端连发 submit 时读不到未 flush 的草稿
-        await db.commit()
-        return {"code": 200, "data": result}
-    except BusinessError as e:
-        if "黑名单" in str(e):
-            raise HTTPException(status_code=403, detail=str(e))
-        raise HTTPException(status_code=400, detail=str(e))
+    last_integrity: IntegrityError | None = None
+    for attempt in range(5):
+        try:
+            result = await create_contract(
+                title=body.title,
+                contract_type=body.contract_type,
+                counterparty_name=body.counterparty_name,
+                counterparty_id=body.counterparty_id,
+                counterparty_credit_code=body.counterparty_credit_code,
+                amount=body.amount,
+                content=body.content,
+                creator_id=user.id,
+                db=db,
+            )
+            await db.commit()
+            return {"code": 200, "data": result}
+        except IntegrityError as e:
+            await db.rollback()
+            last_integrity = e
+            if "contract_no" not in str(e).lower() or attempt >= 4:
+                raise HTTPException(status_code=409, detail="合同编号冲突，请重试") from e
+            continue
+        except DataError as e:
+            await db.rollback()
+            if "content" in str(e).lower():
+                raise HTTPException(
+                    status_code=400,
+                    detail="合同正文过长，请联系管理员升级数据库字段或缩短正文后重试",
+                ) from e
+            raise HTTPException(status_code=400, detail="数据格式或长度不符合要求") from e
+        except BusinessError as e:
+            await db.rollback()
+            if "黑名单" in str(e):
+                raise HTTPException(status_code=403, detail=str(e))
+            raise HTTPException(status_code=400, detail=str(e))
+    if last_integrity:
+        raise HTTPException(status_code=409, detail="合同编号冲突，请重试") from last_integrity
 
 
 @router.get("/dashboard", summary="合同看板")

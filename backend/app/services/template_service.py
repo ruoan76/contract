@@ -130,7 +130,7 @@ async def submit_for_publish(db: AsyncSession, template_id: int) -> dict:
 
 
 async def approve_publish(db: AsyncSession, template_id: int) -> dict:
-    """批准发布：pending_publish → published（审批流专用，不可从 draft 跳过）"""
+    """批准发布：pending_publish → published。若开启自动审查则触发 AI 审查。"""
     t = await db.get(ContractTemplate, template_id)
     if not t:
         raise HTTPException(status_code=404, detail="模板不存在")
@@ -138,6 +138,19 @@ async def approve_publish(db: AsyncSession, template_id: int) -> dict:
         raise HTTPException(status_code=400, detail="仅待发布状态可批准")
     t.status = "published"
     t.version = (t.version or 0) + 1
+    
+    # 法律审查快照
+    if t.auto_review_on_publish and t.content:
+        try:
+            from app.services.ai_review.rule_engine import run_rule_engine
+            import json
+            issues = run_rule_engine(t.content)
+            if issues:
+                snapshot = [{"title": i.title, "severity": i.risk_level, "suggestion": i.suggestion} for i in issues]
+                t.legal_snapshot = json.dumps(snapshot, ensure_ascii=False)
+        except Exception:
+            pass  # 审查失败不阻塞发布
+
     await db.flush()
     return _to_dict(t)
 

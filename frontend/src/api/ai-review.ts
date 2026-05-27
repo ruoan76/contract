@@ -1,4 +1,5 @@
-import { API_CONFIG, client, getToken } from './client'
+import { client, getToken } from './client'
+import { API_CONFIG } from './config'
 
 export interface AiClauseReview {
   clause?: string

@@ -6,6 +6,7 @@ const useExternalServer = !!process.env.CI
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   use: {
     baseURL: 'http://127.0.0.1:8080',
@@ -16,9 +17,9 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: 'npm run dev',
+          command: 'VITE_E2E=1 npm run dev',
           url: 'http://127.0.0.1:8080',
-          reuseExistingServer: true,
+          reuseExistingServer: !process.env.CI,
           timeout: 120000,
         },
       }),

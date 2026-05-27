@@ -39,6 +39,8 @@ class RuleEngine:
         issues.extend(self._check_auto_detectable(text))
         issues.extend(self._check_amount_threshold(amount))
         issues.extend(self._check_batch1_rules(text))
+        issues.extend(self._check_redline_keywords(text))
+        issues.extend(self._check_missing_clauses(text))
         if counterparty_blacklisted:
             issues.extend(self._check_blacklist())
         return issues
@@ -269,6 +271,47 @@ class RuleEngine:
                         )
                     )
 
+        return issues
+
+
+
+    def _check_redline_keywords(self, text: str) -> list[AiReviewIssue]:
+        """检测极端/异常表述（霸权条款）。"""
+        issues: list[AiReviewIssue] = []
+        dangerous = [
+            (r"概不负责", "霸王免责", "L01", "gate_validity", "存在概不负责等无效免责表述", "high"),
+            (r"一切.{0,6}后果", "兜底责任", "L08", "gate_clause", "兜底责任表述", "medium"),
+            (r"最终解释权", "霸王条款", "L01", "gate_validity", "涉嫌无效格式条款", "high"),
+        ]
+        for pattern, title, lid, gate, desc, rl in dangerous:
+            if re.search(pattern, text):
+                issues.append(
+                    AiReviewIssue(
+                        clause='责任/效力条款', clause_ref='全文', dimension='risk_assessment',
+                        label_id=lid, label_name='', gate_id=gate, risk_level=rl, confidence=0.9,
+                        title=title, description=desc, suggestion='建议删除或按照民法典规范表述',
+                        legal_basis='民法典第497条', revision_method='delete', source='rule', rule_id=f'RL-{lid}',
+                    )
+                )
+        return issues
+
+    def _check_missing_clauses(self, text: str) -> list[AiReviewIssue]:
+        """检测关键法律条款的缺失。"""
+        issues: list[AiReviewIssue] = []
+        if not re.search(r'知识产权\|专利\|著作权\|软件许可', text):
+            issues.append(
+                AiReviewIssue(clause='知识产权', dimension='risk_assessment', label_id='L12',
+                    gate_id='gate_clause', risk_level='medium', confidence=0.85,
+                    title='知识产权归属缺失', description='未发现知识产权/专利/著作权归属条款',
+                    suggestion='建议补充知识产权归属条款', legal_basis='民法典第847条',
+                    source='rule', rule_id='CK-52', revision_method='add_clause'))
+        if not re.search(r'保密\|商业秘密\|不得泄露', text):
+            issues.append(
+                AiReviewIssue(clause='保密', dimension='risk_assessment', label_id='L12',
+                    gate_id='gate_clause', risk_level='medium', confidence=0.8,
+                    title='保密条款缺失', description='未发现保密义务相关约定',
+                    suggestion='建议补充保密条款及违约责任', legal_basis='反不正当竞争法第9条',
+                    source='rule', rule_id='CK-53', revision_method='add_clause'))
         return issues
 
     def _check_blacklist(self) -> list[AiReviewIssue]:

@@ -3,10 +3,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { approvalsApi } from '@/api/approvals'
 import { usersApi, type SystemUser } from '@/api/users'
-import { useAuthStore } from '@/stores/auth'
 import type { ApprovalPendingItem } from '@/types/models'
-
-const auth = useAuthStore()
 const loading = ref(true)
 const items = ref<ApprovalPendingItem[]>([])
 const selected = ref<ApprovalPendingItem[]>([])
@@ -18,7 +15,6 @@ const userOptions = ref<SystemUser[]>([])
 async function load() {
   loading.value = true
   try {
-    await auth.switchRole('approver')
     const res = await approvalsApi.pending()
     items.value = res.items || []
   } catch (e) {
@@ -81,7 +77,6 @@ async function confirmDelegate() {
     return
   }
   try {
-    await auth.switchRole('approver')
     await approvalsApi.approve(
       delegateTarget.value.flow_id,
       'delegate',

@@ -21,16 +21,11 @@ async def test_pdf_ocr_fallback_when_text_empty(tmp_path):
 
     fake_pages = ["甲方：测试公司", "合同金额：100万元"]
 
-    async def _fake_extract(path, file_type):
-        return ExtractedText(
-            full_text="\n".join(fake_pages),
-            pages=fake_pages,
-            metadata={"ocr_used": True, "ocr_page_count": 2, "page_count": 2},
-        )
-
     with patch("app.services.ai_review.text_extractor.settings") as mock_settings:
         mock_settings.AI_OCR_ENABLED = True
         mock_settings.AI_OCR_MIN_CHARS = 200
+        mock_settings.AI_OCR_PAGE_MIN_CHARS = 50
+        mock_settings.AI_OCR_GIBBERISH_RATIO = 0.35
         mock_settings.AI_OCR_MAX_PAGES = 40
         mock_settings.MAX_FILE_SIZE = 50 * 1024 * 1024
 

@@ -2,6 +2,7 @@
 合同模型
 """
 from sqlalchemy import Column, Integer, String, Float, Date, Text, DateTime, ForeignKey, Index
+from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.sql import func
 from app.db.database import engine
 from app.db.base import Base
@@ -48,7 +49,7 @@ class Contract(Base):
     creator_id = Column(Integer, nullable=False, comment="创建人 ID")
     department_id = Column(Integer, comment="所属部门")
     risk_level = Column(String(20), default="low", comment="风险等级")
-    content = Column(Text, comment="合同内容")
+    content = Column(Text().with_variant(LONGTEXT(), "mysql"), comment="合同内容")
     current_version_id = Column(Integer, comment="当前版本 ID")
     
     created_at = Column(DateTime, server_default=func.now())
@@ -73,12 +74,12 @@ class ContractVersion(Base):
     contract_id = Column(Integer, ForeignKey("contracts.id", ondelete="CASCADE"), nullable=False)
     version = Column(Integer, nullable=False, comment="版本号")
     title = Column(String(200))
-    content = Column(Text, comment="合同内容")
+    content = Column(Text().with_variant(LONGTEXT(), "mysql"), comment="合同内容")
     file_path = Column(String(500), comment="文件路径")
     file_type = Column(String(10), comment="文件类型")
     file_size = Column(Integer, comment="文件大小")
     file_hash = Column(String(64), comment="文件哈希")
-    change_description = Column(Text, comment="变更说明")
+    change_description = Column(Text().with_variant(LONGTEXT(), "mysql"), comment="变更说明")
     creator_id = Column(Integer, nullable=False)
     
     created_at = Column(DateTime, server_default=func.now())

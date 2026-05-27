@@ -18,5 +18,7 @@ class ContractTemplate(Base):
     )
     version = Column(Integer, default=1)
     creator_id = Column(Integer, comment="创建人 ID")
+    legal_snapshot = Column(Text, comment="法律条款快照 JSON: {label_ids, review_items}")
+    auto_review_on_publish = Column(Integer, default=0, comment="发布时是否自动AI审查 (1=是, 0=否)")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

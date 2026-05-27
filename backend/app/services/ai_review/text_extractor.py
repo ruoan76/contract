@@ -12,6 +12,7 @@ from docx import Document as DocxDocument
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.services.ai_review.ocr_text_utils import indices_needing_ocr
 
 logger = logging.getLogger(__name__)
 
@@ -71,13 +72,11 @@ async def extract_text(file_path: str, file_type: str) -> ExtractedText:
 # ---------------------------------------------------------------------------
 
 async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
-    """使用 PyMuPDF 提取 PDF 文本"""
+    """使用 PyMuPDF 提取 PDF 文本，逐页混合 OCR。"""
     loop = asyncio.get_event_loop()
-    pages: list[str] = []
     tables: list[list[list[str]]] = []
-    full_parts: list[str] = []
 
-    def _read() -> tuple[list[str], list[list[list[str]]], dict[str, Any]]:
+    def _read() -> tuple[list[str], list[list[list[str]]], dict[str, Any], int]:
         doc = fitz.open(str(path))
         try:
             metadata = dict(doc.metadata or {})
@@ -86,39 +85,69 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
 
             for page_idx in range(len(doc)):
                 page = doc[page_idx]
-                text = page.get_text()
+                # sort=True 改善复杂版式阅读顺序
+                text = page.get_text("text", sort=True)
                 page_texts.append(text)
 
-            return page_texts, all_tables, metadata
+            return page_texts, all_tables, metadata, len(doc)
         finally:
             doc.close()
 
-    pages, tables, metadata = await loop.run_in_executor(None, _read)
+    pages, tables, metadata, raw_page_count = await loop.run_in_executor(None, _read)
 
     full_text = "\n".join(pages)
     ocr_used = False
     ocr_page_count = 0
+    ocr_page_indices: list[int] = []
 
-    if (
-        settings.AI_OCR_ENABLED
-        and len(full_text.strip()) < settings.AI_OCR_MIN_CHARS
-    ):
-        from app.services.ai_review.ocr import ocr_pdf_pages
+    if settings.AI_OCR_ENABLED:
+        from app.services.ai_review.ocr import ocr_pdf_page_indices, ocr_pdf_pages
 
-        logger.info(
-            "PDF 可提取文字过少（%s 字），启用 OCR 回退: %s",
-            len(full_text.strip()),
-            path,
-        )
+        stripped_len = len(full_text.strip())
+        if stripped_len < settings.AI_OCR_MIN_CHARS:
+            logger.info(
+                "PDF 可提取文字过少（%s 字），全量 OCR: %s",
+                stripped_len,
+                path,
+            )
 
-        def _run_ocr() -> list[str]:
-            return ocr_pdf_pages(path, max_pages=settings.AI_OCR_MAX_PAGES)
+            def _run_full_ocr() -> list[str]:
+                return ocr_pdf_pages(path, max_pages=settings.AI_OCR_MAX_PAGES)
 
-        ocr_pages = await loop.run_in_executor(None, _run_ocr)
-        pages = ocr_pages
-        full_text = "\n".join(pages)
-        ocr_used = True
-        ocr_page_count = len(ocr_pages)
+            ocr_pages = await loop.run_in_executor(None, _run_full_ocr)
+            pages = ocr_pages
+            full_text = "\n".join(pages)
+            ocr_used = True
+            ocr_page_count = len(ocr_pages)
+            ocr_page_indices = list(range(len(ocr_pages)))
+        else:
+            need_indices = indices_needing_ocr(
+                pages,
+                min_chars=settings.AI_OCR_PAGE_MIN_CHARS,
+                gibberish_threshold=settings.AI_OCR_GIBBERISH_RATIO,
+            )
+            if need_indices:
+                logger.info(
+                    "PDF 逐页混合 OCR：%s/%s 页需 OCR: %s",
+                    len(need_indices),
+                    len(pages),
+                    path,
+                )
+
+                def _run_partial_ocr() -> list[str]:
+                    return ocr_pdf_page_indices(
+                        path,
+                        need_indices,
+                        max_pages=settings.AI_OCR_MAX_PAGES,
+                    )
+
+                ocr_results = await loop.run_in_executor(None, _run_partial_ocr)
+                for idx, ocr_text in zip(need_indices, ocr_results):
+                    pages[idx] = ocr_text
+                full_text = "\n".join(pages)
+                ocr_used = True
+                ocr_page_count = len(need_indices)
+                ocr_page_indices = need_indices
 
     return ExtractedText(
         full_text=full_text,
@@ -126,10 +155,11 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
         tables=tables,
         metadata={
             "file_type": file_type,
-            "page_count": len(pages),
+            "page_count": len(pages) or raw_page_count,
             "source_metadata": metadata,
             "ocr_used": ocr_used,
             "ocr_page_count": ocr_page_count,
+            "ocr_page_indices": ocr_page_indices,
         },
     )
 

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "clean_party_names",
+    "text": "甲方：甘肃省烟草公司兰州市公司\n乙方：浪潮软件股份有限公司\n合同金额：1958000元",
+    "gibberish_ratio_max": 0.1,
+    "party_parse_warning": false,
+    "party_a": "甘肃省烟草公司兰州市公司",
+    "party_b": "浪潮软件股份有限公司"
+  },
+  {
+    "id": "ocr_noise_parties",
+    "text": "甲方：甘-省烟堂公司兰灿茧公司\n乙方：浪潮软住股俭直限公司\n",
+    "gibberish_ratio_max": 0.25,
+    "party_parse_warning": true,
+    "party_b_substr": "浪潮"
+  },
+  {
+    "id": "garbled_layer",
+    "text": "@@@###$$$%%%^^^&&&***((( ))) 乱码测试 xyz !!! ???",
+    "gibberish_ratio_min": 0.2,
+    "page_needs_ocr": true
+  },
+  {
+    "id": "short_page",
+    "text": "封面",
+    "page_needs_ocr": true
+  },
+  {
+    "id": "normal_contract_snippet",
+    "text": "第一条 总则\n本合同由甲乙双方本着平等自愿的原则签订。\n合同金额人民币 80000 元整。",
+    "gibberish_ratio_max": 0.15,
+    "party_parse_warning": false
+  }
+]

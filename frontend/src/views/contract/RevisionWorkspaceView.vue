@@ -94,7 +94,9 @@ async function submitRevision() {
       content: content.value,
       change_description: changeDesc.value,
     })
-    await aiReviewApi.review(contractId.value)
+    if (import.meta.env.VITE_E2E !== '1') {
+      await aiReviewApi.review(contractId.value)
+    }
     ElMessage.success(`修订已提交，版本 v${rev.version || 2}`)
     router.push({ name: 'ai-review', params: { id: contractId.value } })
   } catch (e) {

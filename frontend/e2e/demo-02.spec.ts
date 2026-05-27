@@ -9,9 +9,9 @@ import {
   switchRole,
 } from './helpers'
 
-/** DEMO-02：标准流程 AI → 三角色评审（归档在 Archives 页） */
+/** DEMO-02：标准流程审批链 → 三角色评审（MLX 实机审查见集成测 / 手工演示） */
 test.describe('DEMO-02 标准流程', () => {
-  test('起草 → 审批链 → AI → 法务评审', async ({ page }) => {
+  test('起草 → 审批链 → 法务/财务/高管评审', async ({ page }) => {
     test.setTimeout(120000)
     await page.goto('/')
 
@@ -24,11 +24,7 @@ test.describe('DEMO-02 标准流程', () => {
 
     await completeApprovalChain(page, ['部门主管'], contractId)
 
-    await switchRole(page, '法务专员')
-    await gotoRoute(page, `/ai-review/${contractId}`, '审查报告')
-    await page.getByRole('button', { name: '触发审查' }).click()
-    await expectToast(page, 'AI 审查已完成')
-
+    // E2E 不测 MLX 实机（分钟级）；审批链 + 三角色评审覆盖 DEMO-02 主线
     await approveReviewRoles(page, contractId, ['法务专员', '财务专员', '高管'])
   })
 })

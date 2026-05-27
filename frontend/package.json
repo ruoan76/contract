@@ -10,7 +10,8 @@
     "typecheck": "vue-tsc -b --noEmit",
     "generate:api": "openapi-typescript ../backend/openapi.json -o src/types/api.d.ts",
     "test:smoke": "playwright test e2e/smoke-routes.spec.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:local": "echo '请先启动后端: cd ../backend && E2E_BYPASS_AI_GATE=1 uvicorn main:app --reload' && VITE_E2E=1 playwright test"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

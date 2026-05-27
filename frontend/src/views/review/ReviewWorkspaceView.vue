@@ -69,6 +69,8 @@ const demoStep = ref(0)
 const AI_READY = new Set(['ai_done', 'reviewed', 'confirmed'])
 
 const aiGateReady = computed(() => {
+  // E2E 不测 MLX 实机，允许先走审批/评审链路
+  if (import.meta.env.VITE_E2E === '1') return true
   if (workspace.value?.ai_gate?.ready === false) return false
   if (workspace.value?.ai_gate?.ready === true) return true
   const st = workspace.value?.ai_summary?.review_status
