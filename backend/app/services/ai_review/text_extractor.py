@@ -12,9 +12,27 @@ from docx import Document as DocxDocument
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.services.ai_review.document_json import build_document_json, render_document_text
 from app.services.ai_review.ocr_text_utils import indices_needing_ocr
 
 logger = logging.getLogger(__name__)
+
+
+def _format_pages_with_markers(pages: list[str], *, ocr_used: bool) -> list[str]:
+    """OCR 场景为每页添加分页标记，便于人工核对。"""
+    if not ocr_used:
+        return pages
+    formatted: list[str] = []
+    for idx, page in enumerate(pages):
+        body = page.strip()
+        marker = f"--- 第 {idx + 1} 页 ---"
+        formatted.append(f"{marker}\n\n{body}" if body else marker)
+    return formatted
+
+
+def _join_page_text(pages: list[str], *, ocr_used: bool) -> str:
+    chunks = _format_pages_with_markers(pages, ocr_used=ocr_used)
+    return "\n\n".join(chunks)
 
 
 # ---------------------------------------------------------------------------
@@ -95,10 +113,12 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
 
     pages, tables, metadata, raw_page_count = await loop.run_in_executor(None, _read)
 
-    full_text = "\n".join(pages)
+    full_text = _join_page_text(pages, ocr_used=False)
     ocr_used = False
     ocr_page_count = 0
     ocr_page_indices: list[int] = []
+    ocr_pages_raw: list[str] = []
+    ocr_page_meta: list[dict] = []
 
     if settings.AI_OCR_ENABLED:
         from app.services.ai_review.ocr import ocr_pdf_page_indices, ocr_pdf_pages
@@ -112,11 +132,21 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
             )
 
             def _run_full_ocr() -> list[str]:
-                return ocr_pdf_pages(path, max_pages=settings.AI_OCR_MAX_PAGES)
+                raw_buf: list[str] = []
+                meta_buf: list[dict] = []
+                result = ocr_pdf_pages(
+                    path,
+                    max_pages=settings.AI_OCR_MAX_PAGES,
+                    raw_pages_out=raw_buf,
+                    page_meta_out=meta_buf,
+                )
+                ocr_pages_raw.extend(raw_buf)
+                ocr_page_meta.extend(meta_buf)
+                return result
 
             ocr_pages = await loop.run_in_executor(None, _run_full_ocr)
             pages = ocr_pages
-            full_text = "\n".join(pages)
+            full_text = _join_page_text(pages, ocr_used=True)
             ocr_used = True
             ocr_page_count = len(ocr_pages)
             ocr_page_indices = list(range(len(ocr_pages)))
@@ -134,20 +164,48 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
                     path,
                 )
 
-                def _run_partial_ocr() -> list[str]:
-                    return ocr_pdf_page_indices(
+                def _run_partial_ocr() -> tuple[list[str], list[str], list[dict]]:
+                    raw_buf: list[str] = []
+                    meta_buf: list[dict] = []
+                    result = ocr_pdf_page_indices(
                         path,
                         need_indices,
                         max_pages=settings.AI_OCR_MAX_PAGES,
+                        raw_pages_out=raw_buf,
+                        page_meta_out=meta_buf,
                     )
+                    return result, raw_buf, meta_buf
 
-                ocr_results = await loop.run_in_executor(None, _run_partial_ocr)
-                for idx, ocr_text in zip(need_indices, ocr_results):
-                    pages[idx] = ocr_text
-                full_text = "\n".join(pages)
+                ocr_results, raw_buf, meta_buf = await loop.run_in_executor(None, _run_partial_ocr)
+                ocr_page_meta.extend(meta_buf)
+                pages_raw_snapshot = list(pages)
+                for i, page_index in enumerate(need_indices):
+                    pages[page_index] = ocr_results[i]
+                    pages_raw_snapshot[page_index] = raw_buf[i]
+                ocr_pages_raw = pages_raw_snapshot
+                full_text = _join_page_text(pages, ocr_used=True)
                 ocr_used = True
                 ocr_page_count = len(need_indices)
                 ocr_page_indices = need_indices
+
+    full_text_raw = ""
+    if ocr_used and ocr_pages_raw:
+        full_text_raw = _join_page_text(ocr_pages_raw, ocr_used=True)
+
+    aligned_page_meta: list[dict] = []
+    if ocr_used and ocr_page_meta and ocr_page_indices:
+        meta_by_idx = dict(zip(ocr_page_indices, ocr_page_meta))
+        aligned_page_meta = [meta_by_idx.get(i, {}) for i in range(len(pages))]
+    elif pages:
+        aligned_page_meta = [{} for _ in pages]
+
+    document = build_document_json(
+        pages,
+        ocr_page_indices=ocr_page_indices if ocr_used else [],
+        ocr_page_meta=aligned_page_meta if ocr_used else None,
+        ocr_used=ocr_used,
+    )
+    full_text = render_document_text(document)
 
     return ExtractedText(
         full_text=full_text,
@@ -160,6 +218,13 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
             "ocr_used": ocr_used,
             "ocr_page_count": ocr_page_count,
             "ocr_page_indices": ocr_page_indices,
+            "full_text_raw": full_text_raw or None,
+            "layout_version": "v2",
+            "layout_engine": settings.AI_OCR_LAYOUT,
+            "ocr_engine": settings.AI_OCR_ENGINE if ocr_used else None,
+            "ocr_page_meta": aligned_page_meta if ocr_used else None,
+            "ocr_needs_review": any(m.get("needs_review") for m in aligned_page_meta) if ocr_used else False,
+            "document_json": document.model_dump(),
         },
     )
 
@@ -196,11 +261,22 @@ async def _extract_docx(path: Path, file_type: str) -> ExtractedText:
 
     full_text, paragraphs, tables = await loop.run_in_executor(None, _read)
 
+    document = build_document_json(
+        paragraphs if paragraphs else [full_text],
+        ocr_used=False,
+        include_page_markers=False,
+    )
+
     return ExtractedText(
-        full_text=full_text,
+        full_text=render_document_text(document) or full_text,
         pages=paragraphs,
         tables=tables,
-        metadata={"file_type": file_type, "para_count": len(paragraphs)},
+        metadata={
+            "file_type": file_type,
+            "para_count": len(paragraphs),
+            "layout_version": "v2",
+            "document_json": document.model_dump(),
+        },
     )
 
 
@@ -223,11 +299,22 @@ async def _extract_txt(path: Path, file_type: str) -> ExtractedText:
     text = await loop.run_in_executor(None, _read)
     lines = text.splitlines()
 
+    document = build_document_json(
+        ["\n".join(lines)] if lines else [text],
+        ocr_used=False,
+        include_page_markers=False,
+    )
+
     return ExtractedText(
-        full_text=text,
+        full_text=render_document_text(document) or text,
         pages=lines,
         tables=[],
-        metadata={"file_type": file_type, "line_count": len(lines)},
+        metadata={
+            "file_type": file_type,
+            "line_count": len(lines),
+            "layout_version": "v2",
+            "document_json": document.model_dump(),
+        },
     )
 
 

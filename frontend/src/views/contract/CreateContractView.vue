@@ -9,7 +9,9 @@ import { counterpartiesApi, type CounterpartyItem } from '@/api/counterparties'
 import { templatesApi, type ContractTemplate } from '@/api/templates'
 import { useAuthStore } from '@/stores/auth'
 import { debounce } from '@/utils/debounce'
+import type { DocumentJSON } from '@/types/documentJson'
 import type { Contract, FlowMatchResult } from '@/types/models'
+import ContractContentViewer from '@/components/ContractContentViewer.vue'
 
 const DRAFT_KEY = 'contract-draft'
 const PARSEABLE_EXT = new Set(['pdf', 'docx', 'txt', 'doc'])
@@ -19,7 +21,41 @@ type CreateMode = 'blank' | 'template' | 'history' | 'ai-parse'
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
-const mode = ref<CreateMode>('ai-parse')
+const mode = ref<CreateMode>('blank')
+const wizardStep = ref(0)
+
+const MODE_OPTIONS: { key: CreateMode; title: string; desc: string }[] = [
+  { key: 'blank', title: '空白起草', desc: '手动填写全部字段' },
+  { key: 'template', title: '模板起草', desc: '从已发布模板套用' },
+  { key: 'history', title: '历史引用', desc: '引用历史合同字段' },
+  { key: 'ai-parse', title: '智能起草', desc: '上传文件自动解析' },
+]
+
+function selectMode(m: CreateMode) {
+  mode.value = m
+  wizardStep.value = 1
+}
+
+function wizardBack() {
+  if (wizardStep.value > 0) wizardStep.value -= 1
+}
+
+function wizardNext() {
+  if (wizardStep.value !== 1) return
+  if (mode.value === 'ai-parse' && !parseStatus.value) {
+    ElMessage.warning('请先上传并解析合同文件')
+    return
+  }
+  if (!form.title.trim()) {
+    ElMessage.warning('请填写合同标题')
+    return
+  }
+  if (!form.counterparty_name.trim()) {
+    ElMessage.warning('请选择或填写相对方')
+    return
+  }
+  wizardStep.value = 2
+}
 const submitting = ref(false)
 const flowDialogVisible = ref(false)
 const flowMatch = ref<FlowMatchResult | null>(null)
@@ -28,11 +64,11 @@ const templates = ref<ContractTemplate[]>([])
 const historyContracts = ref<Contract[]>([])
 
 const form = reactive({
-  title: '小额办公耗材采购',
+  title: '',
   contract_type: 'purchase',
-  counterparty_name: '得力集团',
-  amount: 80000,
-  content: '采购办公耗材，金额 8 万元，简易流程演示。',
+  counterparty_name: '',
+  amount: 10000,
+  content: '',
 })
 
 const selectedTemplateId = ref<number | null>(null)
@@ -45,6 +81,10 @@ const parseStatus = ref<{
   confidence?: number
   party_parse_warning?: boolean
   counterparty_corrections?: string[]
+  ocr_needs_review?: boolean
+  ocr_engine?: string | null
+  full_text_raw?: string | null
+  document_json?: DocumentJSON | null
 } | null>(null)
 
 const ocrConfirmChecked = ref(false)
@@ -136,6 +176,10 @@ function fillFormFromParse(
     confidence: f.confidence,
     party_parse_warning: f.party_parse_warning,
     counterparty_corrections: f.counterparty_corrections,
+    ocr_needs_review: f.ocr_needs_review,
+    ocr_engine: data.ocr_engine ?? null,
+    full_text_raw: f.full_text_raw ?? null,
+    document_json: (data.document_json ?? data.extracted_metadata?.document_json) as DocumentJSON | null,
   }
   parseStatus.value = status
   ocrConfirmChecked.value = false
@@ -227,7 +271,8 @@ watch(
 onMounted(async () => {
   const q = route.query.mode
   if (q === 'blank' || q === 'template' || q === 'history' || q === 'ai-parse') {
-    mode.value = q
+    mode.value = q as CreateMode
+    wizardStep.value = 1
   }
   restoreDraft()
   try {
@@ -265,6 +310,10 @@ function applyHistory() {
 }
 
 async function submit() {
+  if (mode.value === 'ai-parse' && !parseStatus.value) {
+    ElMessage.warning('请先上传并完成文件解析')
+    return
+  }
   if (!form.title || !form.counterparty_name || !form.amount) {
     ElMessage.warning('请填写必填项')
     return
@@ -295,7 +344,6 @@ async function submit() {
   }
   submitting.value = true
   try {
-    await auth.switchRole('drafter')
     const flowType = resolveFlowType(form.contract_type, form.amount)
     flowMatch.value = await contractsApi.matchFlow(form.amount)
     const created = await contractsApi.create({
@@ -390,7 +438,7 @@ const modeHint = computed(() => {
   if (mode.value === 'template') return '从已发布模板套用正文与标题'
   if (mode.value === 'history') return '引用历史合同字段快速起草'
   if (mode.value === 'ai-parse') {
-    return '上传 PDF/DOCX/TXT 后自动解析并填写下方字段（扫描件 OCR 约需数分钟）'
+    return '请先上传 PDF/DOCX/TXT，系统将自动解析并填写下方字段（扫描件 OCR 约需数分钟）'
   }
   return '空白起草，填写全部字段'
 })
@@ -402,18 +450,28 @@ function templateLabel(t: ContractTemplate) {
 </script>
 
 <template>
-  <div class="page-card">
-    <div class="page-toolbar">
-      <h2>新建合同</h2>
+  <div class="page-card create-wizard">
+    <el-steps :active="wizardStep" finish-status="success" align-center style="margin-bottom: 24px">
+      <el-step title="选择方式" />
+      <el-step title="基本信息" />
+      <el-step title="正文与提交" />
+    </el-steps>
+
+    <div v-if="wizardStep === 0" class="mode-grid">
+      <el-card
+        v-for="opt in MODE_OPTIONS"
+        :key="opt.key"
+        shadow="hover"
+        class="mode-card"
+        @click="selectMode(opt.key)"
+      >
+        <h3>{{ opt.title }}</h3>
+        <p>{{ opt.desc }}</p>
+      </el-card>
     </div>
 
-    <el-tabs v-model="mode" style="margin-bottom: 16px">
-      <el-tab-pane label="空白起草" name="blank" />
-      <el-tab-pane label="模板起草" name="template" />
-      <el-tab-pane label="历史引用" name="history" />
-      <el-tab-pane label="智能起草" name="ai-parse" />
-    </el-tabs>
-    <p class="mode-hint">{{ modeHint }}</p>
+    <template v-if="wizardStep === 1">
+      <p class="mode-hint">{{ modeHint }}</p>
 
     <el-form v-if="mode === 'template'" label-width="100px" style="max-width: 640px; margin-bottom: 16px">
       <el-form-item label="选择模板">
@@ -447,8 +505,13 @@ function templateLabel(t: ContractTemplate) {
       </el-form-item>
     </el-form>
 
-    <el-form label-width="120px" style="max-width: 640px">
-      <el-form-item v-if="mode === 'ai-parse'" label="上传合同文件" required>
+    <el-form
+      v-if="mode === 'ai-parse'"
+      label-width="120px"
+      style="max-width: 640px; margin-bottom: 16px"
+      data-testid="ai-parse-upload-form"
+    >
+      <el-form-item label="上传合同文件" required>
         <el-upload
           drag
           :auto-upload="true"
@@ -456,6 +519,7 @@ function templateLabel(t: ContractTemplate) {
           accept=".pdf,.docx,.txt,.doc"
           :disabled="parseLoading"
           :before-upload="onParseFile"
+          data-testid="ai-parse-upload"
         >
           <div class="upload-dragger-inner">
             <p>拖拽或点击上传 PDF / DOCX / TXT</p>
@@ -484,7 +548,7 @@ function templateLabel(t: ContractTemplate) {
           type="warning"
           :closable="false"
           show-icon
-          title="相对方名称疑似 OCR 识别错误，请在下方的「相对方」字段中核对或修正。"
+          title="相对方名称疑似 OCR 识别错误，请在下方字段中核对或修正。"
           style="margin-top: 8px"
         />
         <el-alert
@@ -500,6 +564,13 @@ function templateLabel(t: ContractTemplate) {
         </el-alert>
         <span v-if="pendingFile" class="pending-file">{{ pendingFile.name }}</span>
       </el-form-item>
+    </el-form>
+
+    <p v-if="mode === 'ai-parse' && !parseStatus && !parseLoading" class="parse-wait-hint">
+      上传合同文件后，系统将自动识别并填写下方字段
+    </p>
+
+    <el-form v-if="mode !== 'ai-parse' || parseStatus" label-width="120px" style="max-width: 640px">
       <el-form-item label="合同标题" required>
         <el-input v-model="form.title" />
       </el-form-item>
@@ -539,10 +610,38 @@ function templateLabel(t: ContractTemplate) {
       <el-form-item label="金额（元）" required>
         <el-input-number v-model="form.amount" :min="1" :step="1000" style="width: 100%" />
       </el-form-item>
-      <el-form-item label="合同正文">
-        <el-input v-model="form.content" type="textarea" :rows="6" />
+      <div class="wizard-nav">
+        <el-button @click="wizardBack">上一步</el-button>
+        <el-button type="primary" @click="wizardNext">下一步</el-button>
+      </div>
+    </el-form>
+    </template>
+
+    <template v-if="wizardStep === 2">
+      <p v-if="mode === 'ai-parse'" class="mode-hint">核对正文与 OCR 字段，确认无误后提交审批</p>
+      <div v-if="mode === 'ai-parse' && parseStatus" class="content-viewer-wrap">
+        <ContractContentViewer
+          v-model="form.content"
+          :source-file="pendingFile"
+          :ocr-used="Boolean(parseStatus?.ocr_used)"
+          :ocr-engine="parseStatus?.ocr_engine"
+          :confidence="parseStatus?.confidence"
+          :ocr-needs-review="Boolean(parseStatus?.ocr_needs_review)"
+          :char-count="parseStatus?.char_count"
+          :full-text-raw="parseStatus?.full_text_raw"
+          :document-json="parseStatus?.document_json"
+          :default-reading-mode="false"
+          :min-rows="18"
+        />
         <p v-if="contentHint" class="content-hint">{{ contentHint }}</p>
-      </el-form-item>
+      </div>
+      <el-form v-else label-width="120px" style="max-width: 640px">
+        <el-form-item label="合同正文">
+          <el-input v-model="form.content" type="textarea" :rows="6" />
+          <p v-if="contentHint" class="content-hint">{{ contentHint }}</p>
+        </el-form-item>
+      </el-form>
+      <el-form label-width="120px" style="max-width: 640px">
       <el-form-item v-if="mode !== 'ai-parse'" :label="attachmentLabel">
         <el-upload
           :auto-upload="true"
@@ -560,10 +659,12 @@ function templateLabel(t: ContractTemplate) {
           我已核对 OCR 解析的标题、相对方、金额与正文，确认无误后再提交
         </el-checkbox>
       </el-form-item>
-      <el-form-item>
+      </el-form>
+      <div class="wizard-footer">
+        <el-button @click="wizardBack">上一步</el-button>
         <el-button type="primary" :loading="submitting" @click="submit">提交审批</el-button>
-      </el-form-item>
-    </el-form>
+      </div>
+    </template>
 
     <el-dialog v-model="flowDialogVisible" title="流程匹配" width="520px">
       <p>流程类型：{{ flowMatch?.flow_type || 'simple' }}</p>
@@ -591,6 +692,42 @@ function templateLabel(t: ContractTemplate) {
   font-size: 13px;
   margin: 0 0 12px;
 }
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 880px;
+}
+.mode-card {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.mode-card:hover {
+  transform: translateY(-2px);
+}
+.mode-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+.mode-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+.wizard-nav,
+.wizard-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+.wizard-footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding-bottom: 8px;
+}
 .pending-file {
   margin-left: 8px;
   font-size: 12px;
@@ -604,6 +741,11 @@ function templateLabel(t: ContractTemplate) {
 .parse-status-warn {
   color: #d97706;
 }
+.parse-wait-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #9ca3af;
+}
 .correction-list {
   margin: 4px 0 0;
   padding-left: 18px;
@@ -613,6 +755,11 @@ function templateLabel(t: ContractTemplate) {
   margin-top: 6px;
   font-size: 12px;
   color: #6b7280;
+}
+.content-viewer-wrap {
+  width: 100%;
+  max-width: min(1400px, 100%);
+  margin-bottom: 16px;
 }
 .upload-dragger-inner {
   padding: 12px 0;

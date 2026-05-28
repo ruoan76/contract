@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.services.ai_review.text_extractor import extract_text
+from app.services.ai_review.text_normalize import normalize_contract_text
+from app.services.ai_review.ocr_postprocess import enrich_fields_with_dictionary
 from app.services.parse_llm_service import (
     detect_party_parse_warning,
     extract_fields_with_llm,
@@ -144,9 +146,11 @@ async def extract_bytes_to_text(
 
     extracted_metadata: dict[str, Any] = {}
     text = ""
+    text_raw = ""
     try:
         extracted = await extract_text(tmp_path, file_type)
-        text = extracted.full_text or ""
+        text_raw = extracted.full_text or ""
+        text = normalize_contract_text(text_raw)
         extracted_metadata = extracted.metadata or {}
     except Exception:
         for enc in ("utf-8", "gbk", "latin-1"):
@@ -157,6 +161,8 @@ async def extract_bytes_to_text(
                 continue
         if not text:
             text = content.decode("utf-8", errors="replace")
+        text_raw = text
+        text = normalize_contract_text(text)
     finally:
         try:
             os.unlink(tmp_path)
@@ -199,6 +205,9 @@ async def parse_contract_file(
             fields = _merge_llm_fields(fields, llm_fields)
 
     if db is not None:
+        from sqlalchemy import select
+        from app.models.counterparty import Counterparty
+
         party_a, party_b, corrections = await fuzzy_match_counterparty_names(
             db,
             fields.get("party_a"),
@@ -215,8 +224,19 @@ async def parse_contract_file(
                 fields.get("party_b"),
             )
 
+        cp_result = await db.execute(
+            select(Counterparty.name).where(Counterparty.status == 1)
+        )
+        cp_names = [row[0] for row in cp_result.all() if row[0]]
+        fields = enrich_fields_with_dictionary(fields, cp_names)
+        if fields.get("party_parse_warning"):
+            fields["confidence"] = min(float(fields.get("confidence") or 0.75), 0.55)
+
     fields["text_preview"] = text[:500]
     fields["full_text"] = text
+    raw_from_meta = extracted_metadata.get("full_text_raw")
+    if raw_from_meta:
+        fields["full_text_raw"] = raw_from_meta
     fields["file_type"] = file_type
     fields["char_count"] = len(text)
     fields["ocr_used"] = ocr_used
@@ -227,6 +247,9 @@ async def parse_contract_file(
         fields["confidence"] = 0.2
     elif ocr_used:
         fields["confidence"] = min(float(fields.get("confidence") or 0.75), 0.65)
+        if extracted_metadata.get("ocr_needs_review"):
+            fields["confidence"] = min(float(fields.get("confidence") or 0.65), 0.5)
+            fields["ocr_needs_review"] = True
 
     return {
         "filename": filename,
@@ -234,4 +257,7 @@ async def parse_contract_file(
         "extracted_metadata": extracted_metadata,
         "ocr_used": ocr_used,
         "char_count": len(text),
+        "layout_version": extracted_metadata.get("layout_version"),
+        "ocr_engine": extracted_metadata.get("ocr_engine"),
+        "document_json": extracted_metadata.get("document_json"),
     }
