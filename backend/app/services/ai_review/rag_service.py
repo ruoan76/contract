@@ -17,18 +17,16 @@ from app.services.ai_review.seed_store import get_risk_templates_purchase
 
 logger = logging.getLogger(__name__)
 
-SNIPPETS_PATH = (
-    Path(__file__).resolve().parents[3] / "seeds" / "ai_review" / "legal_snippets.json"
-)
+def clear_snippet_cache() -> None:
+    _bm25_index.cache_clear()
 
 
 def _load_snippets() -> list[dict[str, Any]]:
+    from app.services.ai_review.config_store import get_legal_snippets
+
     try:
-        raw = json.loads(SNIPPETS_PATH.read_text(encoding="utf-8"))
-        if isinstance(raw, list):
-            return raw
-        return raw.get("items", [])
-    except (OSError, json.JSONDecodeError) as exc:
+        return get_legal_snippets() or []
+    except Exception as exc:
         logger.warning("legal_snippets 加载失败: %s", exc)
         return []
 

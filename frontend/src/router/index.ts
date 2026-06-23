@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { canAccessRoute } from './permissions'
 import { useAuthStore } from '@/stores/auth'
 import { getToken } from '@/api/client'
+import { NAV_ITEMS } from './nav'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -132,6 +134,12 @@ const router = createRouter({
           meta: { title: '审批配置' },
         },
         {
+          path: 'ai-rules',
+          name: 'ai-rules-hub',
+          component: () => import('@/views/system/AiRulesHubView.vue'),
+          meta: { title: 'AI 规则中心' },
+        },
+        {
           path: 'users',
           name: 'users',
           component: () => import('@/views/system/UsersView.vue'),
@@ -177,6 +185,10 @@ router.beforeEach(async (to, _from, next) => {
   }
   const name = to.name as string | undefined
   if (name && !canAccessRoute(auth.role, name)) {
+    const nav = NAV_ITEMS.find((n) => n.name === name)
+    ElMessage.warning(
+      nav ? `当前角色（${auth.roleLabel}）无权访问「${nav.title}」` : '当前角色无权访问该页面',
+    )
     next({ name: 'dashboard' })
     return
   }

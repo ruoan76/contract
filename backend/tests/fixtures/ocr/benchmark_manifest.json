@@ -1,0 +1,110 @@
+[
+  {
+    "id": "clean_party_snippet",
+    "type": "text",
+    "description": "清晰甲乙双方与金额片段",
+    "reference": "甲方：甘肃省烟草公司兰州市公司\n乙方：浪潮软件股份有限公司\n合同金额：1958000元",
+    "fields": {
+      "party_a": "甘肃省烟草公司兰州市公司",
+      "party_b": "浪潮软件股份有限公司",
+      "amount": 1958000
+    },
+    "max_cer": 0.15
+  },
+  {
+    "id": "clause_snippet",
+    "type": "text",
+    "description": "条款与金额",
+    "reference": "第一条 总则\n本合同由甲乙双方本着平等自愿的原则签订。\n合同金额人民币 80000 元整。",
+    "fields": {
+      "amount": 80000
+    },
+    "max_cer": 0.12
+  },
+  {
+    "id": "service_contract_title",
+    "type": "text",
+    "description": "服务合同标题页",
+    "reference": "青海烟草新零售系统采购合同\n甲方：青海省烟草公司\n乙方：浪潮软件股份有限公司",
+    "fields": {
+      "title": "青海烟草新零售系统采购合同",
+      "party_a": "青海省烟草公司",
+      "party_b": "浪潮软件股份有限公司"
+    },
+    "max_cer": 0.18
+  },
+  {
+    "id": "lanzhou_contract_header",
+    "type": "text",
+    "description": "兰州烟草信息化项目合同首页",
+    "reference": "甘肃省烟草公司兰州市公司2018年卷烟营销网建信息化项目建设合同\n甲方：甘肃省烟草公司兰州市公司\n乙方：浪潮软件股份有限公司\n合同总价：1958000元",
+    "fields": {
+      "party_a": "甘肃省烟草公司兰州市公司",
+      "party_b": "浪潮软件股份有限公司",
+      "amount": 1958000
+    },
+    "max_cer": 0.18
+  },
+  {
+    "id": "payment_terms",
+    "type": "text",
+    "description": "付款条款片段",
+    "reference": "第三条 付款方式\n甲方应在验收合格后30日内支付合同金额的95%，剩余5%作为质保金。",
+    "fields": {},
+    "max_cer": 0.15
+  },
+  {
+    "id": "signature_page",
+    "type": "text",
+    "description": "签章页常见字段",
+    "reference": "（以下无正文）\n甲方（盖章）：甘肃省烟草公司兰州市公司\n乙方（盖章）：浪潮软件股份有限公司\n签署日期：2018年6月",
+    "fields": {
+      "party_a": "甘肃省烟草公司兰州市公司",
+      "party_b": "浪潮软件股份有限公司"
+    },
+    "max_cer": 0.2
+  },
+  {
+    "id": "ocr_noise_reference",
+    "type": "text",
+    "description": "模拟 OCR 噪声基准（用于 postprocess 回归）",
+    "reference": "甲方：甘肃省烟草公司兰州市公司\n乙方：浪潮软件股份有限公司",
+    "hypothesis_for_postprocess": "甲方：甘-省烟堂公司兰灿茧公司\n乙方：浪潮软住股俭直限公司",
+    "fields": {
+      "party_a": "甘肃省烟草公司兰州市公司",
+      "party_b": "浪潮软件股份有限公司"
+    },
+    "max_cer": 0.35,
+    "skip_ocr": true
+  },
+  {
+    "id": "amount_wan_yuan",
+    "type": "text",
+    "description": "万元金额表达",
+    "reference": "合同金额人民币195.8万元（含税）。",
+    "fields": {
+      "amount": 1958000
+    },
+    "max_cer": 0.15
+  },
+  {
+    "id": "real_lanzhou_pdf_p0",
+    "type": "pdf_page",
+    "description": "兰州烟草合同 PDF 第1页（本地全量 OCR 基准）",
+    "pdf": "data/contract-files/contracts/CON-202605-0049/甘肃省烟草公司兰州市公司2018年卷烟营销网建信息化项目建设合同-195.8万.pdf",
+    "page": 0,
+    "reference": "甘肃省烟草公司兰州市公司2018年卷烟营销网建信息化项目建设合同",
+    "max_cer": 0.35,
+    "skip_ci": true
+  },
+  {
+    "id": "real_qinghai_pdf_p0",
+    "type": "pdf_page",
+    "description": "青海烟草合同 PDF 第1页",
+    "pdf": "data/contract-files/contracts/CON-202605-0042/青海烟草新零售系统采购合同.pdf",
+    "page": 0,
+    "reference": "青海烟草新零售系统采购合同",
+    "max_cer": 0.35,
+    "skip_ci": true
+  }
+]

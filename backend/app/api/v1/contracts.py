@@ -2,6 +2,7 @@
 合同管理 API
 """
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import DataError, IntegrityError
@@ -21,10 +22,12 @@ from app.services.contract_service import (
     list_dashboard_buckets,
     save_contract_upload,
     list_contract_versions,
+    read_contract_attachment,
 )
 from app.services.flow_match_service import get_flow_match_detail
 from app.services.review_service import submit_revision
 from app.services.ai_review_service import start_review
+from app.core.rbac import get_user_role_code
 from app.utils.auth import get_current_user
 from app.exceptions import BusinessError
 
@@ -65,6 +68,9 @@ async def create(
                 counterparty_credit_code=body.counterparty_credit_code,
                 amount=body.amount,
                 content=body.content,
+                template_id=body.template_id,
+                template_version=body.template_version,
+                template_values=body.template_values,
                 creator_id=user.id,
                 db=db,
             )
@@ -159,6 +165,26 @@ async def versions(
         raise
 
 
+@router.get("/{contract_id}/attachment", summary="下载合同最新附件")
+async def download_attachment(
+    contract_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """返回最新版本附件，供详情页原文对照预览。"""
+    try:
+        result = await read_contract_attachment(db, contract_id)
+    except BusinessError as e:
+        if "not found" in str(e):
+            raise HTTPException(status_code=404, detail="合同不存在") from e
+        raise
+    if not result:
+        raise HTTPException(status_code=404, detail="暂无附件")
+    content, filename, content_type = result
+    headers = {"Content-Disposition": f'inline; filename="{filename}"'}
+    return Response(content=content, media_type=content_type, headers=headers)
+
+
 @router.get("/{contract_id}", summary="合同详情")
 async def get(
     contract_id: int,
@@ -208,13 +234,22 @@ async def delete(
 ):
     """删除合同"""
     try:
-        result = await delete_contract(contract_id=contract_id, db=db)
+        role_code = await get_user_role_code(db, user)
+        is_admin = role_code == "admin"
+        result = await delete_contract(
+            contract_id=contract_id,
+            user_id=user.id,
+            is_admin=is_admin,
+            db=db,
+        )
         return {"code": 200, "message": result["message"]}
     except BusinessError as e:
         if "not found" in str(e):
             raise HTTPException(status_code=404, detail="合同不存在")
         if "only draft can be deleted" in str(e):
             raise HTTPException(status_code=400, detail="合同状态不允许删除")
+        if "仅创建人或管理员可删除草稿" in str(e):
+            raise HTTPException(status_code=403, detail=str(e))
         raise
 
 

@@ -4,7 +4,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_, and_
 from typing import Optional
 
 from app.core.rbac import require_any_role
@@ -46,38 +46,45 @@ async def list_users(
     keyword: Optional[str] = None,
     department_id: Optional[int] = None,
     role_id: Optional[int] = None,
+    status: Optional[int] = Query(None, ge=0, le=1, description="1 启用 0 禁用，不传则全部"),
     db: AsyncSession = Depends(get_db),
+    _user: User = Depends(_admin),
 ):
-    """获取用户列表"""
-    conditions = [User.status == 1]
+    """获取用户列表（仅管理员）"""
+    conditions = []
+    if status is not None:
+        conditions.append(User.status == status)
     if keyword:
-        conditions.extend([
-            User.username.contains(keyword),
-            User.real_name.contains(keyword),
-            User.email.contains(keyword),
-        ])
+        kw = f"%{keyword}%"
+        conditions.append(
+            or_(
+                User.username.like(kw),
+                User.real_name.like(kw),
+                User.email.like(kw),
+            )
+        )
     if department_id:
         conditions.append(User.department_id == department_id)
     if role_id is not None:
         conditions.append(User.role_id == role_id)
     
-    # 总数
-    count_query = select(func.count()).select_from(User).where(*conditions)
+    where_clause = and_(*conditions) if conditions else True
+
+    count_query = select(func.count()).select_from(User).where(where_clause)
     total = await db.scalar(count_query)
-    
-    # 分页查询
+
     query = (
         select(User, Department.name.label("department_name"), Role.name.label("role_name"))
         .outerjoin(Department, User.department_id == Department.id)
         .outerjoin(Role, User.role_id == Role.id)
-        .where(*conditions)
+        .where(where_clause)
         .order_by(User.created_at.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
     result = await db.execute(query)
     rows = result.all()
-    
+
     items = []
     for user, dept_name, role_name in rows:
         items.append({
@@ -90,9 +97,49 @@ async def list_users(
             "role_name": role_name,
             "role_id": user.role_id,
             "status": user.status,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
         })
     
     return {"code": 200, "data": {"total": total, "page": page, "page_size": page_size, "items": items}}
+
+
+@router.get("/users/options", summary="用户选项（委托等，已登录即可）")
+async def list_user_options(
+    keyword: Optional[str] = None,
+    page_size: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """供审批委托等场景选择用户，仅返回启用用户的基础字段。"""
+    conditions = [User.status == 1]
+    if keyword:
+        kw = f"%{keyword}%"
+        conditions.append(
+            or_(
+                User.username.like(kw),
+                User.real_name.like(kw),
+            )
+        )
+    where_clause = and_(*conditions)
+    query = (
+        select(User, Role.name.label("role_name"))
+        .outerjoin(Role, User.role_id == Role.id)
+        .where(where_clause)
+        .order_by(User.real_name)
+        .limit(page_size)
+    )
+    result = await db.execute(query)
+    rows = result.all()
+    items = [
+        {
+            "id": u.id,
+            "username": u.username,
+            "real_name": u.real_name,
+            "role_name": role_name,
+        }
+        for u, role_name in rows
+    ]
+    return {"code": 200, "data": {"items": items}}
 
 
 @router.post("/users", summary="创建用户（管理员）")
@@ -191,7 +238,10 @@ async def update_user(
 
 
 @router.get("/roles", summary="角色列表")
-async def list_roles(db: AsyncSession = Depends(get_db)):
+async def list_roles(
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(_admin),
+):
     """获取角色列表"""
     result = await db.execute(select(Role).where(Role.status == 1))
     roles = result.scalars().all()
@@ -231,15 +281,21 @@ async def list_departments(db: AsyncSession = Depends(get_db)):
 @router.post("/login", summary="用户登录")
 async def login(username: str, password: str, db: AsyncSession = Depends(get_db)):
     """用户登录"""
-    result = await db.execute(select(User).where(User.username == username, User.status == 1))
-    user = result.scalar_one_or_none()
-    
-    if not user or not verify_password(password, user.password_hash):
+    result = await db.execute(
+        select(User, Role.code.label("role_code"), Role.name.label("role_name"))
+        .outerjoin(Role, User.role_id == Role.id)
+        .where(User.username == username, User.status == 1)
+    )
+    row = result.fetchone()
+    if not row:
         raise HTTPException(status_code=400, detail="用户名或密码错误")
-    
-    # 创建Token
+    user, role_code, role_name = row
+
+    if not verify_password(password, user.password_hash):
+        raise HTTPException(status_code=400, detail="用户名或密码错误")
+
     token = create_access_token(data={"sub": str(user.id)})
-    
+
     return {
         "code": 200,
         "data": {
@@ -252,8 +308,10 @@ async def login(username: str, password: str, db: AsyncSession = Depends(get_db)
                 "phone": user.phone,
                 "department_id": user.department_id,
                 "role_id": user.role_id,
-            }
-        }
+                "role_code": role_code,
+                "role_name": role_name,
+            },
+        },
     }
 
 
@@ -262,18 +320,23 @@ async def get_profile(user: User = Depends(get_current_user), db: AsyncSession =
     """获取当前用户信息"""
     # 获取用户详情（包含部门和角色）
     result = await db.execute(
-        select(User, Department.name.label("department_name"), Role.name.label("role_name"))
+        select(
+            User,
+            Department.name.label("department_name"),
+            Role.name.label("role_name"),
+            Role.code.label("role_code"),
+        )
         .outerjoin(Department, User.department_id == Department.id)
         .outerjoin(Role, User.role_id == Role.id)
         .where(User.id == user.id)
     )
     row = result.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail="用户不存在")
-    
-    user_obj, dept_name, role_name = row
-    
+
+    user_obj, dept_name, role_name, role_code = row
+
     return {
         "code": 200,
         "data": {
@@ -284,6 +347,7 @@ async def get_profile(user: User = Depends(get_current_user), db: AsyncSession =
             "phone": user_obj.phone,
             "department_name": dept_name,
             "role_name": role_name,
+            "role_code": role_code,
             "permissions": user_obj.role.permissions if hasattr(user_obj, "role") and user_obj.role else [],
-        }
+        },
     }

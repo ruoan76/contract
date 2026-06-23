@@ -115,6 +115,29 @@ class TestListContractsAPI:
         assert "total" in data["data"]
         assert "items" in data["data"]
 
+    async def test_list_contracts_includes_date_fields(self, api_client, mock_auth_headers):
+        headers = mock_auth_headers(user_id=1, role="user")
+        create_response = await api_client.post(
+            "/api/v1/contracts/",
+            json={
+                "title": "日期字段测试合同",
+                "contract_type": "service",
+                "counterparty_name": "公司",
+                "amount": 100000,
+            },
+            headers=headers,
+        )
+        assert create_response.status_code == 200
+
+        response = await api_client.get("/api/v1/contracts/")
+        assert response.status_code == 200
+        items = response.json()["data"]["items"]
+        assert len(items) >= 1
+        item = items[0]
+        assert "created_at" in item
+        assert "start_date" in item
+        assert "end_date" in item
+
 
 @pytest.mark.unit
 class TestUpdateContractAPI:
@@ -204,3 +227,73 @@ class TestDeleteContractAPI:
             headers=headers,
         )
         assert response.status_code == 404
+
+    async def test_delete_contract_forbidden_non_creator(self, client_for_user):
+        """非创建人删除他人草稿应返回 403"""
+        async with await client_for_user("drafter") as drafter:
+            create_resp = await drafter.post(
+                "/api/v1/contracts/",
+                json={
+                    "title": "他人草稿",
+                    "contract_type": "service",
+                    "counterparty_name": "公司",
+                },
+            )
+            contract_id = create_resp.json()["data"]["id"]
+
+        async with await client_for_user("approver") as approver:
+            response = await approver.delete(f"/api/v1/contracts/{contract_id}")
+
+        assert response.status_code == 403
+        assert "仅创建人或管理员可删除草稿" in response.json()["detail"]
+
+    async def test_delete_contract_admin(self, client_for_user):
+        """管理员可删除他人草稿"""
+        async with await client_for_user("drafter") as drafter:
+            create_resp = await drafter.post(
+                "/api/v1/contracts/",
+                json={
+                    "title": "待管理员删除",
+                    "contract_type": "service",
+                    "counterparty_name": "公司",
+                },
+            )
+            contract_id = create_resp.json()["data"]["id"]
+
+        async with await client_for_user("admin") as admin:
+            response = await admin.delete(f"/api/v1/contracts/{contract_id}")
+
+        assert response.status_code == 200
+        assert "deleted" in response.json()["message"]
+
+    async def test_delete_contract_not_draft(self, client_for_user):
+        """非草稿状态删除应返回 400"""
+        from sqlalchemy import update
+
+        from app.db.database import async_session
+        from app.models.contract import Contract
+
+        async with await client_for_user("drafter") as drafter:
+            create_resp = await drafter.post(
+                "/api/v1/contracts/",
+                json={
+                    "title": "已提交合同",
+                    "contract_type": "service",
+                    "counterparty_name": "公司",
+                },
+            )
+            contract_id = create_resp.json()["data"]["id"]
+
+        async with async_session() as session:
+            await session.execute(
+                update(Contract)
+                .where(Contract.id == contract_id)
+                .values(status="pending")
+            )
+            await session.commit()
+
+        async with await client_for_user("drafter") as drafter:
+            response = await drafter.delete(f"/api/v1/contracts/{contract_id}")
+
+        assert response.status_code == 400
+        assert "不允许删除" in response.json()["detail"]

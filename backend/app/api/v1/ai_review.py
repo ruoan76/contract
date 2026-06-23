@@ -1,6 +1,8 @@
 """
 AI 审查 API
 """
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +24,8 @@ from app.services.ai_review_issue_service import list_review_issues, update_issu
 from app.services.ai_review_report_service import generate_review_report
 from app.utils.auth import get_current_user
 from app.exceptions import BusinessError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -83,6 +87,7 @@ async def review_contract(
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception("AI 审查未预期失败 contract_id=%s", body.contract_id)
         raise HTTPException(status_code=500, detail=f"AI 审查失败: {e}") from e
     
     return {

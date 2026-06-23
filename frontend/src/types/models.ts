@@ -27,16 +27,29 @@ export interface Contract {
   content?: string
   current_flow_id?: number
   created_at?: string
+  creator_id?: number
+  start_date?: string
+  end_date?: string
+  sign_date?: string
+  archive_date?: string
 }
 
 export interface ApprovalPendingItem {
   flow_id: number
   contract_id: number
+  contract_no?: string
   contract_title?: string
   title?: string
+  amount?: number
+  counterparty_name?: string
+  contract_type?: string
   current_step?: number
+  current_node?: string
+  current_node_name?: string
   flow_type?: string
   ai_risk_level?: string
+  ai_review_status?: string
+  created_at?: string
 }
 
 export interface DashboardBucketItem {
@@ -67,6 +80,7 @@ export interface DashboardData {
 
 export interface FlowMatchResult {
   flow_type: string
+  flow_label?: string
   steps?: Array<{ step: number; role: string; name?: string }>
   [key: string]: unknown
 }

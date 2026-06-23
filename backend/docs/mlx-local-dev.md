@@ -59,6 +59,25 @@ AI_MAX_TOKENS=2048
 | `AI_REVIEW_MOCK=0` | 调用真实 MLX |
 | `AI_REVIEW_SYNC=1` | 同步审查，无需 Celery（本地推荐） |
 
+## 3.1 数据库迁移（SQLite 开发库）
+
+ORM 与 `contract_dev.db` 不一致时，常见报错：`no such column: contracts.template_id`，创建合同/看板/模板列表会 500。
+
+```bash
+cd backend
+export DATABASE_URL=sqlite+aiosqlite:///./contract_dev.db
+alembic current
+alembic upgrade head
+```
+
+若某步因「表已存在」失败（`create_all` 与 Alembic 混用），可对已存在对象 `alembic stamp <revision>` 后再次 `upgrade head`；仍失败可删库重建：
+
+```bash
+rm -f contract_dev.db
+alembic upgrade head
+python scripts/seed_dev.py
+```
+
 ## 3. MLX 服务
 
 若本机 **已有** `mlx_lm.server`（如 27366），无需再启动。
@@ -94,13 +113,24 @@ curl -s http://127.0.0.1:8000/health
 
 ## 5.1 扫描 PDF + OCR 验收
 
-扫描件（无文字层）在 `AI_OCR_ENABLED=1` 时由 EasyOCR 回退提取正文（依赖 `easyocr`，首次会下载模型）。
+扫描件（无文字层）在 `AI_OCR_ENABLED=1` 时由 **RapidOCR（默认）** 或 EasyOCR 回退提取正文。
 
 | 变量 | 默认 | 说明 |
 |------|------|------|
 | `AI_OCR_ENABLED` | `true` | 关闭则仅 PyMuPDF 文本层 |
+| `AI_OCR_ENGINE` | `rapidocr` | `easyocr` \| `rapidocr` |
 | `AI_OCR_MIN_CHARS` | `200` | 低于此字数触发 OCR |
 | `AI_OCR_MAX_PAGES` | `40` | 超限返回 400 |
+| `AI_OCR_USE_MPS` | `true` | Apple Silicon MPS 加速 EasyOCR |
+| `AI_OCR_VLM_FALLBACK` | `false` | 低置信页 LLM 纠错兜底 |
+
+**OCR 基准评测**：
+
+```bash
+cd backend
+python3 scripts/benchmark_ocr.py --skip-heavy          # CI 轻量（postprocess）
+python3 scripts/benchmark_ocr.py --engine rapidocr     # 全量引擎评测
+```
 
 **一键脚本**（需 API:8000、MLX、`pip install easyocr`）：
 

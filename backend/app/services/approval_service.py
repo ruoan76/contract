@@ -55,13 +55,20 @@ _DEFAULT_FLOW_CONFIG: dict[str, Any] = {
 _flow_config_cache: dict[str, Any] | None = None
 
 
+def clear_flow_config_cache() -> None:
+    global _flow_config_cache
+    _flow_config_cache = None
+
+
 def _load_flow_config() -> dict[str, Any]:
     """加载流程配置，优先读取 flow_config.json，否则使用内置默认值"""
     global _flow_config_cache
     if _flow_config_cache is not None:
         return _flow_config_cache
 
-    config_path = os.path.join(os.path.dirname(__file__), "flow_config.json")
+    from app.services.config_service import FLOW_CONFIG_FILE
+
+    config_path = FLOW_CONFIG_FILE
     if os.path.isfile(config_path):
         try:
             with open(config_path, "r", encoding="utf-8") as f:
@@ -145,14 +152,64 @@ NODE_TO_ROLE_CODE: dict[str, str] = {
     "board_approval": "executive",
 }
 
+# 节点 ID → 展示名（与 flow_config.json 一致）
+NODE_DISPLAY_NAMES: dict[str, str] = {
+    "dept_approval": "部门审批",
+    "legal_review": "法务审查",
+    "finance_review": "财务审查",
+    "executive_approval": "高管审批",
+    "board_approval": "董事会审批",
+    "done": "已完成",
+}
+
+
+def node_display_name(node_id: Optional[str]) -> str:
+    if not node_id:
+        return "—"
+    return NODE_DISPLAY_NAMES.get(node_id, node_id)
+
+
+async def _latest_ai_risk_by_contract(
+    db: AsyncSession, contract_ids: list[int]
+) -> dict[int, dict[str, Optional[str]]]:
+    """批量取各合同最新 AI 审查等级与状态。"""
+    if not contract_ids:
+        return {}
+
+    result = await db.execute(
+        select(AIReview)
+        .where(AIReview.contract_id.in_(contract_ids))
+        .order_by(AIReview.contract_id, AIReview.created_at.desc())
+    )
+    reviews = result.scalars().all()
+    by_contract: dict[int, dict[str, Optional[str]]] = {}
+    for review in reviews:
+        if review.contract_id not in by_contract:
+            by_contract[review.contract_id] = {
+                "ai_risk_level": review.overall_risk_level,
+                "ai_review_status": review.review_status,
+            }
+    return by_contract
+
 
 async def resolve_approver_for_node(
     db: AsyncSession,
     node_id: str,
     fallback_user_id: int,
+    flow_type: Optional[str] = None,
 ) -> tuple[int, str]:
-    """按节点 ID 解析审批人 user_id 与显示名。"""
+    """按节点 ID 解析审批人；优先 flow_config 节点上的 user_id，否则按角色查库。"""
     from app.models.contract import Role
+
+    if flow_type:
+        config = _load_flow_config()
+        flow_def = config.get(flow_type) or {}
+        for node in flow_def.get("nodes", []):
+            if node.get("node_id") == node_id and node.get("user_id") is not None:
+                uid = int(node["user_id"])
+                user = await db.get(User, uid)
+                if user and user.status == 1:
+                    return user.id, user.real_name or user.username or str(user.id)
 
     role_code = NODE_TO_ROLE_CODE.get(node_id)
     if not role_code:
@@ -220,7 +277,7 @@ async def submit_approval(
     # 创建初始审批步骤
     first_node = nodes[0]
     approver_id, approver_name = await resolve_approver_for_node(
-        db, first_node["node_id"], user_id
+        db, first_node["node_id"], user_id, flow_type=req.flow_type
     )
     step = ApprovalStep(
         flow_id=flow.id,
@@ -388,7 +445,7 @@ async def approve_step(
             if flow.current_step < len(nodes):
                 next_node = nodes[flow.current_step]
                 next_approver_id, next_approver_name = await resolve_approver_for_node(
-                    db, next_node["node_id"], user_id
+                    db, next_node["node_id"], user_id, flow_type=flow_type
                 )
                 db.add(
                     ApprovalStep(
@@ -607,13 +664,16 @@ async def get_pending_approvals(
     page: int = 1,
     page_size: int = 20,
     contract_type: Optional[str] = None,
+    *,
+    include_all: bool = False,
 ) -> dict:
-    """获取待办审批列表 — 仅返回当前用户为 pending 步骤审批人的流程。"""
+    """获取待办审批列表 — 默认仅当前用户为 pending 步骤审批人；admin 可看全部。"""
     conditions = [
         ApprovalFlow.status == "approving",
         ApprovalStep.status == "pending",
-        ApprovalStep.approver_id == user_id,
     ]
+    if not include_all:
+        conditions.append(ApprovalStep.approver_id == user_id)
     if contract_type:
         conditions.append(Contract.contract_type == contract_type)
 
@@ -638,8 +698,15 @@ async def get_pending_approvals(
     result = await db.execute(query)
     rows = result.all()
 
+    contract_ids = [contract.id for _, contract in rows]
+    ai_by_contract = await _latest_ai_risk_by_contract(db, contract_ids)
+
     items = []
     for flow, contract in rows:
+        ai_meta = ai_by_contract.get(contract.id, {})
+        ai_level = ai_meta.get("ai_risk_level") or contract.risk_level or "unknown"
+        if ai_level in ("critical",):
+            ai_level = "high"
         items.append(
             {
                 "flow_id": flow.id,
@@ -648,10 +715,14 @@ async def get_pending_approvals(
                 "title": contract.title,
                 "contract_title": contract.title,
                 "amount": contract.amount,
+                "counterparty_name": contract.counterparty_name,
+                "contract_type": contract.contract_type,
                 "current_node": flow.current_node_id,
+                "current_node_name": node_display_name(flow.current_node_id),
                 "current_step": flow.current_step,
                 "flow_type": flow.flow_type,
-                "ai_risk_level": contract.risk_level or "unknown",
+                "ai_risk_level": ai_level,
+                "ai_review_status": ai_meta.get("ai_review_status"),
                 "created_at": flow.created_at,
             }
         )

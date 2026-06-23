@@ -1,28 +1,76 @@
 {
   "thresholds": {
     "simple_max": 100000,
-    "standard_max": 1000000
+    "standard_max": 1000000,
+    "board_threshold": 1000000
   },
   "standard": {
     "name": "标准审批",
     "nodes": [
-      {"node_id": "dept_approval", "node_name": "部门审批", "approver_role": "部门主管"}
+      {
+        "node_id": "dept_approval",
+        "node_name": "部门审批",
+        "approver_role": "部门主管",
+        "user_id": 2
+      },
+      {
+        "node_id": "legal_review",
+        "node_name": "法务审查",
+        "approver_role": "法务专员",
+        "user_id": 3
+      },
+      {
+        "node_id": "finance_review",
+        "node_name": "财务审查",
+        "approver_role": "财务总监",
+        "user_id": 4
+      }
     ]
   },
   "simple": {
     "name": "简易审批",
     "nodes": [
-      {"node_id": "dept_approval", "node_name": "部门审批", "approver_role": "部门主管"}
+      {
+        "node_id": "dept_approval",
+        "node_name": "部门审批",
+        "approver_role": "部门主管",
+        "user_id": 2
+      }
     ]
   },
   "large_amount": {
     "name": "大额审批",
     "nodes": [
-      {"node_id": "dept_approval", "node_name": "部门审批", "approver_role": "部门主管"},
-      {"node_id": "legal_review", "node_name": "法务审查", "approver_role": "法务专员"},
-      {"node_id": "finance_review", "node_name": "财务审查", "approver_role": "财务总监"},
-      {"node_id": "executive_approval", "node_name": "高管审批", "approver_role": "总经理"},
-      {"node_id": "board_approval", "node_name": "董事会审批", "approver_role": "董事长"}
+      {
+        "node_id": "dept_approval",
+        "node_name": "部门审批",
+        "approver_role": "部门主管",
+        "user_id": 2
+      },
+      {
+        "node_id": "legal_review",
+        "node_name": "法务审查",
+        "approver_role": "法务专员",
+        "user_id": 3
+      },
+      {
+        "node_id": "finance_review",
+        "node_name": "财务审查",
+        "approver_role": "财务总监",
+        "user_id": 4
+      },
+      {
+        "node_id": "executive_approval",
+        "node_name": "高管审批",
+        "approver_role": "总经理",
+        "user_id": 5
+      },
+      {
+        "node_id": "board_approval",
+        "node_name": "董事会审批",
+        "approver_role": "总经理",
+        "user_id": 5
+      }
     ]
   }
 }

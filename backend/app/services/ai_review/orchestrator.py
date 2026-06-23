@@ -293,6 +293,15 @@ class AiReviewOrchestrator:
 
         recommendation = _build_merged_recommendation(merged_dimensions, last_result)
 
+        all_llm_failed = bool(merged_dimensions) and all(
+            getattr(d, "status", None) == "failed" for d in merged_dimensions
+        )
+        if all_llm_failed:
+            mlx_note = "MLX/LLM 五维审查均失败，以下结果主要基于规则引擎与通读占位摘要。"
+            recommendation = (
+                f"{mlx_note}\n{recommendation}" if recommendation else mlx_note
+            )
+
         duration = int((datetime.now() - started).total_seconds())
         dimension_retry_count = sum(
             1 for d in merged_dimensions if getattr(d, "error_type", None)
@@ -318,6 +327,9 @@ class AiReviewOrchestrator:
                 "segments": segment_timings,
             },
         }
+        if all_llm_failed:
+            summary["mlx_degraded"] = True
+            summary["mlx_degraded_reason"] = "all_dimensions_failed"
 
         critical_in_issues = sum(
             1 for i in issues if (i.risk_level or "").lower() == "critical"

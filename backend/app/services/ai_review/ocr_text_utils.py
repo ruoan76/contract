@@ -36,6 +36,23 @@ def page_needs_ocr(
     return gibberish_ratio(stripped) > gibberish_threshold
 
 
+def is_pdf_binary_text(text: str) -> bool:
+    """
+    判断文本是否实为 PDF 二进制被误解码（%PDF 头、obj 流等）。
+    用于拦截 extract 失败后的危险回退结果。
+    """
+    if not text or len(text) < 8:
+        return False
+    sample = text[:4096]
+    if sample.lstrip().startswith("%PDF-"):
+        return True
+    markers = ("endobj", "/Type", "/Catalog", "/Pages", "stream", "xref")
+    hits = sum(1 for m in markers if m in sample)
+    if hits >= 3 and sample.count("<<") >= 2:
+        return True
+    return False
+
+
 def indices_needing_ocr(
     pages: list[str],
     *,

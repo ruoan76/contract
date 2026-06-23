@@ -33,6 +33,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Verify AI review seeds
+        run: python scripts/verify_ai_review_seeds.py
+
       - name: Run unit tests
         env:
           DATABASE_URL: sqlite+aiosqlite:///./test_ci.db

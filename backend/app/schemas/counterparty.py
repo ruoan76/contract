@@ -31,6 +31,8 @@ class CounterpartyUpdate(BaseModel):
     industry: Optional[str] = None
     credit_rating: Optional[str] = None
     status: Optional[int] = None
+    is_blacklist: Optional[int] = None
+    blacklist_reason: Optional[str] = None
 
 
 class CounterpartyResponse(CounterpartyBase):

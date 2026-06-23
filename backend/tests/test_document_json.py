@@ -10,6 +10,27 @@ from app.services.ai_review.document_json import (
 from app.services.ai_review.heading_utils import split_mixed_heading_line
 
 
+def test_build_document_json_uses_layout_lines_bbox() -> None:
+    pages = ["ignored when layout_lines present"]
+    doc = build_document_json(
+        pages,
+        ocr_page_indices=[0],
+        ocr_page_meta=[
+            {
+                "layout_lines": [
+                    {"text": "第一条 总则", "bbox": [[0, 0], [10, 0], [10, 5], [0, 5]]},
+                ],
+                "layout_suspect": True,
+            }
+        ],
+        ocr_used=True,
+    )
+    assert doc.pages[0].layout_suspect is True
+    para = next(b for b in doc.pages[0].blocks if b.type != "page_marker")
+    assert para.bbox is not None
+    assert "第一条" in para.text
+
+
 def test_build_document_json_with_page_markers() -> None:
     pages = ["第一条 总则\n本合同由双方签订。", "第二条 付款"]
     doc = build_document_json(

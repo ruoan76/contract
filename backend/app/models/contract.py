@@ -50,6 +50,9 @@ class Contract(Base):
     department_id = Column(Integer, comment="所属部门")
     risk_level = Column(String(20), default="low", comment="风险等级")
     content = Column(Text().with_variant(LONGTEXT(), "mysql"), comment="合同内容")
+    template_id = Column(Integer, comment="引用的合同模板 ID")
+    template_version = Column(Integer, comment="引用模板版本号")
+    template_values = Column(Text, comment="模板变量填充值 JSON")
     current_version_id = Column(Integer, comment="当前版本 ID")
     
     created_at = Column(DateTime, server_default=func.now())

@@ -1,6 +1,7 @@
 """合同文件解析 — 文本提取 + 字段识别（支持 mock / LLM）"""
 from __future__ import annotations
 
+import logging
 import os
 import re
 import tempfile
@@ -10,8 +11,12 @@ from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.services.ai_review.heading_utils import is_bad_title, is_page_marker
+from app.services.ai_review.ocr_text_utils import is_pdf_binary_text
 from app.services.ai_review.text_extractor import extract_text
 from app.services.ai_review.text_normalize import normalize_contract_text
+
+logger = logging.getLogger(__name__)
 from app.services.ai_review.ocr_postprocess import enrich_fields_with_dictionary
 from app.services.parse_llm_service import (
     detect_party_parse_warning,
@@ -32,6 +37,124 @@ def _guess_file_type(filename: str, content_type: Optional[str]) -> str:
         if "text" in content_type:
             return "txt"
     return ext or "txt"
+
+
+_TITLE_CONTRACT_RE = re.compile(r"[\u4e00-\u9fffA-Za-z0-9（）()·\-—]{4,80}合同")
+_PARTY_LINE_RE = re.compile(r"^[甲乙丙丁]方[：:]")
+
+
+def _title_from_filename(filename: str) -> str:
+    base = os.path.splitext(filename or "")[0].strip()
+    if not base:
+        return "未命名合同"
+    base = re.sub(r"[-—]\s*[\d.]+\s*万(?:元)?\s*$", "", base).strip()
+    return base[:120] or "未命名合同"
+
+
+def _is_skip_title_line(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped or len(stripped) < 4:
+        return True
+    if is_page_marker(stripped):
+        return True
+    if _PARTY_LINE_RE.match(stripped):
+        return True
+    if re.fullmatch(r"[\s\-—_=*#·.]+", stripped):
+        return True
+    return False
+
+
+def extract_contract_title(text: str, filename: str) -> tuple[str, str]:
+    """
+    从正文/文件名推断合同标题。
+    返回 (title, title_source)，source 为 body | filename | default。
+    """
+    snippet = (text or "")[:3000]
+    lines = snippet.splitlines()[:30]
+
+    for line in lines:
+        stripped = line.strip()
+        if _is_skip_title_line(stripped):
+            continue
+        if "合同" in stripped and 6 <= len(stripped) <= 120:
+            return stripped[:120], "body"
+
+    match = _TITLE_CONTRACT_RE.search(snippet)
+    if match:
+        return match.group(0)[:120], "body"
+
+    for line in lines:
+        stripped = line.strip()
+        if _is_skip_title_line(stripped):
+            continue
+        return stripped[:120], "body"
+
+    fn_title = _title_from_filename(filename)
+    if fn_title != "未命名合同":
+        return fn_title, "filename"
+    return "未命名合同", "default"
+
+
+def _ensure_valid_title(
+    fields: dict[str, Any],
+    text: str,
+    filename: str,
+) -> dict[str, Any]:
+    """LLM/正则标题若为分页标记等无效值，则重新抽取。"""
+    title = fields.get("title")
+    if is_bad_title(title):
+        new_title, source = extract_contract_title(text, filename)
+        fields["title"] = new_title
+        fields["title_source"] = source
+    elif not fields.get("title_source"):
+        fields["title_source"] = "llm" if fields.get("parse_source") == "llm" else "body"
+    return fields
+
+
+def _compute_parse_confidence(
+    fields: dict[str, Any],
+    *,
+    text: str,
+    ocr_used: bool,
+    extracted_metadata: dict[str, Any],
+) -> float:
+    if not text.strip():
+        return 0.2
+
+    field_score = 1.0
+    if is_bad_title(fields.get("title")):
+        field_score -= 0.15
+    if fields.get("party_parse_warning"):
+        field_score -= 0.2
+    if not fields.get("party_a") and not fields.get("party_b"):
+        field_score -= 0.1
+    field_score = max(0.0, min(1.0, field_score))
+
+    if ocr_used:
+        meta_list = extracted_metadata.get("ocr_page_meta") or []
+        confs = [
+            float(m["avg_confidence"])
+            for m in meta_list
+            if m.get("avg_confidence") is not None
+        ]
+        if confs:
+            ocr_avg = sum(confs) / len(confs)
+            confidence = min(0.92, max(0.35, ocr_avg * 0.85 + field_score * 0.15))
+        else:
+            confidence = 0.75 * field_score
+        if extracted_metadata.get("ocr_needs_review"):
+            confidence = min(confidence, 0.55)
+            fields["ocr_needs_review"] = True
+        if extracted_metadata.get("layout_suspect"):
+            confidence = min(confidence, 0.55)
+            fields["layout_suspect"] = True
+    else:
+        confidence = 0.75 * field_score
+
+    if fields.get("party_parse_warning"):
+        confidence = min(confidence, 0.55)
+
+    return round(confidence, 4)
 
 
 def _mock_parse_fields(text: str, filename: str) -> dict[str, Any]:
@@ -59,14 +182,7 @@ def _mock_parse_fields(text: str, filename: str) -> dict[str, Any]:
     if party_match:
         party_b = party_match.group(1).strip()[:100]
 
-    title = None
-    for line in text.splitlines()[:5]:
-        line = line.strip()
-        if line and len(line) >= 4:
-            title = line[:120]
-            break
-    if not title:
-        title = os.path.splitext(filename)[0] or "未命名合同"
+    title, title_source = extract_contract_title(text, filename)
 
     # 文件名中的「195.8万」等金额提示（扫描件 OCR 前常用）
     amount_source = "body"
@@ -87,12 +203,9 @@ def _mock_parse_fields(text: str, filename: str) -> dict[str, Any]:
         amount = fn_amount
         amount_source = "filename_override"
 
-    confidence = 0.75 if text.strip() else 0.3
-    if party_parse_warning:
-        confidence = min(confidence, 0.55)
-
     return {
         "title": title,
+        "title_source": title_source,
         "party_a": party_a,
         "party_b": party_b,
         "amount": amount,
@@ -102,7 +215,7 @@ def _mock_parse_fields(text: str, filename: str) -> dict[str, Any]:
         "contract_type": "service" if "服务" in text else "purchase",
         "start_date": None,
         "end_date": None,
-        "confidence": confidence,
+        "confidence": 0.75 if text.strip() else 0.3,
         "mock": True,
         "parse_source": "regex",
     }
@@ -131,6 +244,16 @@ def _merge_llm_fields(
     return merged
 
 
+def _decode_plaintext_fallback(content: bytes) -> str:
+    """仅用于 txt 等纯文本：按常见编码尝试解码。"""
+    for enc in ("utf-8-sig", "utf-8", "gbk"):
+        try:
+            return content.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    return content.decode("utf-8", errors="replace")
+
+
 async def extract_bytes_to_text(
     content: bytes,
     filename: str,
@@ -152,22 +275,24 @@ async def extract_bytes_to_text(
         text_raw = extracted.full_text or ""
         text = normalize_contract_text(text_raw)
         extracted_metadata = extracted.metadata or {}
-    except Exception:
-        for enc in ("utf-8", "gbk", "latin-1"):
-            try:
-                text = content.decode(enc)
-                break
-            except UnicodeDecodeError:
-                continue
-        if not text:
-            text = content.decode("utf-8", errors="replace")
-        text_raw = text
-        text = normalize_contract_text(text)
+    except Exception as exc:
+        logger.exception("合同文件文本提取失败: %s (%s)", filename, file_type)
+        if file_type in ("pdf", "docx", "doc"):
+            raise ValueError(
+                "PDF/Word 文本提取失败，请确认 OCR 依赖已安装且文件未损坏"
+            ) from exc
+        text_raw = _decode_plaintext_fallback(content)
+        text = normalize_contract_text(text_raw)
     finally:
         try:
             os.unlink(tmp_path)
         except OSError:
             pass
+
+    if is_pdf_binary_text(text):
+        raise ValueError(
+            "解析结果疑似 PDF 原始数据而非合同正文，请检查 OCR 环境或重新上传"
+        )
 
     max_chars = settings.CONTRACT_CONTENT_MAX_CHARS
     if len(text) > max_chars:
@@ -229,8 +354,8 @@ async def parse_contract_file(
         )
         cp_names = [row[0] for row in cp_result.all() if row[0]]
         fields = enrich_fields_with_dictionary(fields, cp_names)
-        if fields.get("party_parse_warning"):
-            fields["confidence"] = min(float(fields.get("confidence") or 0.75), 0.55)
+
+    fields = _ensure_valid_title(fields, text, filename)
 
     fields["text_preview"] = text[:500]
     fields["full_text"] = text
@@ -243,13 +368,12 @@ async def parse_contract_file(
     fields["needs_ocr"] = (
         not text.strip() and file_type == "pdf" and not settings.AI_OCR_ENABLED
     )
-    if not text.strip():
-        fields["confidence"] = 0.2
-    elif ocr_used:
-        fields["confidence"] = min(float(fields.get("confidence") or 0.75), 0.65)
-        if extracted_metadata.get("ocr_needs_review"):
-            fields["confidence"] = min(float(fields.get("confidence") or 0.65), 0.5)
-            fields["ocr_needs_review"] = True
+    fields["confidence"] = _compute_parse_confidence(
+        fields,
+        text=text,
+        ocr_used=ocr_used,
+        extracted_metadata=extracted_metadata,
+    )
 
     return {
         "filename": filename,

@@ -7,6 +7,7 @@ from app.services.template_service import (
     approve_publish,
     create_template,
     deprecate_template,
+    fill_template_content,
     reject_publish,
     submit_for_publish,
 )
@@ -16,9 +17,15 @@ from app.services.template_service import (
 class TestTemplateStateMachine:
     async def test_draft_to_pending_to_published(self, db_session):
         t = await create_template(
-            db_session, "采购模板", "purchase", "正文", creator_id=1
+            db_session,
+            "采购模板",
+            "purchase",
+            "乙方：{相对方}，金额 {金额}",
+            creator_id=1,
         )
         assert t["status"] == "draft"
+        assert t.get("code", "").startswith("PUR-")
+        assert "相对方" in (t.get("variables") or [])
 
         pending = await submit_for_publish(db_session, t["id"])
         assert pending["status"] == "pending_publish"
@@ -76,3 +83,21 @@ class TestTemplateStateMachine:
         published = await publish_template(db_session, t["id"])
         assert published["status"] == "published"
         assert published["version"] == 2
+
+    async def test_fill_published_template(self, db_session):
+        t = await create_template(
+            db_session,
+            "填充测试",
+            "purchase",
+            "甲方：{采购方名称}\n乙方：{相对方}\n金额：{金额}",
+            creator_id=1,
+        )
+        await submit_for_publish(db_session, t["id"])
+        await approve_publish(db_session, t["id"])
+        filled = await fill_template_content(
+            db_session,
+            t["id"],
+            {"采购方名称": "甲公司", "相对方": "乙公司", "金额": "5000"},
+        )
+        assert "乙公司" in filled["content"]
+        assert "5000" in filled["content"]

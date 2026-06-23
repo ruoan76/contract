@@ -30,6 +30,16 @@ def is_page_marker(line: str) -> bool:
     return bool(PAGE_MARKER_RE.match(line.strip()))
 
 
+def is_bad_title(title: str | None) -> bool:
+    """分页标记或空字符串不应作为合同标题。"""
+    if title is None:
+        return True
+    stripped = str(title).strip()
+    if not stripped or len(stripped) < 4:
+        return True
+    return is_page_marker(stripped)
+
+
 def is_heading_line_start(line: str) -> bool:
     return bool(HEADING_LINE_START_RE.match(line.strip()))
 

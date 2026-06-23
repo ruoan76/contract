@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import { contractsApi } from '@/api/contracts'
 import { useAuthStore } from '@/stores/auth'
 import type { Contract } from '@/types/models'
+import { formatContractOptionLabel } from '@/utils/contractLabel'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -60,7 +61,7 @@ function goCompare() {
           <el-option
             v-for="c in contracts"
             :key="c.id"
-            :label="`#${c.id} ${c.title}`"
+            :label="formatContractOptionLabel(c)"
             :value="c.id"
           />
         </el-select>

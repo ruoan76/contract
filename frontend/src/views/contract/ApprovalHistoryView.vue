@@ -4,6 +4,8 @@ import { useRoute } from 'vue-router'
 import { contractsApi } from '@/api/contracts'
 import { approvalsApi } from '@/api/approvals'
 import ContractContextBar from '@/components/ContractContextBar.vue'
+import StatusTag from '@/components/StatusTag.vue'
+import { flowTypeLabel } from '@/utils/enumLabels'
 import type { Contract } from '@/types/models'
 
 interface ApprovalStep {
@@ -79,8 +81,11 @@ function formatAction(step: ApprovalStep) {
     <template v-else>
       <el-descriptions :column="3" border size="small" style="margin-bottom: 16px">
         <el-descriptions-item label="流程 ID">{{ history.flow_id }}</el-descriptions-item>
-        <el-descriptions-item label="流程类型">{{ history.flow_type || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ history.status || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="流程类型">{{ flowTypeLabel(history.flow_type) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <StatusTag v-if="history.status" :status="history.status" />
+          <span v-else>—</span>
+        </el-descriptions-item>
       </el-descriptions>
       <p class="summary">共 {{ history.total_steps || history.steps?.length || 0 }} 个节点</p>
       <el-timeline>

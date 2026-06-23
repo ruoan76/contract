@@ -1,5 +1,7 @@
 import type { Contract, DashboardData, FlowMatchResult } from '@/types/models'
-import { client } from './client'
+import type { DocumentJSON } from '@/types/documentJson'
+import { client, getToken } from './client'
+import { API_CONFIG } from './config'
 
 export interface ContractVersion {
   version: number
@@ -29,8 +31,12 @@ export interface ContractParseFields {
   contract_type?: string
   text_preview?: string
   full_text?: string
+  full_text_raw?: string
+  layout_version?: string
   char_count?: number
   ocr_used?: boolean
+  ocr_needs_review?: boolean
+  layout_suspect?: boolean
   needs_ocr?: boolean
   confidence?: number
   party_parse_warning?: boolean
@@ -44,6 +50,9 @@ export interface ContractParseResult {
   extracted_metadata?: Record<string, unknown>
   ocr_used?: boolean
   char_count?: number
+  layout_version?: string
+  ocr_engine?: string
+  document_json?: DocumentJSON
 }
 
 export const contractsApi = {
@@ -53,6 +62,9 @@ export const contractsApi = {
     counterparty_name: string
     amount: number
     content?: string
+    template_id?: number
+    template_version?: number
+    template_values?: Record<string, string | number>
   }) => client.post<Contract>('/api/v1/contracts/', payload),
 
   get: (id: number) => client.get<Contract>(`/api/v1/contracts/${id}`),
@@ -99,6 +111,32 @@ export const contractsApi = {
 
   submitRevision: (id: number, body: { content: string; change_description?: string }) =>
     client.post<{ version?: number }>(`/api/v1/contracts/${id}/revisions`, body),
+
+  delete: (id: number) =>
+    client.delete<{ message?: string }>(`/api/v1/contracts/${id}`),
+
+  /** 获取最新附件 blob，供详情页 PDF 对照预览 */
+  downloadAttachment: async (contractId: number) => {
+    const base = (API_CONFIG.baseUrl || '').replace(/\/$/, '')
+    const url = `${base}/api/v1/contracts/${contractId}/attachment`
+    const headers: Record<string, string> = {}
+    const token = getToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+    const res = await fetch(url, { headers })
+    if (!res.ok) {
+      let msg = '附件下载失败'
+      try {
+        const err = await res.json()
+        msg = String(err.detail || err.message || msg)
+      } catch {
+        /* 非 JSON 错误体 */
+      }
+      throw new Error(msg)
+    }
+    const blob = await res.blob()
+    const contentType = res.headers.get('Content-Type') || ''
+    return { blob, contentType }
+  },
 }
 
 /** 根据金额推断流程类型（与原型 resolveFlowType 简化版一致） */

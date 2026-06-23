@@ -2,13 +2,13 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import {
-  aiReviewApi,
+import { aiReviewApi,
   groupClausesByDimension,
   labelName,
   LABEL_OPTIONS,
   type AiReviewSummary,
 } from '@/api/ai-review'
+import { ApiError } from '@/api/client'
 import { useContractContext } from '@/composables/useContractContext'
 import ContractContextBar from '@/components/ContractContextBar.vue'
 import AiGateSummary from '@/components/AiGateSummary.vue'
@@ -28,6 +28,7 @@ const filterRiskLevel = ref('')
 const filterDimension = ref('')
 const filterLabelId = ref('')
 let pollTimer: ReturnType<typeof setInterval> | null = null
+const detailCollapse = ref<string[]>([])
 
 const riskLabel = computed(() => {
   const level = result.value?.risk_level || 'unknown'
@@ -103,13 +104,6 @@ const failedDimensions = computed(() => {
 const pinnedCriticalIssues = computed(() => {
   const items = result.value?.clause_reviews || []
   return items.filter((c) => c.risk_level === 'critical')
-})
-
-const scoreFloorHint = computed(() => {
-  const stats = (result.value?.summary as { statistics?: { score_floor_applied?: boolean } })
-    ?.statistics
-  if (!stats?.score_floor_applied) return ''
-  return '存在 critical 级风险，综合风险分/等级已按策略保底（不低于 high / 70 分）'
 })
 
 const truncationHint = computed(() => {
@@ -231,7 +225,13 @@ async function runReview() {
       ElMessage.success('AI 审查已完成')
     }
   } catch (e) {
-    ElMessage.error(e instanceof Error ? e.message : '审查失败')
+    const msg =
+      e instanceof ApiError
+        ? e.message
+        : e instanceof Error
+          ? e.message
+          : '审查失败'
+    ElMessage.error(msg)
   } finally {
     loading.value = false
   }
@@ -281,12 +281,6 @@ async function confirmReport() {
   }
 }
 
-function sourceLabel(source?: string) {
-  if (source === 'rule') return '规则'
-  if (source === 'llm') return 'LLM'
-  return source || '—'
-}
-
 function goClauseCompare() {
   if (!contractId.value) return
   router.push({ name: 'clause-compare', params: { id: String(contractId.value) } })
@@ -325,7 +319,6 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
     />
     <AiGateSummary v-if="result?.gates" :gates="result.gates" />
     <div class="page-toolbar">
-      <h2>AI 审查报告</h2>
       <div class="toolbar-actions">
         <el-tag v-if="polling" type="info">审查中…</el-tag>
         <el-button type="primary" @click="runReview">触发审查</el-button>
@@ -349,6 +342,33 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
     </el-empty>
     <el-empty v-else-if="!result" description="暂无审查报告，请先触发审查" />
     <template v-else>
+      <el-card shadow="never" class="conclusion-card">
+        <div class="conclusion-row">
+          <el-tag :type="riskType" size="large">{{ riskLabel }}</el-tag>
+          <span class="conclusion-score">风险分 {{ result.risk_score ?? '—' }}</span>
+        </div>
+        <p v-if="result.recommendation" class="conclusion-rec">{{ result.recommendation }}</p>
+        <p v-else-if="pinnedCriticalIssues.length" class="conclusion-rec">
+          发现 {{ pinnedCriticalIssues.length }} 项需优先处理的问题，请查看下方列表。
+        </p>
+        <p v-else class="conclusion-rec">未发现 critical 级风险，建议进入法务评审流程。</p>
+      </el-card>
+
+      <el-card
+        v-if="pinnedCriticalIssues.length"
+        shadow="never"
+        class="critical-block"
+      >
+        <template #header>需优先处理</template>
+        <el-table :data="pinnedCriticalIssues" stripe size="small">
+          <el-table-column prop="clause" label="条款" min-width="140" />
+          <el-table-column label="标签" width="110">
+            <template #default="{ row }">{{ labelName(row.label_id) }}</template>
+          </el-table-column>
+          <el-table-column prop="suggestion" label="建议" min-width="200" show-overflow-tooltip />
+        </el-table>
+      </el-card>
+
       <div class="filters">
         <el-select v-model="filterRiskLevel" clearable placeholder="风险等级" style="width: 140px">
           <el-option label="极高风险" value="critical" />
@@ -368,99 +388,68 @@ async function sendFeedback(type: 'false_positive' | 'false_negative') {
           />
         </el-select>
       </div>
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="审查 ID">{{ result.review_id }}</el-descriptions-item>
+      <el-descriptions :column="2" border style="margin-top: 12px">
         <el-descriptions-item label="状态">{{ result.review_status || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="风险等级">
-          <el-tag :type="riskType">{{ riskLabel }}</el-tag>
-          <span v-if="scoreFloorHint" class="score-floor-hint">{{ scoreFloorHint }}</span>
-        </el-descriptions-item>
-        <el-descriptions-item label="风险分">{{ result.risk_score ?? '-' }}</el-descriptions-item>
-        <el-descriptions-item v-if="pinnedCriticalIssues.length" label="Critical 条数">
-          {{ pinnedCriticalIssues.length }}
-        </el-descriptions-item>
         <el-descriptions-item label="审查时间">{{ result.review_time ?? '-' }}</el-descriptions-item>
       </el-descriptions>
-      <el-card shadow="never" class="checklist-section">
-        <template #header>审查清单矩阵</template>
-        <AiChecklistMatrix :matrix="checklistMatrix" />
-        <el-empty v-if="!checklistMatrix" description="暂无清单矩阵数据" />
-      </el-card>
+
+      <el-collapse v-model="detailCollapse" style="margin-top: 16px">
+        <el-collapse-item title="审查门禁与清单详情" name="matrix">
+          <el-card shadow="never" class="checklist-section">
+            <AiChecklistMatrix :matrix="checklistMatrix" />
+            <el-empty v-if="!checklistMatrix" description="暂无清单矩阵数据" />
+          </el-card>
+        </el-collapse-item>
+        <el-collapse-item title="规则引擎与维度明细" name="details">
+          <el-card v-if="result.rule_violations?.length" shadow="never" class="rules-block">
+            <template #header>采购规则引擎</template>
+            <el-table :data="result.rule_violations" stripe size="small">
+              <el-table-column prop="rule_name" label="规则名称" min-width="140" />
+              <el-table-column prop="severity" label="严重度" width="100" />
+              <el-table-column prop="message" label="说明" min-width="200" />
+            </el-table>
+          </el-card>
+          <div v-for="group in dimensionGroups" :key="group.key" class="dimension-block">
+            <h3>{{ group.label }}</h3>
+            <el-table :data="group.items" stripe size="small">
+              <el-table-column prop="clause" label="条款" min-width="140" />
+              <el-table-column label="标签" width="110">
+                <template #default="{ row }">{{ labelName(row.label_id) }}</template>
+              </el-table-column>
+              <el-table-column prop="risk_level" label="风险" width="90" />
+              <el-table-column prop="suggestion" label="建议" min-width="180" show-overflow-tooltip />
+            </el-table>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+
       <div style="margin-top: 16px">
         <el-button size="small" @click="sendFeedback('false_positive')">标记误报</el-button>
         <el-button size="small" @click="sendFeedback('false_negative')">标记漏报</el-button>
-      </div>
-      <el-card
-        v-if="pinnedCriticalIssues.length"
-        shadow="never"
-        class="critical-block"
-      >
-        <template #header>需优先处理（Critical）</template>
-        <el-table :data="pinnedCriticalIssues" stripe size="small">
-          <el-table-column prop="clause" label="条款" min-width="140" />
-          <el-table-column label="标签" width="110">
-            <template #default="{ row }">{{ labelName(row.label_id) }}</template>
-          </el-table-column>
-          <el-table-column prop="risk_level" label="风险" width="90" />
-          <el-table-column label="来源" width="80">
-            <template #default="{ row }">
-              <el-tag size="small" :type="row.source === 'rule' ? 'warning' : 'info'">
-                {{ sourceLabel(row.source) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="legal_basis" label="法律依据" min-width="160" show-overflow-tooltip />
-          <el-table-column label="推理/依据" min-width="200">
-            <template #default="{ row }">
-              <div v-if="row.reasoning" class="reasoning-cell">{{ row.reasoning }}</div>
-              <div v-if="row.evidence_quote" class="evidence-quote">{{ row.evidence_quote }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column prop="confidence" label="置信度" width="80" />
-          <el-table-column prop="suggestion" label="建议" min-width="180" show-overflow-tooltip />
-        </el-table>
-      </el-card>
-      <el-card v-if="result.rule_violations?.length" shadow="never" class="rules-block">
-        <template #header>采购规则引擎</template>
-        <el-table :data="result.rule_violations" stripe size="small">
-          <el-table-column prop="rule_id" label="规则 ID" width="100" />
-          <el-table-column prop="rule_name" label="规则名称" min-width="140" />
-          <el-table-column prop="severity" label="严重度" width="100" />
-          <el-table-column prop="message" label="说明" min-width="200" />
-        </el-table>
-      </el-card>
-      <div v-for="group in dimensionGroups" :key="group.key" class="dimension-block">
-        <h3>{{ group.label }}</h3>
-        <el-table :data="group.items" stripe size="small">
-          <el-table-column prop="clause" label="条款" min-width="140" />
-          <el-table-column label="标签" width="110">
-            <template #default="{ row }">{{ labelName(row.label_id) }}</template>
-          </el-table-column>
-          <el-table-column prop="risk_level" label="风险" width="90" />
-          <el-table-column label="来源" width="80">
-            <template #default="{ row }">
-              <el-tag size="small" :type="row.source === 'rule' ? 'warning' : 'info'">
-                {{ sourceLabel(row.source) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="legal_basis" label="法律依据" min-width="160" show-overflow-tooltip />
-          <el-table-column label="推理/依据" min-width="200">
-            <template #default="{ row }">
-              <div v-if="row.reasoning" class="reasoning-cell">{{ row.reasoning }}</div>
-              <div v-if="row.evidence_quote" class="evidence-quote">{{ row.evidence_quote }}</div>
-              <span v-if="!row.reasoning && !row.evidence_quote">—</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="confidence" label="置信度" width="80" />
-          <el-table-column prop="suggestion" label="建议" min-width="180" show-overflow-tooltip />
-        </el-table>
       </div>
     </template>
   </div>
 </template>
 
 <style scoped>
+.conclusion-card {
+  margin-bottom: 16px;
+}
+.conclusion-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.conclusion-score {
+  font-size: 15px;
+  color: #374151;
+}
+.conclusion-rec {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+}
 .toolbar-actions {
   display: flex;
   align-items: center;

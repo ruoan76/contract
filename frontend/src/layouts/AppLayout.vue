@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter, RouterView } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import {
   Odometer,
   Bell,
@@ -10,20 +11,21 @@ import {
   MagicStick,
   CopyDocument,
   View,
-  Edit,
-  Clock,
   Checked,
   Stamp,
   FolderOpened,
   OfficeBuilding,
   Setting,
+  Cpu,
   User,
   List,
+  ArrowDown,
 } from '@element-plus/icons-vue'
 import { NAV_ITEMS, ROUTE_TITLES } from '@/router/nav'
 import { canAccessRoute } from '@/router/permissions'
 import { useAuthStore } from '@/stores/auth'
 import { getToken } from '@/api/client'
+import { isDemoNav, isSkipAuth } from '@/utils/appEnv'
 import { ROLE_LABELS } from '@/api/config'
 import type { AppRole } from '@/types/models'
 
@@ -40,23 +42,28 @@ const iconMap: Record<string, object> = {
   MagicStick,
   CopyDocument,
   View,
-  Edit,
-  Clock,
   Checked,
   Stamp,
   FolderOpened,
   OfficeBuilding,
   Setting,
+  Cpu,
   User,
   List,
 }
+
+const demoRoleOptions = Object.entries(ROLE_LABELS).map(([value, label]) => ({
+  value: value as AppRole,
+  label,
+}))
 
 const navGroups = computed(() => {
   const groups = new Map<string, Array<(typeof NAV_ITEMS)[number] & { restricted?: boolean }>>()
   NAV_ITEMS.forEach((item) => {
     const allowed = canAccessRoute(auth.role, item.name)
+    if (!isDemoNav && !allowed) return
     if (!groups.has(item.group)) groups.set(item.group, [])
-    groups.get(item.group)!.push({ ...item, restricted: !allowed })
+    groups.get(item.group)!.push({ ...item, restricted: isDemoNav && !allowed })
   })
   return [...groups.entries()].filter(([, items]) => items.length > 0)
 })
@@ -76,16 +83,11 @@ const activeMenu = computed(() => {
   return route.path
 })
 
-const roleOptions = Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }))
-
-async function onRoleChange(role: AppRole) {
-  await auth.switchRole(role)
-  router.push({ name: 'dashboard' })
-}
-
 onMounted(async () => {
   try {
-    if (import.meta.env.VITE_SKIP_AUTH !== '1' && (!getToken() || !auth.user)) {
+    if (isSkipAuth || !getToken() || !auth.user) {
+      await auth.ensureAuth()
+    } else {
       await auth.initAuth()
     }
   } catch (e) {
@@ -93,8 +95,33 @@ onMounted(async () => {
   }
 })
 
-function goCreate() {
-  router.push({ name: 'create' })
+async function handleLogout() {
+  await auth.logout()
+  ElMessage.success('已退出登录')
+  router.push({ name: 'login' })
+}
+
+async function handleDemoRoleSwitch(next: AppRole) {
+  if (next === auth.role) return
+  try {
+    await auth.switchRole(next)
+    ElMessage.success(`已切换为：${ROLE_LABELS[next] || next}`)
+    await router.push({ name: 'dashboard' })
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '切换角色失败')
+  }
+}
+
+/** 侧栏选中：演示模式曾关闭 router 导致无法跳转，统一由此处理 */
+function handleNavSelect(index: string) {
+  const item = NAV_ITEMS.find((n) => n.path === index)
+  if (!item) return
+  if (!canAccessRoute(auth.role, item.name)) {
+    ElMessage.warning(`当前角色（${auth.roleLabel}）无权访问「${item.title}」`)
+    return
+  }
+  if (route.name === item.name) return
+  void router.push({ name: item.name })
 }
 </script>
 
@@ -110,14 +137,17 @@ function goCreate() {
       </div>
       <el-menu
         :default-active="activeMenu"
-        router
         background-color="#111827"
         text-color="#d1d5db"
         active-text-color="#60a5fa"
         class="sidebar-menu"
+        @select="handleNavSelect"
       >
-        <template v-for="[group, items] in navGroups" :key="group">
-          <div class="nav-group-title">{{ group }}</div>
+        <el-menu-item-group
+          v-for="[group, items] in navGroups"
+          :key="group"
+          :title="group"
+        >
           <el-menu-item
             v-for="item in items"
             :key="item.name"
@@ -127,15 +157,8 @@ function goCreate() {
             <el-icon><component :is="iconMap[item.icon || 'Document']" /></el-icon>
             <span>{{ item.title }}</span>
           </el-menu-item>
-        </template>
+        </el-menu-item-group>
       </el-menu>
-      <div class="sidebar-footer">
-        <el-avatar size="small">{{ auth.displayName.slice(0, 1) }}</el-avatar>
-        <div>
-          <div class="user-name">{{ auth.displayName }}</div>
-          <div class="user-role">{{ auth.roleLabel }}</div>
-        </div>
-      </div>
     </el-aside>
 
     <el-container>
@@ -145,21 +168,40 @@ function goCreate() {
           <span v-if="breadcrumb" class="header-breadcrumb">{{ breadcrumb }}</span>
         </div>
         <div class="header-right">
-          <span class="role-switch-label">演示角色</span>
-          <el-select
-            :model-value="auth.role"
-            placeholder="切换角色"
-            style="width: 160px"
-            @change="onRoleChange"
-          >
-            <el-option
-              v-for="opt in roleOptions"
-              :key="opt.value"
-              :label="opt.label"
-              :value="opt.value"
-            />
-          </el-select>
-          <el-button type="primary" @click="goCreate">新建合同</el-button>
+          <el-dropdown trigger="click" @command="(cmd: string) => (cmd === 'logout' ? handleLogout() : handleDemoRoleSwitch(cmd as AppRole))">
+            <span class="user-menu-trigger-wrap">
+            <button type="button" class="user-menu-trigger">
+              <el-avatar size="small">{{ auth.displayName.slice(0, 1) }}</el-avatar>
+              <span class="user-menu-text">
+                <span class="user-menu-name">{{ auth.displayName }}</span>
+                <span class="user-menu-role">{{ auth.roleLabel }}</span>
+              </span>
+              <el-icon class="user-menu-caret"><ArrowDown /></el-icon>
+            </button>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item disabled>
+                  <span class="profile-summary">
+                    <span class="profile-summary-line">{{ auth.user?.username }}</span>
+                    <span v-if="auth.user?.department" class="muted">{{ auth.user.department }}</span>
+                  </span>
+                </el-dropdown-item>
+                <template v-if="isSkipAuth">
+                  <el-dropdown-item divided disabled>演示切换角色</el-dropdown-item>
+                  <el-dropdown-item
+                    v-for="opt in demoRoleOptions"
+                    :key="opt.value"
+                    :command="opt.value"
+                    :disabled="opt.value === auth.role"
+                  >
+                    {{ opt.label }}
+                  </el-dropdown-item>
+                </template>
+                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </el-header>
       <el-main class="app-main">
@@ -213,6 +255,7 @@ function goCreate() {
 .sidebar-menu {
   border-right: none;
   flex: 1;
+  overflow-y: auto;
 }
 
 .sidebar-menu :deep(.el-menu-item) {
@@ -227,7 +270,7 @@ function goCreate() {
   font-size: 16px;
 }
 
-.nav-group-title {
+.sidebar-menu :deep(.el-menu-item-group__title) {
   padding: 8px 20px 2px;
   font-size: 11px;
   color: #6b7280;
@@ -239,24 +282,6 @@ function goCreate() {
   opacity: 0.45;
 }
 
-.sidebar-footer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-top: 1px solid #374151;
-}
-
-.user-name {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.user-role {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
 .header-right {
   display: flex;
   align-items: center;
@@ -264,10 +289,64 @@ function goCreate() {
   flex-shrink: 0;
 }
 
-.role-switch-label {
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.user-menu-trigger:hover {
+  border-color: #d1d5db;
+}
+
+.user-menu-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  max-width: 140px;
+}
+
+.user-menu-name {
   font-size: 13px;
-  color: #6b7280;
+  font-weight: 500;
+  color: #111827;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.user-menu-role {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.user-menu-caret {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.profile-summary {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+  cursor: default;
+}
+
+.profile-summary .muted {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.user-menu-trigger-wrap {
+  display: inline-flex;
+  vertical-align: middle;
 }
 
 .app-header {

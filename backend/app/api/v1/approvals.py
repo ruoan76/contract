@@ -3,10 +3,11 @@
 """
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app.core.rbac import require_any_role
 from app.db.database import get_db
-from app.models.contract import ApprovalFlow, User
+from app.models.contract import ApprovalFlow, Role, User
 from app.schemas.contract import ApprovalSubmit, ApprovalAction
 from app.services.approval_service import (
     ApprovalSubmitRequest,
@@ -124,12 +125,17 @@ async def pending(
     db: AsyncSession = Depends(get_db),
 ):
     """获取待办审批列表"""
+    role_row = await db.execute(
+        select(Role.code).join(User, User.role_id == Role.id).where(User.id == user.id)
+    )
+    actor_role = role_row.scalar_one_or_none()
     result = await get_pending_approvals(
         db=db,
         user_id=user.id,
         page=page,
         page_size=page_size,
         contract_type=contract_type,
+        include_all=actor_role == "admin",
     )
     return {"code": 200, "data": result}
 

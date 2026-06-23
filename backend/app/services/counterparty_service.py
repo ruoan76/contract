@@ -7,6 +7,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions import BusinessError
+from app.models.contract import Contract
 from app.models.counterparty import Counterparty
 
 
@@ -44,11 +45,22 @@ async def create_counterparty(db: AsyncSession, data: dict) -> dict:
     return _to_dict(cp)
 
 
+async def _contract_count(db: AsyncSession, cp_id: int) -> int:
+    return int(
+        await db.scalar(
+            select(func.count()).select_from(Contract).where(Contract.counterparty_id == cp_id)
+        )
+        or 0
+    )
+
+
 async def get_counterparty(db: AsyncSession, cp_id: int) -> dict:
     cp = await db.get(Counterparty, cp_id)
     if not cp:
         raise BusinessError(f"Counterparty {cp_id} not found")
-    return _to_dict(cp)
+    data = _to_dict(cp)
+    data["contract_count"] = await _contract_count(db, cp_id)
+    return data
 
 
 async def list_counterparties(
@@ -57,8 +69,11 @@ async def list_counterparties(
     page_size: int = 20,
     keyword: Optional[str] = None,
     is_blacklist: Optional[int] = None,
+    status: Optional[int] = 1,
 ) -> dict:
-    conditions = [Counterparty.status == 1]
+    conditions = []
+    if status is not None:
+        conditions.append(Counterparty.status == status)
     if keyword:
         conditions.append(
             or_(
@@ -87,9 +102,25 @@ async def update_counterparty(db: AsyncSession, cp_id: int, updates: dict) -> di
     cp = await db.get(Counterparty, cp_id)
     if not cp:
         raise BusinessError(f"Counterparty {cp_id} not found")
+    if "credit_code" in updates and updates["credit_code"]:
+        other = await db.scalar(
+            select(Counterparty).where(
+                Counterparty.credit_code == updates["credit_code"],
+                Counterparty.id != cp_id,
+            )
+        )
+        if other:
+            raise BusinessError("统一社会信用代码已存在")
     for key, value in updates.items():
-        if hasattr(cp, key) and value is not None:
+        if not hasattr(cp, key):
+            continue
+        if value is not None:
             setattr(cp, key, value)
+        elif key == "blacklist_reason" and updates.get("is_blacklist") == 0:
+            setattr(cp, key, None)
+    if updates.get("is_blacklist") == 0:
+        cp.is_blacklist = 0
+        cp.blacklist_reason = None
     await db.flush()
     await db.refresh(cp)
     return _to_dict(cp)
@@ -99,8 +130,34 @@ async def add_to_blacklist(db: AsyncSession, cp_id: int, reason: str) -> dict:
     cp = await db.get(Counterparty, cp_id)
     if not cp:
         raise BusinessError(f"Counterparty {cp_id} not found")
+    if cp.status != 1:
+        raise BusinessError("已禁用的相对方无法拉黑")
     cp.is_blacklist = 1
-    cp.blacklist_reason = reason
+    cp.blacklist_reason = reason or "违规合作"
+    await db.flush()
+    return _to_dict(cp)
+
+
+async def remove_from_blacklist(db: AsyncSession, cp_id: int) -> dict:
+    cp = await db.get(Counterparty, cp_id)
+    if not cp:
+        raise BusinessError(f"Counterparty {cp_id} not found")
+    if not cp.is_blacklist:
+        raise BusinessError("该相对方不在黑名单中")
+    cp.is_blacklist = 0
+    cp.blacklist_reason = None
+    await db.flush()
+    return _to_dict(cp)
+
+
+async def disable_counterparty(db: AsyncSession, cp_id: int) -> dict:
+    """软禁用：status=0，列表默认不展示。"""
+    cp = await db.get(Counterparty, cp_id)
+    if not cp:
+        raise BusinessError(f"Counterparty {cp_id} not found")
+    if cp.status == 0:
+        raise BusinessError("相对方已禁用")
+    cp.status = 0
     await db.flush()
     return _to_dict(cp)
 

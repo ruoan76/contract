@@ -6,7 +6,7 @@ export interface NavItem {
   group: string
 }
 
-/** 侧栏 17 项（对照 prototype ALL_NAV_PAGES） */
+/** 侧栏导航（评审入口合并至评审中心） */
 export const NAV_ITEMS: NavItem[] = [
   { name: 'dashboard', path: '/', title: '状态看板', icon: 'Odometer', group: '概览' },
   { name: 'messages', path: '/messages', title: '消息中心', icon: 'Bell', group: '概览' },
@@ -16,13 +16,12 @@ export const NAV_ITEMS: NavItem[] = [
   { name: 'ai-review', path: '/ai-review', title: '审查报告', icon: 'MagicStick', group: 'AI审查' },
   { name: 'clause-compare-hub', path: '/clause-compare', title: '条款比对', icon: 'CopyDocument', group: 'AI审查' },
   { name: 'review-center', path: '/review-center', title: '评审中心', icon: 'View', group: '评审' },
-  { name: 'review-workspace', path: '/review-workspace', title: '评审工作台', icon: 'Edit', group: '评审' },
-  { name: 'review-history', path: '/review-history', title: '评审历史', icon: 'Clock', group: '评审' },
   { name: 'approvals', path: '/approvals', title: '待办审批', icon: 'Checked', group: '审批' },
   { name: 'seal', path: '/seal', title: '用印管理', icon: 'Stamp', group: '签署归档' },
   { name: 'archives', path: '/archives', title: '归档台账', icon: 'FolderOpened', group: '签署归档' },
   { name: 'counterparties', path: '/counterparties', title: '相对方管理', icon: 'OfficeBuilding', group: '基础数据' },
   { name: 'config', path: '/config', title: '审批配置', icon: 'Setting', group: '系统' },
+  { name: 'ai-rules-hub', path: '/ai-rules', title: 'AI 规则中心', icon: 'Cpu', group: '系统' },
   { name: 'users', path: '/users', title: '用户管理', icon: 'User', group: '系统' },
   { name: 'audit', path: '/audit', title: '审计日志', icon: 'List', group: '系统' },
 ]
@@ -44,6 +43,7 @@ export const ROUTE_TITLES: Record<string, [string, string]> = {
   archives: ['归档台账', '签署归档 / 归档台账'],
   counterparties: ['相对方管理', '基础数据 / 相对方管理'],
   config: ['审批配置', '系统 / 审批配置'],
+  'ai-rules-hub': ['AI 规则中心', '系统 / AI 规则中心'],
   users: ['用户管理', '系统 / 用户管理'],
   audit: ['审计日志', '系统 / 审计日志'],
   'contract-detail': ['合同详情', '合同 / 详情'],

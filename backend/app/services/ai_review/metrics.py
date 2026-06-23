@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.contract import AIReview
 from app.models.ai_review_issue import AIReviewIssue
+from app.models.ai_review_config import AIRuleFeedbackStat
 
 
 async def get_metrics_summary(db: AsyncSession, *, days: int = 30) -> dict[str, Any]:
@@ -127,6 +128,30 @@ async def get_metrics_summary(db: AsyncSession, *, days: int = 30) -> dict[str, 
             pass
     completeness_full_rate = full_count / max(done_count, 1)
 
+    feedback_rows = (
+        await db.execute(
+            select(AIRuleFeedbackStat)
+            .order_by(AIRuleFeedbackStat.fp_count.desc())
+            .limit(10)
+        )
+    ).scalars().all()
+    top_fp_rules = []
+    top_confirm_rules = []
+    for r in feedback_rows:
+        total = (r.fp_count or 0) + (r.confirm_count or 0)
+        fp_rate = (r.fp_count or 0) / max(total, 1)
+        entry = {
+            "rule_key": r.rule_key,
+            "fp_count": r.fp_count or 0,
+            "confirm_count": r.confirm_count or 0,
+            "fp_rate": round(fp_rate, 4),
+        }
+        if (r.fp_count or 0) > 0:
+            top_fp_rules.append(entry)
+        if (r.confirm_count or 0) > 0:
+            top_confirm_rules.append(entry)
+    top_confirm_rules.sort(key=lambda x: x["confirm_count"], reverse=True)
+
     return {
         "period_days": days,
         "review_total": review_total,
@@ -136,4 +161,6 @@ async def get_metrics_summary(db: AsyncSession, *, days: int = 30) -> dict[str, 
         "false_positive_rate": round(false_positive_rate, 4),
         "label_id_coverage_rate": round(label_id_coverage_rate, 4),
         "completeness_full_rate": round(completeness_full_rate, 4),
+        "top_false_positive_rules": top_fp_rules[:5],
+        "top_confirmed_rules": top_confirm_rules[:5],
     }

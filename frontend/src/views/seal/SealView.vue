@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { sealsApi } from '@/api/seals'
 import { contractsApi } from '@/api/contracts'
-import { useAuthStore } from '@/stores/auth'
+import { sealStatusLabel, sealTypeLabel } from '@/utils/enumLabels'
+import type { Contract } from '@/types/models'
+import { formatContractOptionLabel } from '@/utils/contractLabel'
 
 interface SealItem {
   id: number
@@ -14,11 +16,11 @@ interface SealItem {
   seal_image_path?: string
 }
 
-const auth = useAuthStore()
 const router = useRouter()
 const items = ref<SealItem[]>([])
 const loading = ref(false)
-const contractId = ref<number | null>(null)
+const contracts = ref<Contract[]>([])
+const selectedContractId = ref<number | null>(null)
 
 async function load() {
   loading.value = true
@@ -32,20 +34,31 @@ async function load() {
   }
 }
 
-onMounted(() => {
-  contractId.value = auth.restoreLastContractId() || auth.lastContract?.id || null
-  load()
+async function loadContracts() {
+  try {
+    const res = await contractsApi.list({ page: 1, page_size: 100, status: 'approved' })
+    contracts.value = res.items || []
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([load(), loadContracts()])
 })
 
+const selectedContract = computed(() =>
+  contracts.value.find((c) => c.id === selectedContractId.value),
+)
+
 async function applySeal() {
-  const cid = contractId.value
+  const cid = selectedContractId.value
   if (!cid) {
-    ElMessage.warning('请先在合同详情或新建流程中选择合同')
+    ElMessage.warning('请先选择要申请用印的合同')
     return
   }
   loading.value = true
   try {
-    await auth.switchRole('drafter')
     await sealsApi.apply(cid)
     ElMessage.success('用印申请已提交')
     await load()
@@ -59,7 +72,6 @@ async function applySeal() {
 async function approveSeal(row: SealItem) {
   loading.value = true
   try {
-    await auth.switchRole('admin')
     await sealsApi.approve(row.id)
     ElMessage.success('用印已确认')
     await load()
@@ -89,21 +101,49 @@ async function uploadScan(row: SealItem, file: File) {
   }
   return false
 }
+
+function openContract(row: SealItem) {
+  router.push({ name: 'contract-detail', params: { id: row.contract_id } })
+}
 </script>
 
 <template>
   <div class="page-card">
     <div class="page-toolbar">
-      <h2>用印管理</h2>
-      <el-button type="primary" :loading="loading" @click="applySeal">
-        对合同 #{{ contractId ?? '—' }} 申请用印
-      </el-button>
+      <div class="apply-row">
+        <el-select
+          v-model="selectedContractId"
+          filterable
+          clearable
+          placeholder="选择已通过审批的合同"
+          style="width: 320px"
+        >
+          <el-option
+            v-for="c in contracts"
+            :key="c.id"
+            :label="formatContractOptionLabel(c)"
+            :value="c.id"
+          />
+        </el-select>
+        <el-button type="primary" :loading="loading" :disabled="!selectedContractId" @click="applySeal">
+          申请用印
+        </el-button>
+      </div>
     </div>
+    <p v-if="selectedContract" class="hint">已选：{{ selectedContract.title }}</p>
     <el-table v-loading="loading" :data="items" stripe>
       <el-table-column prop="id" label="申请 ID" width="100" />
-      <el-table-column prop="contract_id" label="合同 ID" width="100" />
-      <el-table-column prop="seal_type" label="印章类型" width="120" />
-      <el-table-column prop="status" label="状态" width="120" />
+      <el-table-column prop="contract_id" label="合同 ID" width="100">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="openContract(row)">#{{ row.contract_id }}</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="印章类型" width="120">
+        <template #default="{ row }">{{ sealTypeLabel(row.seal_type) }}</template>
+      </el-table-column>
+      <el-table-column label="状态" width="120">
+        <template #default="{ row }">{{ sealStatusLabel(row.status) }}</template>
+      </el-table-column>
       <el-table-column prop="seal_image_path" label="扫描件" min-width="180" show-overflow-tooltip />
       <el-table-column label="操作" width="220">
         <template #default="{ row }">
@@ -125,6 +165,27 @@ async function uploadScan(row: SealItem, file: File) {
         </template>
       </el-table-column>
     </el-table>
-    <el-empty v-if="!loading && !items.length" description="暂无用印申请" />
+    <el-empty v-if="!loading && !items.length" description="暂无用印申请">
+      <el-button type="primary" :disabled="!selectedContractId" @click="applySeal">申请用印</el-button>
+    </el-empty>
   </div>
 </template>
+
+<style scoped>
+.page-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+.apply-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+</style>

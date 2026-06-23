@@ -121,7 +121,10 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
     ocr_page_meta: list[dict] = []
 
     if settings.AI_OCR_ENABLED:
-        from app.services.ai_review.ocr import ocr_pdf_page_indices, ocr_pdf_pages
+        from app.services.ai_review.ocr import (
+            ocr_pdf_page_indices_async,
+            ocr_pdf_pages_async,
+        )
 
         stripped_len = len(full_text.strip())
         if stripped_len < settings.AI_OCR_MIN_CHARS:
@@ -131,20 +134,16 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
                 path,
             )
 
-            def _run_full_ocr() -> list[str]:
-                raw_buf: list[str] = []
-                meta_buf: list[dict] = []
-                result = ocr_pdf_pages(
-                    path,
-                    max_pages=settings.AI_OCR_MAX_PAGES,
-                    raw_pages_out=raw_buf,
-                    page_meta_out=meta_buf,
-                )
-                ocr_pages_raw.extend(raw_buf)
-                ocr_page_meta.extend(meta_buf)
-                return result
-
-            ocr_pages = await loop.run_in_executor(None, _run_full_ocr)
+            raw_buf: list[str] = []
+            meta_buf: list[dict] = []
+            ocr_pages = await ocr_pdf_pages_async(
+                path,
+                max_pages=settings.AI_OCR_MAX_PAGES,
+                raw_pages_out=raw_buf,
+                page_meta_out=meta_buf,
+            )
+            ocr_pages_raw.extend(raw_buf)
+            ocr_page_meta.extend(meta_buf)
             pages = ocr_pages
             full_text = _join_page_text(pages, ocr_used=True)
             ocr_used = True
@@ -164,19 +163,15 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
                     path,
                 )
 
-                def _run_partial_ocr() -> tuple[list[str], list[str], list[dict]]:
-                    raw_buf: list[str] = []
-                    meta_buf: list[dict] = []
-                    result = ocr_pdf_page_indices(
-                        path,
-                        need_indices,
-                        max_pages=settings.AI_OCR_MAX_PAGES,
-                        raw_pages_out=raw_buf,
-                        page_meta_out=meta_buf,
-                    )
-                    return result, raw_buf, meta_buf
-
-                ocr_results, raw_buf, meta_buf = await loop.run_in_executor(None, _run_partial_ocr)
+                raw_buf: list[str] = []
+                meta_buf: list[dict] = []
+                ocr_results = await ocr_pdf_page_indices_async(
+                    path,
+                    need_indices,
+                    max_pages=settings.AI_OCR_MAX_PAGES,
+                    raw_pages_out=raw_buf,
+                    page_meta_out=meta_buf,
+                )
                 ocr_page_meta.extend(meta_buf)
                 pages_raw_snapshot = list(pages)
                 for i, page_index in enumerate(need_indices):
@@ -224,6 +219,7 @@ async def _extract_pdf(path: Path, file_type: str) -> ExtractedText:
             "ocr_engine": settings.AI_OCR_ENGINE if ocr_used else None,
             "ocr_page_meta": aligned_page_meta if ocr_used else None,
             "ocr_needs_review": any(m.get("needs_review") for m in aligned_page_meta) if ocr_used else False,
+            "layout_suspect": any(m.get("layout_suspect") for m in aligned_page_meta) if ocr_used else False,
             "document_json": document.model_dump(),
         },
     )

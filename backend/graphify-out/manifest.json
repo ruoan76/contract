@@ -1,0 +1,1922 @@
+{
+  "/Users/tianfch/Documents/Dev/contract/frontend/playwright.config.ts": {
+    "mtime": 1779841851.4427395,
+    "hash": "bbf59d62dd12580d94011f481ea242fc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/vite.config.ts": {
+    "mtime": 1779667955.8812504,
+    "hash": "785cbd36c63babbd5a2f6f72bbf31c9b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-02.spec.ts": {
+    "mtime": 1780215221.9273217,
+    "hash": "bbb924207f8ac2481f0866ff56466943"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/helpers.ts": {
+    "mtime": 1780017518.439734,
+    "hash": "fae163db284afcdfef99d7adc3535ae7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-03.spec.ts": {
+    "mtime": 1780215221.9277148,
+    "hash": "888d3c6a5db8bdae575d6a16f5867870"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/ux-counterparty-crud.spec.ts": {
+    "mtime": 1780215221.927169,
+    "hash": "7dfa7ed5d2372185c9327d3a8a54a6b0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-01.spec.ts": {
+    "mtime": 1780215221.9181805,
+    "hash": "fe21221ee00c8bddeb7729d73508fe0e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-05.spec.ts": {
+    "mtime": 1779766384.9612708,
+    "hash": "30a4f85ffb8d5157c548a9dfa00b04ed"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/ux-draft-delete.spec.ts": {
+    "mtime": 1780215221.922804,
+    "hash": "22a0891b3b5a4574d417198a4d8e9258"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/demo-04.spec.ts": {
+    "mtime": 1780215221.9269412,
+    "hash": "fd39928089f6c41b9c66b6a9d2ef65c8"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/dashboard.spec.ts": {
+    "mtime": 1779667955.8776376,
+    "hash": "05a0742058169f5bca201890ffea9852"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/ux-ocr-confirm.spec.ts": {
+    "mtime": 1780215221.9273944,
+    "hash": "77224464cc846b791316a236b6614685"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/ux-clause-nav.spec.ts": {
+    "mtime": 1780215221.9227607,
+    "hash": "3f41961edafb32b8a12e52b60abfe929"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/smoke-routes.spec.ts": {
+    "mtime": 1780215221.9274652,
+    "hash": "d306eb8c1dbb1bba692cddeddda1bea5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/e2e/ux-blacklist-create.spec.ts": {
+    "mtime": 1779933014.184725,
+    "hash": "a93e223dd615cc8ab94d05927ae9714f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/App.vue": {
+    "mtime": 1779578724.57019,
+    "hash": "a2ea7be507a0a9b5e09a2ebba4e3cefa"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/main.ts": {
+    "mtime": 1779578724.5702083,
+    "hash": "52fb5f7aa8506fd3cf11408b7e3370ab"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/vite-env.d.ts": {
+    "mtime": 1779841864.8393726,
+    "hash": "a227f24e7c777690dd6a96652b15c99a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/types/api.d.ts": {
+    "mtime": 1779578368.0775962,
+    "hash": "27f463dd606eb5f3ac8e90dbc1d4c729"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/types/documentJson.ts": {
+    "mtime": 1780215221.9140773,
+    "hash": "2727dcdda6a9169598914aefa39b365e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/types/models.ts": {
+    "mtime": 1780016698.761974,
+    "hash": "cf89aee453c0d279c7668ae2df481172"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/composables/useContractContext.ts": {
+    "mtime": 1779766384.9331539,
+    "hash": "f91a5a5ff6adf239f827f9a07abb41e1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/stores/auth.ts": {
+    "mtime": 1780215221.9267027,
+    "hash": "3243eca7a45f0782fb4b8c8ce3665524"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/debounce.ts": {
+    "mtime": 1779614060.613616,
+    "hash": "f64f7f7140a79bc310429c2cc00d3350"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/contractLabel.ts": {
+    "mtime": 1780215221.9270408,
+    "hash": "e98ef6bbc38c1ee93ec0567c0dd58e68"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/exportCsv.ts": {
+    "mtime": 1779614060.1458745,
+    "hash": "d72c0bd81746eaaaead326b36c08d81a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/enumLabels.ts": {
+    "mtime": 1780215221.9268136,
+    "hash": "825c91714d117ed456d855033a5eadb0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/appEnv.ts": {
+    "mtime": 1780215221.9267764,
+    "hash": "079d3909d6e363a93adc616ffa581b63"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/headingDetect.ts": {
+    "mtime": 1779931874.136365,
+    "hash": "95493a94b774baf8d216344fca18159b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/roleCode.ts": {
+    "mtime": 1780215221.927812,
+    "hash": "9c84965e2e9a00f9a9333823e17c17a2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/formatDate.ts": {
+    "mtime": 1780215221.9271443,
+    "hash": "fc264fccc6e32dfffd9da5c26cbb2564"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/contractDelete.ts": {
+    "mtime": 1780215221.9141665,
+    "hash": "9ed6938b67d28fca2c6510c60cc3f716"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/aiRecommendation.ts": {
+    "mtime": 1780215221.9139645,
+    "hash": "68c54e7a55275697eadc3bc4278a7cfb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/contractLifecycle.ts": {
+    "mtime": 1779866234.6815538,
+    "hash": "edb1e3de42f646642b73e99b2c875b8e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/utils/templateFill.ts": {
+    "mtime": 1780215221.927785,
+    "hash": "a2adb9f2779eca3ffccdb09fd162d818"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/components/AiGateSummary.vue": {
+    "mtime": 1779667955.8864415,
+    "hash": "6a668188287cf33730be4db835a4ce01"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/components/StatusTag.vue": {
+    "mtime": 1779936006.5432942,
+    "hash": "df18f9fff68a3eaca2a5ef1a5a718be0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/components/ContractContextBar.vue": {
+    "mtime": 1780215221.9269605,
+    "hash": "bd9963d5a4174426d82d709e38cdf994"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/components/AiSummaryPanel.vue": {
+    "mtime": 1780215221.9275057,
+    "hash": "5bbc34334f0ee50e29c6348063493986"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/components/AiChecklistMatrix.vue": {
+    "mtime": 1779772586.4951773,
+    "hash": "c79fa9a2740bebe538eb148f68cb1829"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/components/PdfPageViewer.vue": {
+    "mtime": 1779879346.4199474,
+    "hash": "240db3113bf78d1d2396d84d06eeda51"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/components/ContractContentViewer.vue": {
+    "mtime": 1780215221.927181,
+    "hash": "475e23d0f7873e0b098cdc5d05e9e428"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/layouts/AppLayout.vue": {
+    "mtime": 1780215221.9139254,
+    "hash": "82de94ddda6cab1808ecee0defdba3e4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/ai-review.ts": {
+    "mtime": 1779840333.6696405,
+    "hash": "cbfa091f17c34993a85586aa75d38155"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/clause-compare.ts": {
+    "mtime": 1779610989.6582243,
+    "hash": "b0327f0ad488a62a93b15aa13d1077f1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/notifications.ts": {
+    "mtime": 1779614068.3410661,
+    "hash": "600057c70dc7007492d375f1e13d628a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/contracts.ts": {
+    "mtime": 1780215221.9268775,
+    "hash": "c526636e78fa071721edc9b3b27d3ef9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/seals.ts": {
+    "mtime": 1779667955.881206,
+    "hash": "b89264b4fa2a926f5c60368cef5b9f87"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/templates.ts": {
+    "mtime": 1780215221.8742683,
+    "hash": "bdaa4966dff388eca49b9cf0fc9b4de2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/archives.ts": {
+    "mtime": 1779578420.16986,
+    "hash": "310183a633b39135648321d455ccc8d0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/counterparties.ts": {
+    "mtime": 1780215221.9272025,
+    "hash": "58c0802c50c510ba0a396b345515c33d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/client.ts": {
+    "mtime": 1780215221.927634,
+    "hash": "83ab0c06aa970616393eef82251ba973"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/profile.ts": {
+    "mtime": 1780215221.9277027,
+    "hash": "21e53681b038ccd9b927dce0dc193f96"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/ai-review-config.ts": {
+    "mtime": 1780215221.927804,
+    "hash": "0b64a9065e8128a9fc156eb2f533bfe2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/users.ts": {
+    "mtime": 1780215221.9263432,
+    "hash": "69ca6eb3d2ac56ed0f8dd668cd1f7253"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/index.ts": {
+    "mtime": 1779579764.6180031,
+    "hash": "22c466cf6773b5c5322992b97a09b649"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/approvals.ts": {
+    "mtime": 1779614057.8608584,
+    "hash": "2d50c9bff1c20bd0bb48ba71a418a5be"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/config.ts": {
+    "mtime": 1780215221.9266486,
+    "hash": "4a6ce47820b8bfa3c059c0c81109c7d9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/audit.ts": {
+    "mtime": 1779614066.0041752,
+    "hash": "a44c9040da34093ccbb5c05bf0344ff5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/reviews.ts": {
+    "mtime": 1779580112.884423,
+    "hash": "53a9a9f3bb6ebf133785215e127ad3d7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/api/auth.ts": {
+    "mtime": 1779667955.8811877,
+    "hash": "50e0867deabd871348d608b87b716409"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/ComingSoonView.vue": {
+    "mtime": 1779578558.8757231,
+    "hash": "c22996101e930cf21711bc962a4b3aeb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/contract/RevisionWorkspaceView.vue": {
+    "mtime": 1780215221.9271302,
+    "hash": "3d42350b761a27859ac67b75d194d57f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/contract/ContractListView.vue": {
+    "mtime": 1780215221.9267209,
+    "hash": "ab248dc492ad64c61287c0ab0e4c25ee"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/contract/ApprovalHistoryView.vue": {
+    "mtime": 1780215221.9275239,
+    "hash": "7cf40b88d66bba550e5f32dd52fe1492"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/contract/CreateContractView.vue": {
+    "mtime": 1780215221.92751,
+    "hash": "67e6066862a5aa253775681113279e46"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/contract/ContractDetailView.vue": {
+    "mtime": 1779936012.030452,
+    "hash": "890dd19f722c1ff9c2cb68aa450ee900"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/messages/MessagesView.vue": {
+    "mtime": 1779667955.8906884,
+    "hash": "b6080965e26b76e1a3f9d4d4e7a77551"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/archive/ArchivesView.vue": {
+    "mtime": 1780215221.9268696,
+    "hash": "1482dcf1126fc4bb4bad0871a925d72f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/auth/LoginView.vue": {
+    "mtime": 1780017501.2634916,
+    "hash": "64252dcb601226e5b6769ba827384a10"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/template/TemplatesView.vue": {
+    "mtime": 1780018417.0472004,
+    "hash": "df57e4989a22134fba0f3871247f18d1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/seal/SealView.vue": {
+    "mtime": 1779936015.4534137,
+    "hash": "1783731b272be1a4807011be2ee3ee03"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/dashboard/DashboardView.vue": {
+    "mtime": 1780215221.9269214,
+    "hash": "d8cfb032c31656b2a538cd9e90fc50ef"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/system/AuditView.vue": {
+    "mtime": 1779936026.138641,
+    "hash": "a7475a1282846c0394dc7589497fa36b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/system/UsersView.vue": {
+    "mtime": 1780017518.17313,
+    "hash": "1d515242d848eced76a6f0cd3810af2b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/system/AiRulesHubView.vue": {
+    "mtime": 1780215221.927061,
+    "hash": "d254d621576429a8ab116e7c5002c932"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/system/ConfigView.vue": {
+    "mtime": 1780021474.8344834,
+    "hash": "ace0feebe5f0b686b9a39e7316a2c15a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/ai/ClauseCompareHubView.vue": {
+    "mtime": 1780215221.9273872,
+    "hash": "ec47ea60a459a7854be80d31bb02240d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/ai/AiReviewView.vue": {
+    "mtime": 1780215221.926599,
+    "hash": "3136be2b1583c90ce50c49fc3a37dd2e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/ai/ClauseCompareView.vue": {
+    "mtime": 1779766385.1201222,
+    "hash": "f13dca06911ec439f9e490f306417858"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/review/ReviewHistoryView.vue": {
+    "mtime": 1779580256.80466,
+    "hash": "4f00c68aef17368560bf448eebfe4688"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/review/ReviewCenterView.vue": {
+    "mtime": 1779936008.9119346,
+    "hash": "189782688e5cebab8c8c4df5a8cb0be6"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/review/ReviewWorkspaceView.vue": {
+    "mtime": 1780035872.6308286,
+    "hash": "dc8b166a5b58090d5955e7f6c45f3bff"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/counterparty/CounterpartiesView.vue": {
+    "mtime": 1779932991.372543,
+    "hash": "44134de4ef651fe6cd498bcba61ab481"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/views/approval/ApprovalsView.vue": {
+    "mtime": 1780036627.1202946,
+    "hash": "706a1f9c878c9e7d12f86b6e445e9c0e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/router/nav.ts": {
+    "mtime": 1780215221.9262373,
+    "hash": "af0fe04925e16d05f94f3564abbb4b68"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/router/permissions.ts": {
+    "mtime": 1780215221.9278567,
+    "hash": "799ec632b4544602619eb436ef7d95e5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/src/router/index.ts": {
+    "mtime": 1780215221.9270127,
+    "hash": "8732df44d7d94b046c5e490f8cdb48e7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/main.py": {
+    "mtime": 1780215221.9270222,
+    "hash": "f5907c4e87b90fec4de74d2a49386c70"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/main_seeds.py": {
+    "mtime": 1779143459.2704563,
+    "hash": "8a6822bb1ec5def0428465ddab4ba0a3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/celery_app.py": {
+    "mtime": 1779514089.4162667,
+    "hash": "81445c7e04d32cca54276a7ae278d1d0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/__init__.py": {
+    "mtime": 1779023046.5534332,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/exceptions.py": {
+    "mtime": 1779516509.3469281,
+    "hash": "4b2e4fd62aea8a09d5fbf10ab38c50b9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/main.py": {
+    "mtime": 1779544438.6151206,
+    "hash": "f9f883a21e77fb2abe804c479c757fe0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/middleware/request_logger.py": {
+    "mtime": 1779514073.1650546,
+    "hash": "c9110c703e8be2d29e08ca6fbae8ff6d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/middleware/cors.py": {
+    "mtime": 1779514118.3996854,
+    "hash": "b9b99c6a2ae3fe0784d69815414a75e9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/middleware/logging_middleware.py": {
+    "mtime": 1779514183.112111,
+    "hash": "d37274955b4bec7612bad34c42b7e57f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/middleware/audit_middleware.py": {
+    "mtime": 1779514186.8158062,
+    "hash": "3128650ac0d6e05a9f561da207c73fb3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/middleware/__init__.py": {
+    "mtime": 1779514192.630605,
+    "hash": "9f490699edc7bda22516e61e9d3b1b48"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/middleware/auth_middleware.py": {
+    "mtime": 1779577710.5617359,
+    "hash": "8421e1b2d5d8b69445ee7f6c59c8db2d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/celery_tasks/ai_review_tasks.py": {
+    "mtime": 1779766384.7610943,
+    "hash": "7c9fd2c52041ff3626b028aeb1b71fa0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/celery_tasks/__init__.py": {
+    "mtime": 1779773409.921832,
+    "hash": "a301a14539cbc9735c61cd943ee36f9a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/celery_tasks/notification_tasks.py": {
+    "mtime": 1779614081.4971416,
+    "hash": "7afa93443014a407be6313a01131251f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/core/config.py": {
+    "mtime": 1780215221.914014,
+    "hash": "094e2c5fd284dc258e79e50f643bb826"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/core/security.py": {
+    "mtime": 1779574934.020759,
+    "hash": "36ea5bb929b746616293839709221edb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/core/rbac.py": {
+    "mtime": 1780215221.9272115,
+    "hash": "62d59766ea4a0d382a9f98d13e606fa0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/core/__init__.py": {
+    "mtime": 1779514148.6820052,
+    "hash": "f6dbed27e49ff8bfa93d434b27cbd5f7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/core/dependency.py": {
+    "mtime": 1779574887.5704002,
+    "hash": "2a49da0033f85ae95f48cd9c47ef5713"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/auth.py": {
+    "mtime": 1779521221.7259836,
+    "hash": "7166c97ff655dacfb2b69191550d68e0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/validators.py": {
+    "mtime": 1779514218.215985,
+    "hash": "b15b7dfa12000b03e86012cc707c5a00"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/__init__.py": {
+    "mtime": 1779521294.7481337,
+    "hash": "5d1076c2f89fc4a403bfa75fac7621c9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/response.py": {
+    "mtime": 1779514269.44191,
+    "hash": "77ff50440a60732dc07bbd3094502a37"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/minio_client.py": {
+    "mtime": 1779514104.7443273,
+    "hash": "39862b4b7bdbbf639fcb0ae3a9bd3982"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/storage.py": {
+    "mtime": 1779667955.8569796,
+    "hash": "b0c927dd43ea24f8c8e2ac31a45ea5f2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/feishu.py": {
+    "mtime": 1779614007.4612136,
+    "hash": "3371fdbcc8850b518f45084613edf48c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/exceptions.py": {
+    "mtime": 1779514274.8522716,
+    "hash": "2946d57a29e8527c8e439041b9d8c7bc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/pagination.py": {
+    "mtime": 1779514099.6730332,
+    "hash": "bbe7dc3a8b97ea401423851760fdcd29"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/jwt_auth.py": {
+    "mtime": 1779516800.2942567,
+    "hash": "8d5c14311c3ea380355277c3af635e22"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/utils/jwt.py": {
+    "mtime": 1779514205.1899579,
+    "hash": "818a68b9ad48b7c90841ed29fa512777"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/user.py": {
+    "mtime": 1779532361.0100954,
+    "hash": "5322404e4c8d1d5c8cb0697c43f86960"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/ai_review_config.py": {
+    "mtime": 1780215221.9265847,
+    "hash": "d7c8db93adba456a34db3a33b6e80047"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/counterparty.py": {
+    "mtime": 1779546438.034787,
+    "hash": "8f43397867dead57fd00edf99132600d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/__init__.py": {
+    "mtime": 1780215221.9273293,
+    "hash": "28f6c004b92534d09b875ab1ccae7e21"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/review.py": {
+    "mtime": 1779667955.886437,
+    "hash": "02ca099a22709d79ab87db64a6d6ecf9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/template.py": {
+    "mtime": 1780215221.9265254,
+    "hash": "7d037c11d7bc4f11b5b664534b93891a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/contract.py": {
+    "mtime": 1780215221.926567,
+    "hash": "3e5053c13cbe946ce5cc8ba0f6fad8a9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/ai_review.py": {
+    "mtime": 1779532404.8149452,
+    "hash": "ad2fa351439cc5f818211a6e6cc8fc84"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/models/ai_review_issue.py": {
+    "mtime": 1779690407.754064,
+    "hash": "87dc41ca018be40eec6f4435385cc86e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/auth.py": {
+    "mtime": 1779516798.9638557,
+    "hash": "baa0ccfea59969e65cdd55f8ce746b8c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/user.py": {
+    "mtime": 1779516525.158134,
+    "hash": "d4be313e17a9e7b708e1eb8764ec3d36"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/counterparty.py": {
+    "mtime": 1780215221.927346,
+    "hash": "98bcfc1805563978e293bbea0524e283"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/__init__.py": {
+    "mtime": 1779023046.5536506,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/review.py": {
+    "mtime": 1779546454.0155084,
+    "hash": "eda99469af35ad0fad673d1461686280"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/approval.py": {
+    "mtime": 1779516846.2257135,
+    "hash": "1ead6c4a343d0fa3f77f66539ffbf576"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/contract.py": {
+    "mtime": 1780215221.9267702,
+    "hash": "8264eaba2d1582fad93968b6bf8dfcc5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/schemas/ai_review.py": {
+    "mtime": 1779516898.304691,
+    "hash": "1df67bf030823ac851cfe80eb468eb9a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/db/database.py": {
+    "mtime": 1779766385.1100829,
+    "hash": "8e81fb2ddd99bbea378beaa81c66445d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/db/__init__.py": {
+    "mtime": 1779023046.553552,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/db/base.py": {
+    "mtime": 1779521342.4207258,
+    "hash": "02c2aed86a0d44894513af064e86f059"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/__init__.py": {
+    "mtime": 1779023046.553699,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/system.py": {
+    "mtime": 1780215221.9265542,
+    "hash": "1712fe8a454337e57f96f3e6a176c486"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/reviews.py": {
+    "mtime": 1779667955.8694844,
+    "hash": "4a611d0bf76fd42262ae825e5033ce58"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/config.py": {
+    "mtime": 1780215221.9277656,
+    "hash": "741563ef46143f4b5b628d2954b25e8a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/audit.py": {
+    "mtime": 1779546234.176652,
+    "hash": "65b7b514497210024b65f8650bccd47e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ai_review_config.py": {
+    "mtime": 1780215221.926622,
+    "hash": "927070e81347b6dde5290d9242183791"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/approvals.py": {
+    "mtime": 1780215221.9277267,
+    "hash": "f62f7848e7741bd060653296be6343de"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ai_review_demo.py": {
+    "mtime": 1779143451.1102843,
+    "hash": "ded1f24adbabb4f031a741337e6236f1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ws_notifications.py": {
+    "mtime": 1779667955.890306,
+    "hash": "ac97003a2fcdf47e58e5382f7b4de089"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/__init__.py": {
+    "mtime": 1779023046.5537503,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/counterparties.py": {
+    "mtime": 1780215221.9277997,
+    "hash": "80f1c337a8f579fcd77e0a5455b79948"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/reminders.py": {
+    "mtime": 1779667955.8620584,
+    "hash": "0170d4eb12dc58613a93c953162841ac"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/archives.py": {
+    "mtime": 1779667955.88648,
+    "hash": "d8be6241de80da6497bf6dfc77abbdbc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/templates.py": {
+    "mtime": 1780215221.927695,
+    "hash": "ecb3e88da9dd135d394aed7720671014"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/seals.py": {
+    "mtime": 1779667955.8865414,
+    "hash": "b4c9aa53ad3d4e9f02e63b4b39bd1237"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/contracts.py": {
+    "mtime": 1780215221.8800824,
+    "hash": "4a78edafc13f2cfae36bbf7eba4a3777"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/risks.py": {
+    "mtime": 1779546246.022128,
+    "hash": "08926e0712b34a14bd815531bfabbe41"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/notifications.py": {
+    "mtime": 1779546648.692006,
+    "hash": "116fbbeb7ccdfc74a9a0ad8ac4780a17"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/statistics.py": {
+    "mtime": 1779573802.692069,
+    "hash": "f1ca3827e3f7432ca7ff71a968366928"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/clause_compare.py": {
+    "mtime": 1780215221.9264035,
+    "hash": "f5187a17bb20ad8c33b9fce139f708ce"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ai_review.py": {
+    "mtime": 1779771506.4085662,
+    "hash": "d79b886ecc2048a0fdd4ae46685eb4c9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/api/v1/ai_review_seeds.py": {
+    "mtime": 1780215221.9140952,
+    "hash": "13b31aa8398ac9a3f188b91e9274ff34"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/notification_events.py": {
+    "mtime": 1779614013.1603618,
+    "hash": "d8b9b87b7d727ebf3934aa773953d3b2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/contract_parse_service.py": {
+    "mtime": 1780215221.9267967,
+    "hash": "ba4fcb36aacdad5f21e7adf3af918397"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/parse_llm_service.py": {
+    "mtime": 1779851259.1348193,
+    "hash": "7060b00e942bce38310d9e2b09613707"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/review_service.py": {
+    "mtime": 1780215221.9270704,
+    "hash": "0219819d941b191a1c7f4239faa30864"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review_service.py": {
+    "mtime": 1779773409.921813,
+    "hash": "1ef8cc7ed993718101dbbdc10d3717fe"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/notification_service.py": {
+    "mtime": 1779766384.938284,
+    "hash": "5cc56bff5dc146c1344ab54b784ab468"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/seal_service.py": {
+    "mtime": 1779610925.8401303,
+    "hash": "db2cd130836e2e95b427352589aa8715"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review_issue_service.py": {
+    "mtime": 1780215221.9273767,
+    "hash": "b3cbe78a3303f3b231e1269fca2e54e9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/__init__.py": {
+    "mtime": 1779546251.6502633,
+    "hash": "0329f3ffb3bc255e7e3dc2566854426e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/template_parser.py": {
+    "mtime": 1780215221.9271743,
+    "hash": "e906796bf25c5f12ec874253efa27382"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/approval_service.py": {
+    "mtime": 1780215221.927535,
+    "hash": "101ab1bf658c77844bc8c067ab53fc20"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/template_service.py": {
+    "mtime": 1780215221.9264565,
+    "hash": "7b595fcefc96d169e36d9c443f1ac705"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/contract_service.py": {
+    "mtime": 1780018396.895331,
+    "hash": "e2d57c2fffb4e883621072ad91f933aa"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/contract_state.py": {
+    "mtime": 1779573769.3914118,
+    "hash": "fac35dff1bb1b416728cc7b1a0d0cc6e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/audit_service.py": {
+    "mtime": 1779514411.2283783,
+    "hash": "acb761decbdecee0e322e1fd7270226c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/flow_match_service.py": {
+    "mtime": 1780215221.927025,
+    "hash": "64c12cd83eb71158298368f4ac507e2c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/archive_service.py": {
+    "mtime": 1779610928.5080454,
+    "hash": "cd67d1ba6e69500d3c076192fc87fd50"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/clause_compare_service.py": {
+    "mtime": 1779610865.6720872,
+    "hash": "5df2b6ff9159b4978df680fed475d06d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/counterparty_service.py": {
+    "mtime": 1780215221.9271388,
+    "hash": "82468686b4c693b2fefb5851a4d63b1a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/config_service.py": {
+    "mtime": 1780215221.9263778,
+    "hash": "4ec0c7e6b2a3fdb01b2c65159f64a39c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review_report_service.py": {
+    "mtime": 1780221476.2662952,
+    "hash": "bb8744b013ae8f6bde3a9242be1dd417"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/risk_scorer.py": {
+    "mtime": 1779772505.5478287,
+    "hash": "8c9f9da86758ced7e7f8c8727be0f513"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ai_engine.py": {
+    "mtime": 1779771451.176198,
+    "hash": "b6d8ac351efaa9fd64a61b1e5eb48eac"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/checklist_matrix_service.py": {
+    "mtime": 1779772558.13088,
+    "hash": "fac78c885c90391ec740675b3d213089"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/config_seed.py": {
+    "mtime": 1780215221.9226975,
+    "hash": "545ff99501067df4d2e67b4662a7ef02"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/metrics.py": {
+    "mtime": 1780215221.926434,
+    "hash": "fcfd475be1e4400c34fa160130b5c3dc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/runner.py": {
+    "mtime": 1779771479.706097,
+    "hash": "12cc056e07af4baa6dc97ec191d61b64"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/prompt_builder.py": {
+    "mtime": 1780215221.926267,
+    "hash": "8ecbf132b5cf23f32f8f4847c1800ba1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr_engine.py": {
+    "mtime": 1780215221.927572,
+    "hash": "849cff0380b8a4bb6a26a675a98886a4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/dimension_merge.py": {
+    "mtime": 1779771430.552065,
+    "hash": "6368230053d0f727f9e1000c372c6ebc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/rag_service.py": {
+    "mtime": 1780215221.9267297,
+    "hash": "759d51af4a945fe328d5ba0a372c36c1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/seed_store.py": {
+    "mtime": 1780215221.9263525,
+    "hash": "c4db9070f17d2806372237f04988b252"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr_layout_ppstructure.py": {
+    "mtime": 1780215221.9278045,
+    "hash": "b203827a9270a122165237c34ac7be04"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/text_extractor.py": {
+    "mtime": 1780215221.9266758,
+    "hash": "1fbef3d3b406f6a4a27bc6fa8f775b39"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/__init__.py": {
+    "mtime": 1779514331.0317905,
+    "hash": "79b7ea9f892b8ce6034048044b793b30"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/rule_engine.py": {
+    "mtime": 1780215221.9275856,
+    "hash": "a4511f24fbc5c38712433c146facf88f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/text_normalize.py": {
+    "mtime": 1780215221.9268916,
+    "hash": "9d9539ae4aafaeb5ca9ded1929ecb4fa"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/config_store.py": {
+    "mtime": 1780215221.9226913,
+    "hash": "4e6b12e875294463fdf3524094182933"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/revision_router.py": {
+    "mtime": 1780215221.9263825,
+    "hash": "b520b1732651d8a52a72c50affe637b0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/heading_utils.py": {
+    "mtime": 1780215221.9272683,
+    "hash": "67f2437a3b7dafd23f79e841ecc0ec7f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr.py": {
+    "mtime": 1780215221.9275482,
+    "hash": "528a0df9b2485906907ef5c8af87e346"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/completeness.py": {
+    "mtime": 1779773409.9217935,
+    "hash": "da58b91ee0b4906f92ec98b42a0811d9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/vlm_page_fallback.py": {
+    "mtime": 1780215221.9276545,
+    "hash": "926fb5e97dd323cbc15501edf05c8320"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr_text_utils.py": {
+    "mtime": 1780215221.9271953,
+    "hash": "9345c4fc9616cabe92451502163056b5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/llm_gateway.py": {
+    "mtime": 1779766654.5793395,
+    "hash": "5d4142d8eced350af4a9333cf2ad9b3b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/text_segmenter.py": {
+    "mtime": 1779773409.9218886,
+    "hash": "2efbb3db19e2e045ef5434b06031b326"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/rule_executor.py": {
+    "mtime": 1780215221.8944445,
+    "hash": "3c866d1c3cb083e380bedf21467dbe54"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr_preprocess.py": {
+    "mtime": 1780215221.9274087,
+    "hash": "dbcf082c0e6106526f21c745862dfcd9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/context_loader.py": {
+    "mtime": 1779766385.0423474,
+    "hash": "21eee008d5cb4e1b09cfa1d02298a5ea"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/report_pdf_theme.py": {
+    "mtime": 1780221443.811336,
+    "hash": "92e820771fb419efa6f88c3f74615ae1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/config_admin_service.py": {
+    "mtime": 1780215221.9267573,
+    "hash": "3962caab8d282eb53a26ef8bf890fa46"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/orchestrator.py": {
+    "mtime": 1779772997.424526,
+    "hash": "b608ebb5a83ea475ab7c7f8efeda7577"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/clause_parser.py": {
+    "mtime": 1779514450.1115339,
+    "hash": "23aba8d7e85213582d3e3667d47ff1a7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr_metrics.py": {
+    "mtime": 1780215221.9261563,
+    "hash": "565e487cd8e13a2e6efa2b67ac23c349"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/document_json.py": {
+    "mtime": 1780215221.922563,
+    "hash": "f4e99012334c3bd5f5a9c225ed9b2485"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/issue_schema.py": {
+    "mtime": 1779772532.0210865,
+    "hash": "e65a9211d19a78b5fd0f89d59e6de45a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr_layout.py": {
+    "mtime": 1780215221.9279046,
+    "hash": "fa2f39301be11c98a2f98c5be62c3d2e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/ocr_postprocess.py": {
+    "mtime": 1780215221.9274855,
+    "hash": "2325bdaa48d04dac1fcec706613c6296"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/engines/rapidocr_engine.py": {
+    "mtime": 1780215221.9277203,
+    "hash": "8435fdf2502a9afb0b0ad4ea3e86acd4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/engines/__init__.py": {
+    "mtime": 1780215221.8733168,
+    "hash": "35134f50a0cd9808cc3b3263013ca25b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/engines/easyocr_engine.py": {
+    "mtime": 1780215221.8732946,
+    "hash": "75861e592c108990c6fe5ce01802a024"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/skills/read_through.py": {
+    "mtime": 1779766384.8487809,
+    "hash": "9c635648f943299ffbe4525fb398d833"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/skills/self_correction.py": {
+    "mtime": 1779690378.8431077,
+    "hash": "6e7adc0b99a97fa1a059530f40edfac7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/skills/__init__.py": {
+    "mtime": 1779876548.0404744,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/app/services/ai_review/skills/gates.py": {
+    "mtime": 1779773409.9070857,
+    "hash": "ac40bf1f2324dabf3eeab8cdd157ab79"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/init-db/init.sql": {
+    "mtime": 1779513988.8975112,
+    "hash": "58ef67f3335275c7f84a0080b075a0a7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_vlm_page_fallback.py": {
+    "mtime": 1780215221.9275753,
+    "hash": "7e499cbbabc434cca05f3d6988dc1387"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_verify_ai_review_seeds.py": {
+    "mtime": 1780215221.9269896,
+    "hash": "8f01e16b8d3debcf3e62d1e75b155a37"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ai_review_config_api.py": {
+    "mtime": 1780215221.9276762,
+    "hash": "525a77bf9918ad04d872fd32f4c1a4ef"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_audit.py": {
+    "mtime": 1779532065.1855333,
+    "hash": "e52fcdc7f64fdd2fdb0b4b38e0177d04"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/conftest.py": {
+    "mtime": 1780215221.9225557,
+    "hash": "58f33fe91fc1be58cccb6e553d8d40bb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_analyze_diagnosis.py": {
+    "mtime": 1779771565.8271291,
+    "hash": "cec96b1cb4fe124dbe07a6fdd460c1a7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_core_security.py": {
+    "mtime": 1779544732.3184676,
+    "hash": "70bf8313b6cefa3e7f69848236f9c488"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_approvals.py": {
+    "mtime": 1780215221.9274368,
+    "hash": "30147f87877a5241830a8149577e4ad0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_contract.py": {
+    "mtime": 1780215221.9267478,
+    "hash": "59e31e374bf13147f347b340370445c4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_risk_scorer_floor.py": {
+    "mtime": 1779766723.8289416,
+    "hash": "587179539ee319cd377391dae85a042b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ocr_layout.py": {
+    "mtime": 1780215221.9276788,
+    "hash": "2984e369f187dc8f5e920e0aea88a926"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ai_review_config_csv.py": {
+    "mtime": 1780215221.9270031,
+    "hash": "0f9c1eedaa71ee40bb218a0dca95a121"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_models_user.py": {
+    "mtime": 1779531949.2733023,
+    "hash": "ff077c50e9d625844303fbae5d1c964b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_notification_events.py": {
+    "mtime": 1779611289.7022984,
+    "hash": "3d473e9370ad0b2716d3d0d67ef712ac"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_system_users.py": {
+    "mtime": 1780215221.9266372,
+    "hash": "405b2b1d0b9754553c6252266c9155df"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_approval.py": {
+    "mtime": 1780215221.9268467,
+    "hash": "c7fedd0c30da121ba657062ff40c9326"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_issue_cap.py": {
+    "mtime": 1779771512.944399,
+    "hash": "9dfb599edd06c772efbcda19ebc9e23a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_statistics.py": {
+    "mtime": 1779573833.533046,
+    "hash": "5082f90c058f9c0176f4248e6dfb45d5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_template_service.py": {
+    "mtime": 1780215221.9264898,
+    "hash": "88edf877c18f5a1e032dc27859fd1140"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ocr_preprocess.py": {
+    "mtime": 1780215221.9276114,
+    "hash": "61841c30277d8d987974684981674402"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_reviews.py": {
+    "mtime": 1779675178.908148,
+    "hash": "f2fa21bdb89e4699bc62f138af4a6c5d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_config_api_flow.py": {
+    "mtime": 1780215221.9270895,
+    "hash": "22b5b71df12720b586fbecf5b419a340"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_completeness.py": {
+    "mtime": 1779766385.0835962,
+    "hash": "3b07e98900aa24c06ed8fd9b44ec48c1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_orchestrator_risk_recalc.py": {
+    "mtime": 1779772633.9245536,
+    "hash": "dbc0c0bef7bf199f820268065f834a59"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_models_contract.py": {
+    "mtime": 1779544730.4051745,
+    "hash": "5e72765a70c7cd3b64558ae616831c29"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/__init__.py": {
+    "mtime": 1779532079.5516856,
+    "hash": "7c4645b6770c1f740bba4204b45fbe54"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_checklist_matrix.py": {
+    "mtime": 1779771516.1000996,
+    "hash": "b84f104a55876eaa3b77271d0823e964"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ocr_text_quality.py": {
+    "mtime": 1779851340.3878167,
+    "hash": "060460b1f1f0b2f10d67c24a8a5f9c45"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_llm_gateway_json_repair.py": {
+    "mtime": 1779766720.8818376,
+    "hash": "3ea6ffe45f6e4cb91221e9cf92f0f2ac"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_seal.py": {
+    "mtime": 1779535676.9912457,
+    "hash": "dd32a63ade30e793bc30cad0bfd0b979"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_contract_parse_pdf_guard.py": {
+    "mtime": 1780215221.9274354,
+    "hash": "e0981872f775bbd0d3aa2344394d2789"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_risk_scorer_flat.py": {
+    "mtime": 1779772600.962864,
+    "hash": "4fd3fe8a036e5bfbadbc1eb991b24723"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_orchestrator.py": {
+    "mtime": 1779690749.513891,
+    "hash": "fe603379eb0242f11da2d430c785f0ec"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_demo04_blacklist.py": {
+    "mtime": 1779574966.2695472,
+    "hash": "f3e93740fa4259a6139d0cec9bc2f4fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_contract_title_extract.py": {
+    "mtime": 1780215221.927632,
+    "hash": "8b4b4ac7bb626d1f835a2c4afabaec77"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_document_json.py": {
+    "mtime": 1780215221.927466,
+    "hash": "c00720700c17c3946ea40db2b431939e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_contract_state_transitions.py": {
+    "mtime": 1779573810.0783784,
+    "hash": "f8d0be335ae08dc289f9b8f8601fdb4f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_rule_engine_batch1.py": {
+    "mtime": 1780215221.9226148,
+    "hash": "0ffddb2e71190b2738abb734221a4e05"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_dashboard.py": {
+    "mtime": 1779667955.8812084,
+    "hash": "8b915b02e054c11e351a425b65ad8cbf"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_config_store.py": {
+    "mtime": 1780215221.9273336,
+    "hash": "5350861ec0e495012d7ed70c09079fd2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_api_contracts.py": {
+    "mtime": 1780215221.9271557,
+    "hash": "816182095afc4ef5fcf68ca03a635e46"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_middleware_auth.py": {
+    "mtime": 1779544675.6865,
+    "hash": "efb19724a9302729606ce8ec158cbcf5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_config_integration.py": {
+    "mtime": 1780215221.927234,
+    "hash": "fa034bde8e88d5af8ef959f21dff4c2e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_archive.py": {
+    "mtime": 1779546830.0275774,
+    "hash": "c2b5c015eea9072df0843893a46daf04"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_phase3_stretch.py": {
+    "mtime": 1779667955.8865077,
+    "hash": "13a8605bb847da125e09c523bea125b9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_counterparties_import.py": {
+    "mtime": 1779667955.8905094,
+    "hash": "7b2138372912eaffc49d26e7b46dd464"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_template_parser.py": {
+    "mtime": 1780215221.8732786,
+    "hash": "eb347c5c46948ba4c166478ccd98c673"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_text_extractor_ocr.py": {
+    "mtime": 1779851329.8561752,
+    "hash": "f41d7424a3697a77c0fc76c4c635b735"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ai_review_runner.py": {
+    "mtime": 1779690856.5966403,
+    "hash": "3b4648311b557d677c0be0e2ea8f18d3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_prompt_builder.py": {
+    "mtime": 1779766385.0775347,
+    "hash": "38ef52820f122bfb34d77c575e06a911"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_review_report_pdf.py": {
+    "mtime": 1780221493.185782,
+    "hash": "752e3a4cc9da78bfb4110523289cb81c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_config_approvers.py": {
+    "mtime": 1780215221.9273562,
+    "hash": "f36a13f9148655e6b0e4e5f30d037909"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_counterparties_crud.py": {
+    "mtime": 1780215221.9272535,
+    "hash": "a4fed3d56a63de6ff930c7acb902eeb6"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ocr_layout_ppstructure.py": {
+    "mtime": 1780215221.9275758,
+    "hash": "b1b05e2a18897334f658aec88fc67ea4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_dimension_merge.py": {
+    "mtime": 1779771509.8586776,
+    "hash": "a296149092b48be3870ccf781f52abf4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ocr_engine.py": {
+    "mtime": 1780215221.9276197,
+    "hash": "c87868a1bd236f9258c0a5b952ca7147"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_review_workspace_dimensions.py": {
+    "mtime": 1780215221.9272234,
+    "hash": "028ca1ba1be17c5a5c6cb1352cc53f8c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_rbac_api.py": {
+    "mtime": 1779614098.8187358,
+    "hash": "f422f7346df57c1dcd0e9b02e66cfce4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_ocr_metrics.py": {
+    "mtime": 1780215221.9276536,
+    "hash": "8f4d9c5a4ceb626938c4302bc2e53c62"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/test_services_ai_review_engine.py": {
+    "mtime": 1779766385.069911,
+    "hash": "9bd0af3337ce766dff5e40677b1debf0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/integration/test_demo_scripts.py": {
+    "mtime": 1779667955.8777094,
+    "hash": "3f1946b4e3a83f7a8686d0ef43f60c5f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/integration/__init__.py": {
+    "mtime": 1779546769.6428838,
+    "hash": "068ad55eda75ab4fba068284be32d42b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/seeds/ai_review/import_contract_review_pro.py": {
+    "mtime": 1779143125.5337777,
+    "hash": "15ad7c8b2be78ce9feaaae41930a342e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/analyze_ai_review.py": {
+    "mtime": 1779772609.0897589,
+    "hash": "2c9c96d75a87f3bc7c13bde83bd358a5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/test_lanzhou_tobacco_pdf_review.py": {
+    "mtime": 1779766385.1562114,
+    "hash": "1833fe022cd6de073b1c36bba161d06c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/seed_ai_review_config.py": {
+    "mtime": 1780215221.8947122,
+    "hash": "df2c6ccc25491ac269ddbd5f8f31e18f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/ocr_smoke_one_page.py": {
+    "mtime": 1779766385.161215,
+    "hash": "58310c2f7fbbaaa49735bf6503dbfe15"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/verify_ai_review_seeds.py": {
+    "mtime": 1780215221.9226537,
+    "hash": "b20ad523262b0b81ec1bd1d632bd4241"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/export_openapi.py": {
+    "mtime": 1779574944.7972188,
+    "hash": "3869a54be1ea9f7a544f5ec8d0a2cdea"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/seed_dev.py": {
+    "mtime": 1780215221.9268448,
+    "hash": "abe2fe595b45aba58aa42b2fbce54019"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/benchmark_ocr.py": {
+    "mtime": 1780215221.927413,
+    "hash": "0082b38d5947fb7d5605988569aa56eb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/scripts/diag_ocr_parse.py": {
+    "mtime": 1779851313.4225945,
+    "hash": "425e976409fc5d2e57ce53316336eccf"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/env.py": {
+    "mtime": 1779690449.985761,
+    "hash": "b165ccf061b5dd9144ef21d2d196f36c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/e5f6a7b8c9d0_contract_content_longtext.py": {
+    "mtime": 1779773504.9837813,
+    "hash": "353498b8a96f4bb221f14750e3445beb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/h8i9j0k1l2m3_ai_review_config_tables.py": {
+    "mtime": 1780215221.927294,
+    "hash": "72036fd92d8b6dca729d0245624fc171"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/e9380d077795_initial_schema.py": {
+    "mtime": 1779546338.7933824,
+    "hash": "553efc5ea018fe73d4b14afef56fbfc9"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/f6a7b8c9d0e1_template_legal_snapshot.py": {
+    "mtime": 1779840543.6259665,
+    "hash": "de6cc8f62e51e7d1160566076e5e2184"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/d4e5f6a7b8c9_ai_review_issues.py": {
+    "mtime": 1779690425.340497,
+    "hash": "f9020082753450ff6ae020a50c0206bc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/g7h8i9j0k1l2_template_fields_contract_link.py": {
+    "mtime": 1780215221.8859923,
+    "hash": "7bddd597c9a1031c4d646f3d727ac216"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/a1b2c3d4e5f6_demo_hardening.py": {
+    "mtime": 1779547404.9994497,
+    "hash": "fa6eaea9a193e904d679659206b19cec"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/c3d4e5f6a7b8_notification_channel.py": {
+    "mtime": 1779667955.881325,
+    "hash": "fa433e79c5171e8beec59f0284070fc4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/alembic/versions/b2c3d4e5f6a7_contract_templates.py": {
+    "mtime": 1779610948.5698206,
+    "hash": "a99c51d309c18d68649a5d83a036c327"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/build.py": {
+    "mtime": 1779143470.3251057,
+    "hash": "d2377e1bed7731980edd992ce76d22ef"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/_test-lib.mjs": {
+    "mtime": 1779543118.2966073,
+    "hash": "e9ea75f3618967646fa2c36b42323552"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/_run-tests.mjs": {
+    "mtime": 1779543044.36052,
+    "hash": "44846a792cdd694352fadc800d1becb1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/_e2e-test.mjs": {
+    "mtime": 1779543500.8493142,
+    "hash": "0fc81f908c54852c09e3f4b1ebd301f3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/_click-test.mjs": {
+    "mtime": 1779543046.143622,
+    "hash": "4be696b56ebafe1afaf30c3b61699b09"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/_api-demo-test.mjs": {
+    "mtime": 1779577710.5673115,
+    "hash": "88c9a3aea5ce7a29cf38fed377af8e75"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/_page-audit.mjs": {
+    "mtime": 1779543068.4518778,
+    "hash": "a7974b7e76c3efb1e8e49629de4ac428"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/02-app.js": {
+    "mtime": 1779543568.3072042,
+    "hash": "e02a80fcee6da7acfd4376e8871d76d2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-contracts.js": {
+    "mtime": 1779577710.5160706,
+    "hash": "aae6b35eaad2c7197e4e3c20a45b6502"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-seals.js": {
+    "mtime": 1779577710.5308547,
+    "hash": "dff9476b642880aabb1e1cae8b513aa5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-archives.js": {
+    "mtime": 1779577710.5460675,
+    "hash": "73918062f4bc9b7d824caa2887d21034"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/99-init.js": {
+    "mtime": 1779178230.7135918,
+    "hash": "e24f1863bee67f182128e873b79c73a8"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-counterparties.js": {
+    "mtime": 1779577710.5362751,
+    "hash": "bdc0788db9d30cd96c2f2f9c8f132464"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/00-core.js": {
+    "mtime": 1779106879.6652617,
+    "hash": "45635f6ad648feb81cf2cce0a78c74a8"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-demo.js": {
+    "mtime": 1779577710.551004,
+    "hash": "8635b636c799c70dfdd373ac0d340d23"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-reviews.js": {
+    "mtime": 1779577710.525091,
+    "hash": "4fafbbe2a12941f11cd2850a35327d60"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-approvals.js": {
+    "mtime": 1779577710.5207365,
+    "hash": "aed59efeed16aef6f1ea7632e209382e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-bridge.js": {
+    "mtime": 1779577710.5561204,
+    "hash": "eceeabd1c70cfd1f0446d00c2ca7f5cd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/01-data.js": {
+    "mtime": 1779543627.682441,
+    "hash": "0d04874372b58797bb3b556a79b8bce8"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-auth.js": {
+    "mtime": 1779577710.5108416,
+    "hash": "767a2135d1fb56c44b886edf469c4e1f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-ai.js": {
+    "mtime": 1779577710.5415068,
+    "hash": "94a5294b3bec750e42aae57b6413c3c4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-client.js": {
+    "mtime": 1779577710.50617,
+    "hash": "ae4703764bfbecc430c0b99dc83fdf9e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/api-config.js": {
+    "mtime": 1779577710.501336,
+    "hash": "71e82070e41f842e7f98bfd55550ce6d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/01b-ai-seeds.js": {
+    "mtime": 1779143469.865189,
+    "hash": "09679159fd408fad18d48df2bdcad633"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/js/app.js": {
+    "mtime": 1779107899.6046233,
+    "hash": "2a87bb5192a8e03b56dd8bfbd751f3dd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/README.md": {
+    "mtime": 1779611359.2849212,
+    "hash": "e9a4fefa30064366e154ef9513d9e470"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docker-compose.yml": {
+    "mtime": 1779014941.903594,
+    "hash": "57ca2817a415b592ffe7355720a389dd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/contract-flow.html": {
+    "mtime": 1779488396.8517654,
+    "hash": "b6f2777853eb007ea48d0fdb1a41f1b7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/index.html": {
+    "mtime": 1779578339.7091575,
+    "hash": "b3322c4006cd14f69f5986e1a054589c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/requirements.txt": {
+    "mtime": 1780215221.926946,
+    "hash": "0f4d857515b49e1c28bfb1f291c08bac"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/snapshots/review68-before.md": {
+    "mtime": 1779772465.5883057,
+    "hash": "96b9b58ac603f32fe16ae9b75372e7c1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/snapshots/review68-after.md": {
+    "mtime": 1779772955.6848283,
+    "hash": "66d71b4acb1fe254ff39e286618f6597"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/tests/README.md": {
+    "mtime": 1779532072.9642525,
+    "hash": "ad431ccba0402656166633114c7d89f8"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/docs/ocr-layout.md": {
+    "mtime": 1780215221.927901,
+    "hash": "0e7675f92bf8dc189672982394755a0d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/docs/celery-setup.md": {
+    "mtime": 1779673069.1329987,
+    "hash": "fa706a281dd6db1fbe1a58030dc56757"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/docs/mlx-local-dev.md": {
+    "mtime": 1780215221.9269907,
+    "hash": "ecb019a3f813e1ca433af1139fd78390"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/docs/ai-review-config-runtime.md": {
+    "mtime": 1780215221.9277658,
+    "hash": "f539de613ead54bc36bb894c4fdccde1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/seeds/ai_review/SOURCE.md": {
+    "mtime": 1779143130.9292772,
+    "hash": "6b9170d1a721bfc287462e65b927c0c3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/seeds/ai_review/README.md": {
+    "mtime": 1780215221.9269044,
+    "hash": "08e2fcc24cdc59880ef46a15bcf621b4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0039/test-upload.txt": {
+    "mtime": 1779701312.0542529,
+    "hash": "b772130fb9ef62ef8ef7b29cbed07113"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0105/smoke-upload.txt": {
+    "mtime": 1779872009.949408,
+    "hash": "7d7fefbd7e406878e8b6f3591edc01fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0085/smoke-upload.txt": {
+    "mtime": 1779842389.6987321,
+    "hash": "7d7fefbd7e406878e8b6f3591edc01fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0066/smoke-upload.txt": {
+    "mtime": 1779841252.4512014,
+    "hash": "7d7fefbd7e406878e8b6f3591edc01fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0060/smoke-upload.txt": {
+    "mtime": 1779840371.9483562,
+    "hash": "7d7fefbd7e406878e8b6f3591edc01fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0094/smoke-upload.txt": {
+    "mtime": 1779842636.4673471,
+    "hash": "7d7fefbd7e406878e8b6f3591edc01fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/graphify-out/converted/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c_28441334.md": {
+    "mtime": 1780221495.0321047,
+    "hash": "286b3c7c184b5eb122d12b468beecc5d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0101/smoke-upload.txt": {
+    "mtime": 1779871471.1374335,
+    "hash": "7d7fefbd7e406878e8b6f3591edc01fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0042/u.txt": {
+    "mtime": 1779701652.965635,
+    "hash": "d8e8fca2dc0f896fd7cb4cb0031ba249"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0075/smoke-upload.txt": {
+    "mtime": 1779841675.5365303,
+    "hash": "7d7fefbd7e406878e8b6f3591edc01fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/index.html": {
+    "mtime": 1779577710.4631321,
+    "hash": "943bf68cdb1950054091f2be707dcf4c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/CHANGELOG.md": {
+    "mtime": 1779112478.1034393,
+    "hash": "e8c4963f10e479b76694ceddf712a3d0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/README.md": {
+    "mtime": 1779543697.7207255,
+    "hash": "128ed7f5db0f4c957c89aabb0a890d8e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-messages.html": {
+    "mtime": 1779331736.3022394,
+    "hash": "184e5ad1d48acb5a43c8569dcc521c72"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-approvals.html": {
+    "mtime": 1779106805.7425942,
+    "hash": "5a1a1dba8708263ac8d740ecb0e9c4a0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-create.html": {
+    "mtime": 1779112401.6545405,
+    "hash": "156740f0e9534de8ce8e386d761eb167"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-contracts.html": {
+    "mtime": 1779109379.023735,
+    "hash": "89793f73501029014eadf32a669ec99f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-review-workspace.html": {
+    "mtime": 1779161485.6246696,
+    "hash": "6a6b422e307fad7df9e9f8c5112de5a2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-counterparties.html": {
+    "mtime": 1779161490.1368861,
+    "hash": "09b1e6a5bacc80f3a63904209a544e77"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-dashboard.html": {
+    "mtime": 1779331736.3022664,
+    "hash": "dadcfb6dafdc98d8c6806fdc25c32479"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-review-history.html": {
+    "mtime": 1779106828.2688522,
+    "hash": "1723e53aeb1f09e3014225d8955bfbe0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-archives.html": {
+    "mtime": 1779331736.314609,
+    "hash": "868ab3123ab697862d5119b7c856da18"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-audit.html": {
+    "mtime": 1779161489.5313303,
+    "hash": "e193cea22c0625404db822e4a1cffabf"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/_order.txt": {
+    "mtime": 1779106828.2698555,
+    "hash": "683ff5fa6f15eb9df9eea8a69761f28d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-approval-history.html": {
+    "mtime": 1779110505.091294,
+    "hash": "cb525bbe930707c03fa0fac8f4e05172"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-seal.html": {
+    "mtime": 1779155637.2257137,
+    "hash": "89b19f1c75fbcf0d0e10a631f3086ede"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-clause-compare.html": {
+    "mtime": 1779106805.7425184,
+    "hash": "050825e7974c1bf2a648bdf5ab7a917b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-templates.html": {
+    "mtime": 1779106805.742359,
+    "hash": "e2d78b6dba943d7d9487ddbb376a2bd4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-contract-detail.html": {
+    "mtime": 1779161488.9222548,
+    "hash": "df78c99a12770f2e9b11624114c2545f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-ai-review.html": {
+    "mtime": 1779155637.2234347,
+    "hash": "dddb3568d462099b29da31be47efa3f8"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-revision-workspace.html": {
+    "mtime": 1779155637.2253978,
+    "hash": "787cc16162fbea9ac435eaa6e4f72c47"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-config.html": {
+    "mtime": 1779106805.7428014,
+    "hash": "de08f77b66c0d310e4e13170fca2008b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-users.html": {
+    "mtime": 1779106805.7433581,
+    "hash": "b8fe962487802f58e240c55ed554d7c2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/pages/page-review-center.html": {
+    "mtime": 1779331736.3145428,
+    "hash": "14d2b0210dc286dc672a2573bc3bf041"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/partials/modals.html": {
+    "mtime": 1779156762.0600214,
+    "hash": "610448f8882e33ec94868eb19ad15598"
+  },
+  "/Users/tianfch/Documents/Dev/contract/prototype/src/shell.html": {
+    "mtime": 1779178230.7223718,
+    "hash": "a49c564757ba17f951335775121dc41b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/frontend-completion.md": {
+    "mtime": 1779776769.087236,
+    "hash": "1fe60fa72fa40840ae2f2c4d6228ec45"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/frontend-flow-walkthrough.md": {
+    "mtime": 1779866229.8093488,
+    "hash": "cd975dfcab42ba623c6a83ec9dc7e821"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/jobs-ux-audit.md": {
+    "mtime": 1780215221.9277897,
+    "hash": "bcf846ceef851710c66f4c59e66282fd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/architecture.md": {
+    "mtime": 1779574936.41645,
+    "hash": "5efbc12fae0f03168bcea561a2503151"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/COMPLETION_REPORT.md": {
+    "mtime": 1779777154.3894238,
+    "hash": "e52ce534947bc33d78c8b27f5a302a33"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/test-coverage.md": {
+    "mtime": 1779776963.3753278,
+    "hash": "ac39ac16e19ee7299f1fcab02e848209"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/e2e-flow-verification.md": {
+    "mtime": 1779777095.1105304,
+    "hash": "350d87c44dda57c0fae1c8c5b50ecbe3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/README.md": {
+    "mtime": 1779112518.205463,
+    "hash": "fd1870eec48525cd359ab299d2850fde"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/backend-api-completion.md": {
+    "mtime": 1779776623.0521295,
+    "hash": "6f9d3b0a525cfebc7eda1dda1f165b63"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/cicd-docker.md": {
+    "mtime": 1779777041.3111835,
+    "hash": "d93f380bb15bd3fd86f7b6d7bf799708"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/database-completion.md": {
+    "mtime": 1779776715.606734,
+    "hash": "191435c76e2f0e9ecfe92be5ad8f2245"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/design-freeze-confirmation.md": {
+    "mtime": 1779694459.1692858,
+    "hash": "c16618980971720549ad1f993946a77f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/api-spec.md": {
+    "mtime": 1779575019.7955313,
+    "hash": "b1039fe30a5cdc3675e80226a752c35e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/prd.md": {
+    "mtime": 1779111980.5962636,
+    "hash": "db387cb6cf69e1d03c4f2fa86b88719e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/design-freeze-audit-summary.md": {
+    "mtime": 1779111978.490378,
+    "hash": "6f26c709e37ebbdd9f263e5c6912feff"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/api-page-mapping.md": {
+    "mtime": 1779112447.7859015,
+    "hash": "00b73614ef8099a7dc49ec982bc0019e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/data-dictionary.md": {
+    "mtime": 1779113848.775576,
+    "hash": "6bd6cba4e4bc83c14ec30ccaabade89e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/contract-status-dictionary.md": {
+    "mtime": 1779105620.4811428,
+    "hash": "c3144d1fa64d4b93c0c9650ae297464a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/design-freeze-pre-review.md": {
+    "mtime": 1779112480.16444,
+    "hash": "d9186e2ecdeb156642cc8816a8e80d29"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/vue3-decision.md": {
+    "mtime": 1779578790.0627968,
+    "hash": "053aefe38191694964fcf1d2f77e32eb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/DESIGN_STATUS.md": {
+    "mtime": 1779773409.9218569,
+    "hash": "820327b6e64b31e76ea610f84b1e52a1"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/review-2026-05-23.md": {
+    "mtime": 1779488468.816894,
+    "hash": "9db40c526d3011d4ac0b0a7c8405a8da"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/README.md": {
+    "mtime": 1779113878.6680374,
+    "hash": "2c0c4684f69c963851196ea1339b335d"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/design-change-request-template.md": {
+    "mtime": 1779106345.8970382,
+    "hash": "b11b31e6912d30a9d0aac2a2e0b2c22e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/ai-review-design.md": {
+    "mtime": 1779143149.139559,
+    "hash": "0f400cd635527429f06c5c26c48c6e97"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/demo-script-v1.md": {
+    "mtime": 1779112450.3472104,
+    "hash": "aa0f61f0ef59af9b29c88cdc8b2a3b81"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/design-review-2026-05-23.md": {
+    "mtime": 1779505014.843361,
+    "hash": "0074f5833db12f0a1293072d62d5079e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/development-kickoff.md": {
+    "mtime": 1779577710.480296,
+    "hash": "23737bd9c48d3a12951c758b48784121"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/design-alignment-requirements.md": {
+    "mtime": 1779111802.868443,
+    "hash": "c1eb28143d319d1efc04e2f6abf52f29"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/workflow-vs-review.md": {
+    "mtime": 1779111976.172647,
+    "hash": "d6133da9758e6d26f5ceaddf1a988675"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/permission-matrix.md": {
+    "mtime": 1779112443.4814565,
+    "hash": "5dc3b685f6c9c2e5328d4fe4b7aeb12b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/field-dictionary.md": {
+    "mtime": 1779105929.1038432,
+    "hash": "805408c0fefb82db8963a2e1b251417e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/prd-v1-checklist.md": {
+    "mtime": 1779667955.8863583,
+    "hash": "19229d41a8f481a37cad571c73b465c2"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/design/database-design.md": {
+    "mtime": 1779105195.0342474,
+    "hash": "9747caf74e1d6b3a131e8aa2018e2126"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/deep-completeness-audit.md": {
+    "mtime": 1779056256.505538,
+    "hash": "0f4a6904a055a27c3fe2fd2a81462f00"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/prototype-completeness-audit.md": {
+    "mtime": 1779111983.8789074,
+    "hash": "14712e9275afaade7b1caede6d82310a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/design-alignment-audit.md": {
+    "mtime": 1779111803.2020526,
+    "hash": "0fd6c784b8f2a67bc1e36f0ab99a4a94"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/claude-legal-skill-integration.md": {
+    "mtime": 1779057127.0329895,
+    "hash": "18c730dae92a975385f43ed316ab0c49"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/ai-review-prototype-audit.md": {
+    "mtime": 1779052046.868841,
+    "hash": "5500be6e57a98ecf4ae78eae5f2d9df0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/create-page-analysis.md": {
+    "mtime": 1779072479.775746,
+    "hash": "7e9b20906b2c9f987090aa901e42597c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/review-design-audit-report.md": {
+    "mtime": 1779049676.7062654,
+    "hash": "71860d513fc5a6c4e9e483b4bd0d8782"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/prototype-review-comprehensive.md": {
+    "mtime": 1779025825.4787807,
+    "hash": "9f3faa83a5c752b03442acbf7dce1e94"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/README.md": {
+    "mtime": 1779112023.8393779,
+    "hash": "1632c43ffd85156254650051de8c78c7"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/contract-content-review-analysis.md": {
+    "mtime": 1779024018.7919962,
+    "hash": "47d6a8be57f79181c8419e44de568915"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/prototype-review.md": {
+    "mtime": 1779024946.3151379,
+    "hash": "4afb4c24193e506678a445f090eb581a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/comprehensive-design-review.md": {
+    "mtime": 1779111983.8110108,
+    "hash": "4c7fc2d277295f37623dcd7bb1081717"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/p0-p1-completion-report.md": {
+    "mtime": 1779111985.6618297,
+    "hash": "d3b6562a99f408f64b78d1378701087c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/archive/design-alignment-report.md": {
+    "mtime": 1779027852.745718,
+    "hash": "fe664a07d6ee4ce1cf00a3e50fd5ee9f"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/doc-code-alignment-2026-05-23.md": {
+    "mtime": 1779611369.2676501,
+    "hash": "5cc671f1d484dbe20d2880cddd88ee8c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/frontend-api-integration-checklist.md": {
+    "mtime": 1779614270.2097287,
+    "hash": "ccbb3d1c2efee431dec9b55018fab175"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/backend-hardening-plan.md": {
+    "mtime": 1779577710.4909813,
+    "hash": "5751bc775b2f5eaac7bd088b3d464cee"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/ai-review-review-integration-plan.md": {
+    "mtime": 1779689823.4196308,
+    "hash": "2d3bd6c1a0dd9c6590630bed9e395ffb"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/prototype-p0-fix-plan.md": {
+    "mtime": 1779025969.4506013,
+    "hash": "76447fd6a9367d72927697ffcbcc7a96"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/ai-review-sprint2-plan.md": {
+    "mtime": 1779054380.5107934,
+    "hash": "6f156dd1b9e402b859e3ecbe79ef3554"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/prototype-p0-p1-checklist.md": {
+    "mtime": 1779543627.1778667,
+    "hash": "d4eeb409926ee626a2dce2feead8e220"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/design-freeze-improvement-plan.md": {
+    "mtime": 1779112003.5789135,
+    "hash": "4805078e46dd8a79a86857ae57954834"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/review-implementation-plan.md": {
+    "mtime": 1779049696.1209269,
+    "hash": "eaa6ed071bd839da45369a76790d04d3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/v1.1-roadmap.md": {
+    "mtime": 1779614231.632577,
+    "hash": "c0af005f199c5f0a493ec90aad745a34"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/ai-llm-contract-review-deep-scheme.md": {
+    "mtime": 1779766384.8278377,
+    "hash": "7928fc2f4470b2ccbcf433bc93c4de0e"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/ai-review-sprint-plan.md": {
+    "mtime": 1779052335.0661638,
+    "hash": "a151da896c66e96ea093a70990ca882c"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/plans/ai-review-capability-hardening-design.md": {
+    "mtime": 1779773409.9219475,
+    "hash": "0e8e5556f77b898f79a71719f6b5e0e5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/contract-review-pro-seeds.md": {
+    "mtime": 1779143146.3308527,
+    "hash": "300d41b149ecd3dc06a7c8da8f63b247"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/template-design.md": {
+    "mtime": 1779016920.4760356,
+    "hash": "aa31dc6b9896509738cf3f62cb95e397"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/review-process-design.md": {
+    "mtime": 1779023397.8407938,
+    "hash": "732010eb37b5057bda7fe111969577a5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/mobile-approval-design.md": {
+    "mtime": 1779017136.1237068,
+    "hash": "ec98b822dfe709f6d105d85a1da0e727"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/workflow-design.md": {
+    "mtime": 1779020830.7358556,
+    "hash": "0426f8babc8e1cac9009912bfa96936b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/user-stories.md": {
+    "mtime": 1779018048.363671,
+    "hash": "91f964675dd5829a23ad7f422afef235"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/counterparty-design.md": {
+    "mtime": 1779018421.775934,
+    "hash": "60e530a9c075835fa03ab279c4f314e4"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/README.md": {
+    "mtime": 1779766385.000651,
+    "hash": "ddc27c84cf2e9a30d274232bdd25e6e3"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/improvements.md": {
+    "mtime": 1779018099.690127,
+    "hash": "de462f34da068a7c98f7c7d473669f22"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/ai-review-flow.md": {
+    "mtime": 1779773409.9070466,
+    "hash": "c80230f1485ee361042f5366ff276fdd"
+  },
+  "/Users/tianfch/Documents/Dev/contract/docs/reference/performance-design.md": {
+    "mtime": 1779017064.5666637,
+    "hash": "086e49772e5f89ddf20bca3ba754b87b"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/sample-ai-review-report.pdf": {
+    "mtime": 1780221494.6850796,
+    "hash": "998f8a6b71c5c3f8ceb30c5e1f07f9b5"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0053/\u7518\u8083\u7701\u70df\u8349\u516c\u53f8\u5170\u5dde\u5e02\u516c\u53f82018\u5e74\u5377\u70df\u8425\u9500\u7f51\u5efa\u4fe1\u606f\u5316\u9879\u76ee\u5efa\u8bbe\u5408\u540c-195.8\u4e07.pdf": {
+    "mtime": 1779764637.9125893,
+    "hash": "ead3768e840711088ed9e793fb7e7337"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0099/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779868886.8274693,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0052/\u7518\u8083\u7701\u70df\u8349\u516c\u53f8\u5170\u5dde\u5e02\u516c\u53f82018\u5e74\u5377\u70df\u8425\u9500\u7f51\u5efa\u4fe1\u606f\u5316\u9879\u76ee\u5efa\u8bbe\u5408\u540c-195.8\u4e07.pdf": {
+    "mtime": 1779758288.3785353,
+    "hash": "ead3768e840711088ed9e793fb7e7337"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0116/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1780202913.794289,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0102/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779874331.7055185,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0049/\u7518\u8083\u7701\u70df\u8349\u516c\u53f8\u5170\u5dde\u5e02\u516c\u53f82018\u5e74\u5377\u70df\u8425\u9500\u7f51\u5efa\u4fe1\u606f\u5316\u9879\u76ee\u5efa\u8bbe\u5408\u540c-195.8\u4e07.pdf": {
+    "mtime": 1779756290.048034,
+    "hash": "ead3768e840711088ed9e793fb7e7337"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0050/\u7518\u8083\u7701\u70df\u8349\u516c\u53f8\u5170\u5dde\u5e02\u516c\u53f82018\u5e74\u5377\u70df\u8425\u9500\u7f51\u5efa\u4fe1\u606f\u5316\u9879\u76ee\u5efa\u8bbe\u5408\u540c-195.8\u4e07.pdf": {
+    "mtime": 1779756408.811743,
+    "hash": "ead3768e840711088ed9e793fb7e7337"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0095/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779850432.862333,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0056/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779775599.8285015,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0051/\u7518\u8083\u7701\u70df\u8349\u516c\u53f8\u5170\u5dde\u5e02\u516c\u53f82018\u5e74\u5377\u70df\u8425\u9500\u7f51\u5efa\u4fe1\u606f\u5316\u9879\u76ee\u5efa\u8bbe\u5408\u540c-195.8\u4e07.pdf": {
+    "mtime": 1779757570.3532257,
+    "hash": "ead3768e840711088ed9e793fb7e7337"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0115/\u7518\u8083\u7701\u70df\u8349\u516c\u53f8\u5170\u5dde\u5e02\u516c\u53f82018\u5e74\u5377\u70df\u8425\u9500\u7f51\u5efa\u4fe1\u606f\u5316\u9879\u76ee\u5efa\u8bbe\u5408\u540c-195.8\u4e07.pdf": {
+    "mtime": 1780142731.972602,
+    "hash": "ead3768e840711088ed9e793fb7e7337"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0114/\u7518\u8083\u7701\u70df\u8349\u516c\u53f8\u5170\u5dde\u5e02\u516c\u53f82018\u5e74\u5377\u70df\u8425\u9500\u7f51\u5efa\u4fe1\u606f\u5316\u9879\u76ee\u5efa\u8bbe\u5408\u540c-195.8\u4e07.pdf": {
+    "mtime": 1779935038.999075,
+    "hash": "ead3768e840711088ed9e793fb7e7337"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0042/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779701437.073553,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0044/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779706091.3494747,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0043/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779705777.218668,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0043/attach.pdf": {
+    "mtime": 1779705907.0686429,
+    "hash": "a0c2fa5fab93a1b415878e2632a7c4fc"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0043/t.pdf": {
+    "mtime": 1779706067.8427064,
+    "hash": "9dd4e461268c8034f5c8564e155c67a6"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0026/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779706128.5625465,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/backend/data/contract-files/contracts/CON-202605-0028/\u9752\u6d77\u70df\u8349\u65b0\u96f6\u552e\u7cfb\u7edf\u91c7\u8d2d\u5408\u540c.pdf": {
+    "mtime": 1779715661.2986412,
+    "hash": "af05d1241de97d2ecca6d93cbda97ee0"
+  },
+  "/Users/tianfch/Documents/Dev/contract/frontend/public/favicon.svg": {
+    "mtime": 1779578342.2320535,
+    "hash": "af48b4d08c0957bd587088ac6614c752"
+  },
+  "/Users/tianfch/Documents/Dev/contract/contract-diagrams/lifecycle-dataflow.svg": {
+    "mtime": 1779507403.7555058,
+    "hash": "14452de140a99831df8e4fb6089ced3a"
+  },
+  "/Users/tianfch/Documents/Dev/contract/contract-diagrams/system-architecture.svg": {
+    "mtime": 1779502422.2228405,
+    "hash": "5613934c3b2dfa704070b16f1c238b61"
+  },
+  "/Users/tianfch/Documents/Dev/contract/contract-diagrams/execution-sequence.svg": {
+    "mtime": 1779507385.4829104,
+    "hash": "804f9979e77b9a60d431631e675baea7"
+  }
+}

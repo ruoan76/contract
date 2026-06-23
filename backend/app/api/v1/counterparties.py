@@ -14,9 +14,11 @@ from app.schemas.counterparty import CounterpartyCreate, CounterpartyUpdate
 from app.services.counterparty_service import (
     add_to_blacklist,
     create_counterparty,
+    disable_counterparty,
     get_counterparty,
     import_counterparties_csv,
     list_counterparties,
+    remove_from_blacklist,
     update_counterparty,
 )
 from app.utils.auth import get_current_user
@@ -30,10 +32,17 @@ async def list_cp(
     page_size: int = Query(20, ge=1, le=100),
     keyword: Optional[str] = None,
     is_blacklist: Optional[int] = None,
+    status: Optional[int] = Query(1, description="1启用 0禁用，传 -1 表示不限"),
     db: AsyncSession = Depends(get_db),
 ):
+    status_filter = None if status == -1 else status
     data = await list_counterparties(
-        db, page=page, page_size=page_size, keyword=keyword, is_blacklist=is_blacklist
+        db,
+        page=page,
+        page_size=page_size,
+        keyword=keyword,
+        is_blacklist=is_blacklist,
+        status=status_filter,
     )
     return {"code": 200, "data": data}
 
@@ -101,5 +110,31 @@ async def blacklist_cp(
     try:
         data = await add_to_blacklist(db, cp_id, reason)
         return {"code": 200, "data": data}
-    except BusinessError:
-        raise HTTPException(status_code=404, detail="相对方不存在")
+    except BusinessError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/{cp_id}/unblacklist", summary="移出黑名单")
+async def unblacklist_cp(
+    cp_id: int,
+    user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        data = await remove_from_blacklist(db, cp_id)
+        return {"code": 200, "data": data}
+    except BusinessError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/{cp_id}/disable", summary="禁用相对方")
+async def disable_cp(
+    cp_id: int,
+    user: User = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        data = await disable_counterparty(db, cp_id)
+        return {"code": 200, "data": data}
+    except BusinessError as e:
+        raise HTTPException(status_code=400, detail=str(e))

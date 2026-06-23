@@ -33,4 +33,4 @@ python3 -c "import json; from pathlib import Path; m=json.loads(Path('backend/se
 | `risk_templates.purchase.json` | 买卖/通用风险模板子集 |
 | `manifest.json` | 版本与计数 |
 
-实现期在应用启动或迁移中加载 `generated/*.json` 写入数据库（表结构见设计文档）。
+生产环境请执行迁移、`python scripts/seed_ai_review_config.py` 与 `python scripts/verify_ai_review_seeds.py`。运行时行为见 [../../docs/ai-review-config-runtime.md](../../docs/ai-review-config-runtime.md)。

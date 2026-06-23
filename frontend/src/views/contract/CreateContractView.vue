@@ -11,6 +11,8 @@ import { useAuthStore } from '@/stores/auth'
 import { debounce } from '@/utils/debounce'
 import type { DocumentJSON } from '@/types/documentJson'
 import type { Contract, FlowMatchResult } from '@/types/models'
+import { flowTypeLabel } from '@/utils/enumLabels'
+import { TEMPLATE_VAR_FORM_BIND } from '@/utils/templateFill'
 import ContractContentViewer from '@/components/ContractContentViewer.vue'
 
 const DRAFT_KEY = 'contract-draft'
@@ -46,6 +48,16 @@ function wizardNext() {
     ElMessage.warning('请先上传并解析合同文件')
     return
   }
+  if (mode.value === 'template') {
+    if (!selectedTemplateId.value) {
+      ElMessage.warning('请选择模板')
+      return
+    }
+    if (!form.content?.trim()) {
+      ElMessage.warning('请先点击「填充模板」生成合同正文')
+      return
+    }
+  }
   if (!form.title.trim()) {
     ElMessage.warning('请填写合同标题')
     return
@@ -72,6 +84,8 @@ const form = reactive({
 })
 
 const selectedTemplateId = ref<number | null>(null)
+const selectedTemplateMeta = ref<{ version?: number; variables: string[] } | null>(null)
+const templateVarValues = ref<Record<string, string>>({})
 const selectedHistoryId = ref<number | null>(null)
 const pendingFile = ref<File | null>(null)
 const parseLoading = ref(false)
@@ -82,6 +96,7 @@ const parseStatus = ref<{
   party_parse_warning?: boolean
   counterparty_corrections?: string[]
   ocr_needs_review?: boolean
+  layout_suspect?: boolean
   ocr_engine?: string | null
   full_text_raw?: string | null
   document_json?: DocumentJSON | null
@@ -125,8 +140,17 @@ function isParseableFile(file: File): boolean {
   return PARSEABLE_EXT.has(fileExtension(file.name))
 }
 
+/** 与后端 PAGE_MARKER_RE 一致：OCR 分页标记不应作为合同标题 */
+const PAGE_MARKER_TITLE_RE = /^---\s*第\s*\d+\s*页\s*---$/
+
 function titleFromFilename(filename: string): string {
-  return filename.replace(/\.[^.]+$/, '').slice(0, 120)
+  let base = filename.replace(/\.[^.]+$/, '').trim()
+  base = base.replace(/[-—]\s*[\d.]+\s*万(?:元)?\s*$/i, '').trim()
+  return base.slice(0, 120) || '未命名合同'
+}
+
+function isPageMarkerTitle(title: string): boolean {
+  return PAGE_MARKER_TITLE_RE.test(title.trim())
 }
 
 function inferContractType(
@@ -152,11 +176,26 @@ function fillFormFromParse(
 } {
   const f = data.fields || {}
   const full = f.full_text || f.text_preview || ''
+  const trimmed = full.trimStart()
+  if (trimmed.startsWith('%PDF-') || (trimmed.includes('endobj') && trimmed.includes('/Type'))) {
+    ElMessage.error('解析结果异常（疑似 PDF 原始数据），请重新上传或联系管理员检查 OCR')
+    parseStatus.value = null
+    form.content = ''
+    return {}
+  }
   form.content = full.slice(0, 500_000)
-  const parsedTitle = String(f.title || titleFromFilename(file.name)).slice(0, 120)
+  let parsedTitle = String(f.title || titleFromFilename(file.name)).slice(0, 120)
+  let titleFromFilenameFallback = false
+  if (isPageMarkerTitle(parsedTitle)) {
+    parsedTitle = titleFromFilename(file.name)
+    titleFromFilenameFallback = true
+  }
   const snap = preParseSnapshot.value
   if (!snap || form.title === snap.title) {
     form.title = parsedTitle
+    if (titleFromFilenameFallback) {
+      ElMessage.warning('标题已从文件名推断，请核对')
+    }
   }
   const parsedCounterparty = f.party_b
     ? String(f.party_b).slice(0, 80)
@@ -177,6 +216,7 @@ function fillFormFromParse(
     party_parse_warning: f.party_parse_warning,
     counterparty_corrections: f.counterparty_corrections,
     ocr_needs_review: f.ocr_needs_review,
+    layout_suspect: f.layout_suspect,
     ocr_engine: data.ocr_engine ?? null,
     full_text_raw: f.full_text_raw ?? null,
     document_json: (data.document_json ?? data.extracted_metadata?.document_json) as DocumentJSON | null,
@@ -207,6 +247,9 @@ async function applyParsedFile(file: File): Promise<boolean> {
   try {
     const data = await contractsApi.parse(file)
     const status = fillFormFromParse(data, file)
+    if (!form.content.trim()) {
+      return false
+    }
     saveDraftImmediate()
     const ocrHint = status.ocr_used ? '（已 OCR）' : ''
     if (status.party_parse_warning || (status.confidence != null && status.confidence < 0.6)) {
@@ -289,13 +332,74 @@ onMounted(async () => {
   }
 })
 
-function applyTemplate() {
-  const tpl = templates.value.find((t) => t.id === selectedTemplateId.value)
-  if (!tpl) return
-  form.title = tpl.name
-  form.contract_type = tpl.category || form.contract_type
-  form.content = tpl.content || form.content
-  ElMessage.success(`已套用模板：${tpl.name}`)
+watch(selectedTemplateId, async (id) => {
+  templateVarValues.value = {}
+  selectedTemplateMeta.value = null
+  if (!id) return
+  try {
+    const detail = await templatesApi.get(id)
+    const vars = detail.variables?.length
+      ? detail.variables
+      : (detail.content || '').match(/\{([^{}]+)\}/g)?.map((m) => m.slice(1, -1).trim()) || []
+    selectedTemplateMeta.value = { version: detail.version, variables: vars }
+    const init: Record<string, string> = {}
+    for (const v of vars) {
+      init[v] = templateVarValues.value[v] || ''
+    }
+    templateVarValues.value = init
+    form.contract_type = detail.category || form.contract_type
+    if (!form.title.trim()) form.title = detail.name
+  } catch {
+    ElMessage.error('加载模板详情失败')
+  }
+})
+
+function bindTemplateVarsToForm() {
+  for (const [varName, field] of Object.entries(TEMPLATE_VAR_FORM_BIND)) {
+    const val = templateVarValues.value[varName]
+    if (val == null || val === '') continue
+    if (field === 'amount') {
+      const n = Number(String(val).replace(/,/g, ''))
+      if (!Number.isNaN(n)) form.amount = n
+    } else if (field === 'counterparty_name') {
+      form.counterparty_name = val
+    } else if (field === 'title') {
+      form.title = val
+    }
+  }
+}
+
+async function applyTemplate() {
+  if (!selectedTemplateId.value) {
+    ElMessage.warning('请先选择模板')
+    return
+  }
+  const vars = selectedTemplateMeta.value?.variables || []
+  for (const v of vars) {
+    if (!String(templateVarValues.value[v] ?? '').trim()) {
+      ElMessage.warning(`请填写模板变量「${v}」`)
+      return
+    }
+  }
+  try {
+    const res = await templatesApi.fill(selectedTemplateId.value, {
+      ...templateVarValues.value,
+      金额: templateVarValues.value['金额'] ?? form.amount,
+      相对方: templateVarValues.value['相对方'] ?? form.counterparty_name,
+    })
+    form.content = res.content
+    selectedTemplateMeta.value = {
+      version: res.template_version ?? selectedTemplateMeta.value?.version,
+      variables: res.variables || vars,
+    }
+    bindTemplateVarsToForm()
+    const tpl = templates.value.find((t) => t.id === selectedTemplateId.value)
+    if (tpl && !form.title.trim()) form.title = tpl.name
+    if (tpl) form.contract_type = tpl.category || form.contract_type
+    ElMessage.success('模板已填充，请核对正文与关键字段')
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '填充失败')
+  }
 }
 
 function applyHistory() {
@@ -352,6 +456,13 @@ async function submit() {
       counterparty_name: form.counterparty_name,
       amount: form.amount,
       content: form.content,
+      ...(mode.value === 'template' && selectedTemplateId.value
+        ? {
+            template_id: selectedTemplateId.value,
+            template_version: selectedTemplateMeta.value?.version,
+            template_values: { ...templateVarValues.value },
+          }
+        : {}),
     })
     if (pendingFile.value) {
       try {
@@ -388,9 +499,14 @@ async function submit() {
   }
 }
 
-function goApprovals() {
+async function goApprovals() {
   flowDialogVisible.value = false
-  router.push({ name: 'approvals' })
+  try {
+    await auth.switchRole('approver')
+    await router.push({ name: 'approvals' })
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : '切换审批角色失败')
+  }
 }
 
 function goLegalReview() {
@@ -444,8 +560,9 @@ const modeHint = computed(() => {
 })
 
 function templateLabel(t: ContractTemplate) {
+  const code = t.code ? `${t.code} · ` : ''
   const ver = t.version != null ? ` v${t.version}` : ''
-  return `${t.name}${ver}`
+  return `${code}${t.name}${ver}`
 }
 </script>
 
@@ -484,8 +601,19 @@ function templateLabel(t: ContractTemplate) {
           />
         </el-select>
       </el-form-item>
+      <template v-if="selectedTemplateMeta?.variables?.length">
+        <el-form-item
+          v-for="v in selectedTemplateMeta.variables"
+          :key="v"
+          :label="v"
+          required
+        >
+          <el-input v-model="templateVarValues[v]" :placeholder="`填写 {${v}}`" />
+        </el-form-item>
+      </template>
       <el-form-item>
-        <el-button type="primary" plain @click="applyTemplate">套用模板</el-button>
+        <el-button type="primary" plain @click="applyTemplate">填充模板</el-button>
+        <span v-if="form.content" class="fill-hint">已生成正文，可在下一步预览</span>
       </el-form-item>
     </el-form>
 
@@ -627,6 +755,7 @@ function templateLabel(t: ContractTemplate) {
           :ocr-engine="parseStatus?.ocr_engine"
           :confidence="parseStatus?.confidence"
           :ocr-needs-review="Boolean(parseStatus?.ocr_needs_review)"
+          :layout-suspect="Boolean(parseStatus?.layout_suspect)"
           :char-count="parseStatus?.char_count"
           :full-text-raw="parseStatus?.full_text_raw"
           :document-json="parseStatus?.document_json"
@@ -667,7 +796,12 @@ function templateLabel(t: ContractTemplate) {
     </template>
 
     <el-dialog v-model="flowDialogVisible" title="流程匹配" width="520px">
-      <p>流程类型：{{ flowMatch?.flow_type || 'simple' }}</p>
+      <p>
+        流程类型：{{
+          (flowMatch?.flow_label as string) ||
+          flowTypeLabel(flowMatch?.flow_type || 'simple')
+        }}
+      </p>
       <el-timeline style="margin-top: 12px">
         <el-timeline-item
           v-for="(s, idx) in flowSteps()"
@@ -680,13 +814,19 @@ function templateLabel(t: ContractTemplate) {
       <template #footer>
         <el-button @click="flowDialogVisible = false">关闭</el-button>
         <el-button @click="goLegalReview">提交法务评审</el-button>
-        <el-button type="primary" @click="goApprovals">前往待办审批</el-button>
+        <el-button type="primary" @click="goApprovals">前往待办审批（部门主管）</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <style scoped>
+.fill-hint {
+  margin-left: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
 .mode-hint {
   color: #6b7280;
   font-size: 13px;

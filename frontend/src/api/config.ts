@@ -40,6 +40,13 @@ export interface ApproverConfig {
   user_name?: string
 }
 
+export interface FlowNodeConfig {
+  node_id: string
+  node_name: string
+  approver_role?: string
+  user_id?: number
+}
+
 export const configApi = {
   getThresholds: () => client.get<ThresholdsConfig>('/api/v1/config/thresholds'),
   updateThresholds: (body: Partial<ThresholdsConfig>) =>
@@ -49,4 +56,11 @@ export const configApi = {
     client.post<ApproverConfig>('/api/v1/config/approvers', body),
   updateApprover: (id: number, body: Partial<ApproverConfig>) =>
     client.put<ApproverConfig>(`/api/v1/config/approvers/${id}`, body),
+  deleteApprover: (id: number) => client.delete<null>(`/api/v1/config/approvers/${id}`),
+  getFlowNodes: (flowType?: string) => {
+    const q = flowType ? `?flow_type=${encodeURIComponent(flowType)}` : ''
+    return client.get<FlowNodeConfig[] | Record<string, FlowNodeConfig[]>>(
+      `/api/v1/config/flow-nodes${q}`,
+    )
+  },
 }

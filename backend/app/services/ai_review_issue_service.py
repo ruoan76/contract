@@ -163,5 +163,9 @@ async def update_issue_human_status(
     row.human_status = human_status
     if human_comment is not None:
         row.human_comment = human_comment
+    if human_status in ("false_positive", "confirmed"):
+        from app.services.ai_review.config_admin_service import record_issue_feedback
+
+        await record_issue_feedback(db, row, human_status)
     await db.flush()
     return {"id": row.id, "human_status": row.human_status, "human_comment": row.human_comment}

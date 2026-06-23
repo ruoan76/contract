@@ -10,8 +10,6 @@ const STATIC_ROUTES = [
   '/ai-review',
   '/clause-compare',
   '/review-center',
-  '/review-workspace',
-  '/review-history',
   '/approvals',
   '/seal',
   '/archives',

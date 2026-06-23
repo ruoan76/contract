@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test'
-import { gotoRoute, switchRole } from './helpers'
+import { gotoRoute, switchRole, pickCreateMode, expectToast } from './helpers'
 
 /** OCR 低置信度时须勾选确认才可提交 */
 test.describe('UX OCR 提交确认', () => {
   test('低置信度解析须勾选确认', async ({ page }) => {
+    test.setTimeout(60000)
     await page.goto('/')
     await switchRole(page, '起草人')
     await gotoRoute(page, '/create', '新建合同')
@@ -21,7 +22,7 @@ test.describe('UX OCR 提交确认', () => {
             fields: {
               title: 'OCR 测试合同',
               party_a: '甲方公司',
-              party_b: '乙方公司',
+              party_b: '得力集团',
               amount: 100000,
               full_text: '测试正文',
               confidence: 0.45,
@@ -33,13 +34,21 @@ test.describe('UX OCR 提交确认', () => {
       })
     })
 
+    await pickCreateMode(page, '智能起草')
+
     const buffer = Buffer.from('%PDF-1.4 mock')
-    await page.locator('.el-upload input[type="file"]').first().setInputFiles({
+    await page.locator('[data-testid="ai-parse-upload"] input[type="file"]').setInputFiles({
       name: 'mock-scan.pdf',
       mimeType: 'application/pdf',
       buffer,
     })
 
+    await expectToast(page, /解析完成/)
+    await expect(
+      page.locator('.el-form-item').filter({ hasText: '合同标题' }).locator('input'),
+    ).toHaveValue('OCR 测试合同', { timeout: 15000 })
+
+    await page.getByRole('button', { name: '下一步' }).click()
     await expect(page.getByTestId('ocr-confirm-checkbox')).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('button', { name: '提交审批' }).click()

@@ -24,6 +24,32 @@ const data = ref<DashboardData>({
 
 const stats = computed(() => data.value.stats ?? {})
 
+const heroCount = computed(() => {
+  if (canAccessRoute(auth.role, 'approvals')) return stats.value.pending_approval ?? 0
+  if (['legal', 'finance', 'executive'].includes(auth.role)) return stats.value.pending_approval ?? 0
+  return stats.value.pending_approval ?? 0
+})
+
+const heroLabel = computed(() => {
+  if (canAccessRoute(auth.role, 'approvals')) return '项待办审批'
+  if (['legal', 'finance', 'executive'].includes(auth.role)) return '项合同待处理'
+  if (canAccessRoute(auth.role, 'create')) return '份草稿待提交'
+  return '项待关注'
+})
+
+const heroAction = computed(() => {
+  if (canAccessRoute(auth.role, 'approvals') && (stats.value.pending_approval ?? 0) > 0) {
+    return { label: '处理待办审批', route: 'approvals' }
+  }
+  if (['legal', 'finance', 'executive'].includes(auth.role)) {
+    return { label: '前往评审中心', route: 'review-center' }
+  }
+  if (canAccessRoute(auth.role, 'create')) {
+    return { label: '新建合同', route: 'create' }
+  }
+  return { label: '查看合同列表', route: 'contracts' }
+})
+
 onMounted(async () => {
   try {
     data.value = await contractsApi.dashboard()
@@ -38,18 +64,12 @@ function go(name: string, query?: Record<string, string>) {
   router.push({ name, query })
 }
 
-/** 待审批统计卡：与列表 status=pending 口径一致 */
 function goPendingStat() {
   go('contracts', { status: 'pending', scope: 'all' })
 }
 
-/** 快捷入口：审批人进待办页，其余进待审批合同列表 */
-function goPendingApproval() {
-  if (canAccessRoute(auth.role, 'approvals')) {
-    go('approvals')
-  } else {
-    goPendingStat()
-  }
+function goHero() {
+  go(heroAction.value.route)
 }
 
 function goExecutingStat() {
@@ -71,43 +91,45 @@ function formatAmount(amount?: number) {
 </script>
 
 <template>
-  <div v-loading="loading" class="dashboard">
+  <div v-loading="loading" class="page-card dashboard">
+    <el-card shadow="never" class="hero-card">
+      <div class="hero-inner">
+        <div>
+          <p class="hero-greeting">您好，{{ auth.displayName }}</p>
+          <p class="hero-stat">
+            您有 <strong>{{ heroCount }}</strong> {{ heroLabel }}
+          </p>
+        </div>
+        <el-button type="primary" size="large" @click="goHero">{{ heroAction.label }}</el-button>
+      </div>
+    </el-card>
+
     <el-row :gutter="16" class="stats-row">
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card" @click="go('contracts')">
           <div class="stat-label">合同总数</div>
           <div class="stat-value">{{ stats.total ?? 0 }}</div>
-          <p class="stat-hint">查看合同列表</p>
         </el-card>
       </el-col>
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card warn" @click="goPendingStat">
           <div class="stat-label">待审批</div>
           <div class="stat-value">{{ stats.pending_approval ?? 0 }}</div>
-          <p class="stat-hint">需尽快处理</p>
         </el-card>
       </el-col>
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card primary" @click="goExecutingStat">
           <div class="stat-label">执行中</div>
           <div class="stat-value">{{ stats.executing_count ?? 0 }}</div>
-          <p class="stat-hint">正常履约合同</p>
         </el-card>
       </el-col>
       <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="hover" class="stat-card danger" @click="goExpiringStat">
           <div class="stat-label">即将到期 (≤30天)</div>
           <div class="stat-value">{{ stats.expiring_soon_count ?? 0 }}</div>
-          <p class="stat-hint">需关注续签</p>
         </el-card>
       </el-col>
     </el-row>
-
-    <div class="quick-links">
-      <el-button @click="goPendingApproval">待办审批 →</el-button>
-      <el-button @click="go('review-center')">待评审任务 →</el-button>
-      <el-button @click="go('ai-review')">AI 审查报告 →</el-button>
-    </div>
 
     <el-row :gutter="16" class="kanban">
       <el-col :xs="24" :md="8">
@@ -127,7 +149,9 @@ function formatAmount(amount?: number) {
             </div>
             <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
           </el-card>
-          <el-empty v-if="!(data.executing?.length)" description="暂无执行中合同" :image-size="64" />
+          <el-empty v-if="!(data.executing?.length)" description="暂无执行中合同" :image-size="64">
+            <el-button @click="go('contracts')">查看合同列表</el-button>
+          </el-empty>
         </div>
       </el-col>
       <el-col :xs="24" :md="8">
@@ -178,6 +202,28 @@ function formatAmount(amount?: number) {
 .dashboard {
   padding-bottom: 24px;
 }
+.hero-card {
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f9fafb 100%);
+  border: 1px solid #dbeafe;
+}
+.hero-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.hero-greeting {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+.hero-stat {
+  margin: 4px 0 0;
+  font-size: 20px;
+  color: #111827;
+}
 .stats-row {
   margin-bottom: 16px;
 }
@@ -207,17 +253,6 @@ function formatAmount(amount?: number) {
   font-weight: 700;
   margin-top: 8px;
   color: #111827;
-}
-.stat-hint {
-  color: #9ca3af;
-  font-size: 12px;
-  margin: 8px 0 0;
-}
-.quick-links {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
 }
 .kanban-col {
   min-height: 200px;

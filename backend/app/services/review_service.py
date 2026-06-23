@@ -232,6 +232,26 @@ async def get_review_workspace(db: AsyncSession, contract_id: int) -> dict:
             and c.get("risk_level") in ("high", "critical", "medium")
         ][:5]
 
+        dimension_summaries = []
+        if review.summary:
+            try:
+                summary_obj = _json.loads(review.summary)
+                if isinstance(summary_obj, dict):
+                    raw_dims = summary_obj.get("dimensions") or []
+                    if isinstance(raw_dims, list):
+                        dimension_summaries = [
+                            {
+                                "dimension": d.get("dimension"),
+                                "score": d.get("score"),
+                                "summary": d.get("summary"),
+                                "status": d.get("status"),
+                            }
+                            for d in raw_dims
+                            if isinstance(d, dict) and d.get("dimension")
+                        ]
+            except (_json.JSONDecodeError, TypeError):
+                dimension_summaries = []
+
         ai_summary = {
             "review_id": review.review_id,
             "risk_level": review.overall_risk_level,
@@ -241,6 +261,7 @@ async def get_review_workspace(db: AsyncSession, contract_id: int) -> dict:
             "version_id": review.version_id,
             "model_version": review.model_version,
             "top_clauses": high_clauses,
+            "dimension_summaries": dimension_summaries,
         }
 
     ai_issues = await list_top_issues_for_contract(db, contract_id, limit=20)

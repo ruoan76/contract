@@ -20,6 +20,15 @@ from app.models.ai_review_issue import AIReviewIssue
 from app.models.counterparty import Counterparty
 from app.models.review import ReviewSession, ReviewOpinion, Notification
 from app.models.template import ContractTemplate
+from app.models.ai_review_config import (
+    AIConfigVersion,
+    AIReviewChecklistItem,
+    AIRiskLabel,
+    AIRevisionRoutingRule,
+    AIHardRule,
+    AILegalSnippet,
+    AIRuleFeedbackStat,
+)
 
 __all__ = [
     "Contract",
@@ -40,4 +49,11 @@ __all__ = [
     "RiskAlert",
     "AuditLog",
     "ContractTemplate",
+    "AIConfigVersion",
+    "AIReviewChecklistItem",
+    "AIRiskLabel",
+    "AIRevisionRoutingRule",
+    "AIHardRule",
+    "AILegalSnippet",
+    "AIRuleFeedbackStat",
 ]

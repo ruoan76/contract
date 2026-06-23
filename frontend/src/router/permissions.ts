@@ -13,7 +13,7 @@ export const ROLE_VISIBLE_ROUTES: Record<AppRole, string[]> = {
   ],
   legal: [
     'dashboard', 'contracts', 'ai-review', 'clause-compare-hub', 'clause-compare', 'seal', 'archives',
-    'review-center', 'review-workspace', 'review-history', 'templates', 'contract-detail',
+    'review-center', 'review-workspace', 'review-history', 'templates', 'contract-detail', 'ai-rules-hub',
   ],
   finance: [
     'dashboard', 'contracts', 'ai-review', 'clause-compare-hub', 'clause-compare', 'archives',
@@ -27,7 +27,7 @@ export const ROLE_VISIBLE_ROUTES: Record<AppRole, string[]> = {
   admin: [
     'dashboard', 'messages', 'contracts', 'create', 'templates', 'ai-review',
     'clause-compare-hub', 'clause-compare', 'review-center', 'review-workspace', 'review-history',
-    'approvals', 'seal', 'archives', 'counterparties', 'config', 'users', 'audit',
+    'approvals', 'seal', 'archives', 'counterparties', 'config', 'ai-rules-hub', 'users', 'audit',
     'contract-detail', 'approval-history', 'revision-workspace',
   ],
 }

@@ -30,6 +30,7 @@ class DocumentPage(BaseModel):
     avg_confidence: float | None = None
     needs_review: bool = False
     llm_corrected: bool = False
+    layout_suspect: bool = False
     blocks: list[DocumentBlock] = Field(default_factory=list)
 
 
@@ -86,6 +87,44 @@ def page_text_to_blocks(page_text: str, *, page_index: int = 0) -> list[Document
     return _lines_to_blocks(page_text.split("\n"), page_index=page_index)
 
 
+def layout_lines_to_blocks(
+    layout_lines: list[dict[str, Any]],
+    *,
+    page_index: int,
+) -> list[DocumentBlock]:
+    """由 OCR 排版行（含 bbox）构建 DocumentBlock。"""
+    blocks: list[DocumentBlock] = []
+    block_seq = 0
+    for row in layout_lines:
+        text = str(row.get("text") or "").strip()
+        if not text:
+            continue
+        parsed_list = parse_line_to_blocks(text)
+        bbox = row.get("bbox")
+        if parsed_list and parsed_list[0].block_type == "heading":
+            anchor = f"p{page_index + 1}-b{block_seq}"
+            block_seq += 1
+            blocks.append(
+                DocumentBlock(
+                    type="heading",
+                    text=parsed_list[0].text,
+                    bbox=bbox,
+                    anchor_id=anchor,
+                    outline_label=parsed_list[0].outline_label,
+                )
+            )
+            continue
+        if _looks_like_table_row(text):
+            anchor = f"p{page_index + 1}-b{block_seq}"
+            block_seq += 1
+            blocks.append(DocumentBlock(type="table", text=text, bbox=bbox, anchor_id=anchor))
+            continue
+        anchor = f"p{page_index + 1}-b{block_seq}"
+        block_seq += 1
+        blocks.append(DocumentBlock(type="paragraph", text=text, bbox=bbox, anchor_id=anchor))
+    return blocks
+
+
 def build_document_json(
     pages: list[str],
     *,
@@ -96,7 +135,9 @@ def build_document_json(
 ) -> DocumentJSON:
     ocr_set = set(ocr_page_indices or [])
     meta_by_page: dict[int, dict[str, Any]] = {}
-    if ocr_page_indices and ocr_page_meta:
+    if ocr_page_meta and len(ocr_page_meta) == len(pages):
+        meta_by_page = {i: m for i, m in enumerate(ocr_page_meta)}
+    elif ocr_page_indices and ocr_page_meta:
         for idx, meta in zip(ocr_page_indices, ocr_page_meta):
             meta_by_page[idx] = meta
 
@@ -119,7 +160,11 @@ def build_document_json(
                 )
             )
 
-        body_blocks = page_text_to_blocks(page_text.strip(), page_index=page_idx)
+        layout_lines = meta.get("layout_lines")
+        if layout_lines and isinstance(layout_lines, list):
+            body_blocks = layout_lines_to_blocks(layout_lines, page_index=page_idx)
+        else:
+            body_blocks = page_text_to_blocks(page_text.strip(), page_index=page_idx)
         blocks.extend(body_blocks)
 
         doc_pages.append(
@@ -129,6 +174,7 @@ def build_document_json(
                 avg_confidence=meta.get("avg_confidence"),
                 needs_review=bool(meta.get("needs_review")),
                 llm_corrected=bool(meta.get("llm_corrected")),
+                layout_suspect=bool(meta.get("layout_suspect")),
                 blocks=blocks,
             )
         )

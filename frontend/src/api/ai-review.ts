@@ -176,9 +176,11 @@ function extensionFromContentType(contentType: string | null, requested: string)
 
 export const aiReviewApi = {
   review: (contractId: number) =>
-    client.post<{ review_id?: string; status?: string }>('/api/v1/ai-review/review', {
-      contract_id: contractId,
-    }),
+    client.post<{ review_id?: string; status?: string }>(
+      '/api/v1/ai-review/review',
+      { contract_id: contractId },
+      { timeoutMs: 180_000 },
+    ),
 
   latest: (contractId: number) =>
     client.get<AiReviewSummary>(`/api/v1/ai-review/contracts/${contractId}/latest-review`),

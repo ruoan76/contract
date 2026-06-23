@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { expectToast, gotoRoute, switchRole } from './helpers'
+import { expectToast, gotoRoute, switchRole, pickCreateMode, fillCreateStep1, goCreateStep2 } from './helpers'
 
 /** 新建合同选黑名单相对方时前端拦截（与 DEMO-04 同路径，断言 MessageBox） */
 test.describe('UX 黑名单起草拦截', () => {
@@ -29,8 +29,13 @@ test.describe('UX 黑名单起草拦截', () => {
     const targetRow = page.locator('.el-table__body tr').filter({
       has: page.locator('td').nth(1).getByText(cpName, { exact: true }),
     })
+    await page.getByPlaceholder('搜索名称/信用代码').fill(cpName)
+    await page.getByRole('button', { name: '搜索' }).click()
     await expect(targetRow).toBeVisible({ timeout: 15000 })
     await targetRow.getByRole('button', { name: '拉黑' }).click()
+    const blDialog = page.getByRole('dialog').filter({ hasText: '确认拉黑' })
+    await blDialog.locator('input').fill('E2E测试拉黑')
+    await blDialog.getByRole('button', { name: '确定' }).click()
     await expectToast(page, '已加入黑名单')
 
     await switchRole(page, '起草人')
@@ -40,10 +45,14 @@ test.describe('UX 黑名单起草拦截', () => {
     await gotoRoute(page, '/create', '新建合同')
     await cpResp
 
-    const cpSelect = page.locator('.el-form-item').filter({ hasText: '相对方' }).locator('.el-select')
-    await cpSelect.click()
-    await cpSelect.locator('input').fill(cpName)
-    await page.getByRole('option', { name: `${cpName}（黑名单）` }).click({ timeout: 15000 })
+    await pickCreateMode(page, '空白起草')
+    await fillCreateStep1(page, {
+      title: '黑名单拦截测试',
+      counterparty: cpName,
+      amount: 100000,
+      exactOption: `${cpName}（黑名单）`,
+    })
+    await goCreateStep2(page)
 
     await page.getByRole('button', { name: '提交审批' }).click()
     const blockDialog = page.getByRole('dialog').filter({ hasText: '黑名单拦截' })

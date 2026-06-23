@@ -64,15 +64,27 @@ class Settings(BaseSettings):
     FILE_STORAGE_PATH: str = _DEFAULT_FILE_STORAGE_PATH
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     ALLOWED_FILE_TYPES: List[str] = ["pdf", "doc", "docx", "jpg", "png"]
-    # 扫描 PDF OCR（EasyOCR）
+    # 扫描 PDF OCR
     AI_OCR_ENABLED: bool = True
+    AI_OCR_ENGINE: str = "rapidocr"  # easyocr | rapidocr
     AI_OCR_MIN_CHARS: int = 200
     AI_OCR_MAX_PAGES: int = 40
     AI_OCR_DPI: int = 300
     AI_OCR_MIN_CONFIDENCE: float = 0.5
+    AI_OCR_NEEDS_REVIEW_CONF: float = 0.55
     AI_OCR_PREPROCESS: bool = True
+    AI_OCR_DESKEW: bool = True
+    AI_OCR_ADAPTIVE_THRESHOLD: bool = True
+    AI_OCR_USE_MPS: bool = True
     AI_OCR_PAGE_MIN_CHARS: int = 50
     AI_OCR_GIBBERISH_RATIO: float = 0.35
+    AI_OCR_VLM_FALLBACK: bool = False
+    AI_OCR_VLM_CONF_THRESHOLD: float = 0.45
+    AI_OCR_VLM_MODEL: Optional[str] = None
+    AI_OCR_LAYOUT: str = "heuristic"  # heuristic | ppstructure
+    AI_OCR_LINE_MERGE_RATIO: float = 0.55
+    AI_OCR_PARAGRAPH_GAP_RATIO: float = 1.6
+    AI_OCR_COLUMN_GAP_RATIO: float = 0.12
     AI_PARSE_LLM_MAX_CHARS: int = 12000
     CONTRACT_CONTENT_MAX_CHARS: int = 500_000
     

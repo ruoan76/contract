@@ -10,6 +10,7 @@ from app.services.template_service import (
     approve_publish,
     create_template,
     deprecate_template,
+    fill_template_content,
     get_template,
     list_templates,
     publish_template,
@@ -38,16 +39,25 @@ class TemplateUpdate(BaseModel):
     status: str | None = None
 
 
+class TemplateFillRequest(BaseModel):
+    values: dict[str, str] = Field(default_factory=dict, description="模板变量名→值")
+
+
+class TemplateDeprecateRequest(BaseModel):
+    reason: str | None = Field(None, max_length=500, description="废止原因")
+
+
 @router.get("/", summary="模板列表")
 async def templates_list(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status: str | None = Query(None),
     category: str | None = Query(None),
+    keyword: str | None = Query(None),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    data = await list_templates(db, page, page_size, status, category)
+    data = await list_templates(db, page, page_size, status, category, keyword)
     return {"code": 200, "data": data}
 
 
@@ -126,11 +136,24 @@ async def templates_reject_publish(
     return {"code": 200, "data": data}
 
 
+@router.post("/{template_id}/fill", summary="填充模板变量")
+async def templates_fill(
+    template_id: int,
+    body: TemplateFillRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    data = await fill_template_content(db, template_id, body.values)
+    return {"code": 200, "data": data}
+
+
 @router.post("/{template_id}/deprecate", summary="废止模板")
 async def templates_deprecate(
     template_id: int,
+    body: TemplateDeprecateRequest | None = None,
     user: User = Depends(_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    data = await deprecate_template(db, template_id)
+    reason = body.reason if body else None
+    data = await deprecate_template(db, template_id, reason)
     return {"code": 200, "data": data}

@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { contractsApi } from '@/api/contracts'
+import { useAuthStore } from '@/stores/auth'
 import type { Contract } from '@/types/models'
 import StatusTag from '@/components/StatusTag.vue'
+import {
+  canDeleteContract,
+  DELETE_DRAFT_CONFIRM_MESSAGE,
+  DELETE_DRAFT_CONFIRM_TITLE,
+} from '@/utils/contractDelete'
+import { formatDate } from '@/utils/formatDate'
 
 const STATUS_OPTIONS = [
   { label: '全部', value: '' },
@@ -31,6 +39,7 @@ const RISK_OPTIONS = [
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 const loading = ref(true)
 const items = ref<Contract[]>([])
 const total = ref(0)
@@ -125,6 +134,38 @@ function openReviewHistory(row: Contract, e: Event) {
   e.stopPropagation()
   router.push({ name: 'review-history', query: { contractId: String(row.id) } })
 }
+
+function rowCanDelete(row: Contract) {
+  return canDeleteContract(row, auth.user?.id, auth.role)
+}
+
+function endDateCellClass(): string {
+  if (bucketFilter.value === 'expiring_soon') return 'date-warning'
+  if (bucketFilter.value === 'expired') return 'date-danger'
+  return ''
+}
+
+async function deleteDraft(row: Contract, e: Event) {
+  e.stopPropagation()
+  if (!rowCanDelete(row)) return
+  try {
+    await ElMessageBox.confirm(DELETE_DRAFT_CONFIRM_MESSAGE, DELETE_DRAFT_CONFIRM_TITLE, {
+      type: 'warning',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      confirmButtonClass: 'el-button--danger',
+    })
+  } catch {
+    return
+  }
+  try {
+    await contractsApi.delete(row.id)
+    ElMessage.success('草稿已删除')
+    await load()
+  } catch (err) {
+    ElMessage.error(err instanceof Error ? err.message : '删除失败')
+  }
+}
 </script>
 
 <template>
@@ -177,14 +218,30 @@ function openReviewHistory(row: Contract, e: Event) {
       <el-table-column prop="amount" label="金额" width="120">
         <template #default="{ row }">¥{{ row.amount?.toLocaleString() }}</template>
       </el-table-column>
+      <el-table-column label="创建时间" width="110">
+        <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
+      </el-table-column>
+      <el-table-column label="到期日" width="110">
+        <template #default="{ row }">
+          <span :class="endDateCellClass()">{{ formatDate(row.end_date) }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }"><StatusTag :status="row.status" /></template>
       </el-table-column>
-      <el-table-column label="操作" width="220">
+      <el-table-column label="操作" width="260">
         <template #default="{ row }">
           <el-button link type="primary" @click.stop="openDetail(row)">详情</el-button>
           <el-button link @click="openApprovalHistory(row, $event)">审批历史</el-button>
           <el-button link @click="openReviewHistory(row, $event)">评审历史</el-button>
+          <el-button
+            v-if="rowCanDelete(row)"
+            link
+            type="danger"
+            @click="deleteDraft(row, $event)"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -222,5 +279,15 @@ function openReviewHistory(row: Contract, e: Event) {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+}
+
+.date-warning {
+  color: #e6a23c;
+  font-weight: 500;
+}
+
+.date-danger {
+  color: #f56c6c;
+  font-weight: 500;
 }
 </style>

@@ -22,6 +22,7 @@ export interface DocumentPage {
   avg_confidence?: number | null
   needs_review?: boolean
   llm_corrected?: boolean
+  layout_suspect?: boolean
   blocks: DocumentBlock[]
 }
 

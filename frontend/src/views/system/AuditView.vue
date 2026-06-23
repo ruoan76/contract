@@ -2,10 +2,9 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { auditApi, type AuditLogItem } from '@/api/audit'
-import { useAuthStore } from '@/stores/auth'
 import { downloadCsv } from '@/utils/exportCsv'
+import { auditActionLabel, auditResourceLabel, contractStatusLabel } from '@/utils/enumLabels'
 
-const auth = useAuthStore()
 const loading = ref(true)
 const items = ref<AuditLogItem[]>([])
 const actionFilter = ref('')
@@ -14,7 +13,6 @@ const dateRange = ref<[string, string] | null>(null)
 async function load() {
   loading.value = true
   try {
-    await auth.switchRole('admin')
     const res = await auditApi.list({
       page: 1,
       page_size: 100,
@@ -74,10 +72,16 @@ function exportCsv() {
     </div>
     <el-table v-loading="loading" :data="items" stripe>
       <el-table-column prop="username" label="用户" width="120" />
-      <el-table-column prop="action" label="动作" width="140" />
-      <el-table-column prop="resource_type" label="资源类型" width="120" />
+      <el-table-column label="动作" width="140">
+        <template #default="{ row }">{{ auditActionLabel(row.action) }}</template>
+      </el-table-column>
+      <el-table-column label="资源类型" width="120">
+        <template #default="{ row }">{{ auditResourceLabel(row.resource_type) }}</template>
+      </el-table-column>
       <el-table-column prop="resource_name" label="资源" min-width="160" />
-      <el-table-column prop="status" label="状态" width="100" />
+      <el-table-column label="状态" width="100">
+        <template #default="{ row }">{{ contractStatusLabel(row.status) }}</template>
+      </el-table-column>
       <el-table-column prop="created_at" label="时间" width="180" />
     </el-table>
     <el-empty v-if="!loading && !items.length" description="暂无审计记录" />

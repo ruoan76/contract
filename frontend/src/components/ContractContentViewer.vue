@@ -24,6 +24,7 @@ const props = withDefaults(
     ocrEngine?: string | null
     confidence?: number | null
     ocrNeedsReview?: boolean
+    layoutSuspect?: boolean
     charCount?: number | null
     readonly?: boolean
     minRows?: number
@@ -96,12 +97,21 @@ const outline = computed(() => {
   return outlineAll.value.filter((item) => item.page === activePage.value)
 })
 
+const layoutSuspectFromDoc = computed(() =>
+  Boolean(props.documentJson?.pages?.some((p) => p.layout_suspect)),
+)
+
+const showLayoutSuspect = computed(
+  () => props.layoutSuspect || layoutSuspectFromDoc.value,
+)
+
 const qualityTags = computed(() => {
   const tags: string[] = []
   if (props.ocrUsed) tags.push('扫描件 OCR')
   if (props.ocrEngine) tags.push(props.ocrEngine)
   if (props.charCount != null) tags.push(`${props.charCount} 字`)
   if (props.confidence != null) tags.push(`置信度 ${Math.round(props.confidence * 100)}%`)
+  if (showLayoutSuspect.value) tags.push('排版可疑')
   return tags
 })
 
@@ -284,6 +294,15 @@ onBeforeUnmount(revokeLocalUrl)
       </el-tabs>
     </div>
 
+    <el-alert
+      v-if="showLayoutSuspect"
+      type="warning"
+      :closable="false"
+      show-icon
+      title="阅读顺序可能异常"
+      description="排版算法检测到句段顺序可疑，请对照左侧原文核对，或切换到「OCR 原始」查看检测顺序。"
+      class="content-viewer__layout-alert"
+    />
     <div
       v-if="ocrUsed && showDualPane"
       class="content-viewer__hint-compact"
@@ -337,8 +356,8 @@ onBeforeUnmount(revokeLocalUrl)
           </div>
           <div v-if="!readonly" class="content-viewer__mode-bar">
             <el-radio-group v-model="readingMode" size="small">
-              <el-radio-button :label="true">阅读</el-radio-button>
-              <el-radio-button :label="false">编辑</el-radio-button>
+              <el-radio-button :value="true">阅读</el-radio-button>
+              <el-radio-button :value="false">编辑</el-radio-button>
             </el-radio-group>
           </div>
         </div>
@@ -531,6 +550,9 @@ onBeforeUnmount(revokeLocalUrl)
 }
 .content-viewer__article :deep(.para) {
   margin: 0 0 8px;
+}
+.content-viewer__layout-alert {
+  margin-bottom: 8px;
 }
 @media (max-width: 900px) {
   .content-viewer__main--dual {

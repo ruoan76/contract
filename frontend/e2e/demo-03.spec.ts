@@ -15,8 +15,7 @@ test.describe('DEMO-03 大额流程', () => {
 
     await switchRole(page, '起草人')
     await gotoRoute(page, '/create', '新建合同')
-    await page.locator('.el-input-number input').fill('2500000')
-    const contractId = await submitContract(page)
+    const contractId = await submitContract(page, { amount: 2500000 })
     expect(contractId).toBeGreaterThan(0)
     await dismissFlowDialog(page)
 

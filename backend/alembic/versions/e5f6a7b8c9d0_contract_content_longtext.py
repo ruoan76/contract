@@ -15,8 +15,15 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _is_mysql() -> bool:
+    bind = op.get_bind()
+    return bind.dialect.name == "mysql"
+
+
 def upgrade() -> None:
-    # MySQL TEXT 仅 64KB（按字节计），OCR 中文正文易超限
+    # SQLite TEXT 无 64KB 限制，无需改类型；MySQL 需扩为 LONGTEXT
+    if not _is_mysql():
+        return
     op.alter_column(
         "contracts",
         "content",
@@ -41,6 +48,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    if not _is_mysql():
+        return
     op.alter_column(
         "contract_versions",
         "change_description",

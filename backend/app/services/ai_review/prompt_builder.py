@@ -6,11 +6,8 @@ from typing import Any, Optional
 
 from app.core.config import settings
 from app.services.ai_review.clause_parser import Clause
-from app.services.ai_review.seed_store import (
-    get_contract_type_profiles,
-    get_review_checklists,
-    get_risk_labels,
-)
+from app.services.ai_review.config_store import get_review_checklists, get_risk_labels
+from app.services.ai_review.seed_store import get_contract_type_profiles
 
 # LLM 五维 → 关联 gate_id
 DIMENSION_GATE_MAP: dict[str, list[str]] = {

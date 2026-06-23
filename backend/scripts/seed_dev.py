@@ -2,6 +2,10 @@
 
 用法:
     cd backend && python scripts/seed_dev.py
+
+拉代码后若 API 500 且日志含 no such column，先执行迁移再 seed：
+    export DATABASE_URL=sqlite+aiosqlite:///./contract_dev.db
+    alembic upgrade head
 """
 import asyncio
 import os
@@ -104,21 +108,59 @@ async def seed() -> None:
         await session.commit()
 
         from app.models.template import ContractTemplate
+        from app.services.template_parser import extract_variables, variables_to_json
 
-        tpl_exists = await session.scalar(
-            select(ContractTemplate).where(ContractTemplate.name == "标准采购合同模板")
-        )
-        if not tpl_exists:
+        standard_templates = [
+            (
+                "PUR-001",
+                "标准采购合同",
+                "purchase",
+                "甲方（采购方）：{采购方名称}\n乙方（供应方）：{相对方}\n\n合同金额：人民币 {金额} 元。\n\n第一条 采购内容\n（标准条款）",
+            ),
+            (
+                "SAL-001",
+                "标准销售合同",
+                "sales",
+                "甲方（销售方）：{销售方名称}\n乙方（购买方）：{相对方}\n\n合同金额：人民币 {金额} 元。",
+            ),
+            (
+                "LAB-001",
+                "标准劳务合同",
+                "labor",
+                "甲方：{采购方名称}\n乙方（劳务方）：{相对方}\n\n劳务费用：人民币 {金额} 元。",
+            ),
+            (
+                "NDA-001",
+                "标准保密协议",
+                "nda",
+                "披露方：{采购方名称}\n接收方：{相对方}\n\n保密期限：{保密期限}。",
+            ),
+            (
+                "SVC-001",
+                "服务采购合同",
+                "service",
+                "甲方：{采购方名称}\n乙方（服务方）：{相对方}\n\n服务费用：人民币 {金额} 元；服务期限：{服务期限}。",
+            ),
+        ]
+        for code, name, category, content in standard_templates:
+            exists = await session.scalar(
+                select(ContractTemplate).where(ContractTemplate.code == code)
+            )
+            if exists:
+                continue
+            vars_json = variables_to_json(extract_variables(content))
             session.add(
                 ContractTemplate(
-                    name="标准采购合同模板",
-                    category="purchase",
-                    content="甲方：___\n乙方：___\n采购标的及金额以附件为准。",
+                    code=code,
+                    name=name,
+                    category=category,
+                    content=content,
+                    variables=vars_json,
                     status="published",
                     version=1,
                 )
             )
-            await session.commit()
+        await session.commit()
 
         from app.models.review import Notification
 

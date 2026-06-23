@@ -3,14 +3,18 @@
 
 from fastapi import APIRouter, HTTPException, Query
 
+from app.services.ai_review.config_store import (
+    clear_config_cache,
+    get_current_config_version,
+    get_review_checklists,
+    get_revision_routing,
+    get_risk_labels,
+)
 from app.services.ai_review.seed_store import (
     SeedStoreError,
     get_contract_type_map,
     get_cuad_bridge,
     get_manifest,
-    get_review_checklists,
-    get_revision_routing,
-    get_risk_labels,
     get_risk_templates_purchase,
     reload_cache,
 )
@@ -96,4 +100,5 @@ async def seeds_templates_purchase():
 @router.post("/seeds/reload", summary="重载种子缓存（开发）")
 async def seeds_reload():
     reload_cache()
-    return _wrap({"reloaded": True})
+    clear_config_cache()
+    return _wrap({"reloaded": True, "config_version": get_current_config_version()})

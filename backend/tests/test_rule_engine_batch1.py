@@ -43,3 +43,21 @@ def test_blacklist_counterparty():
     hits = [i for i in issues if i.rule_id == "TH-BLACKLIST"]
     assert len(hits) == 1
     assert hits[0].risk_level == "critical"
+
+
+@pytest.mark.unit
+def test_sign_area_unclear_triggers():
+    """CK-49：有签字/盖章字样但无明确签署栏占位时应告警。"""
+    text = "本合同由双方签字生效，未列明签署栏。"
+    issues = run_rule_engine(text)
+    hits = [i for i in issues if i.rule_id == "CK-49"]
+    assert len(hits) == 1
+
+
+@pytest.mark.unit
+def test_sign_area_clear_no_ck49():
+    """CK-49：存在明确签署栏占位时不应告警。"""
+    text = "甲方（盖章）：__________  乙方（签字）：__________"
+    issues = run_rule_engine(text)
+    hits = [i for i in issues if i.rule_id == "CK-49"]
+    assert len(hits) == 0

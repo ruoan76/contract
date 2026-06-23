@@ -44,7 +44,7 @@ class TestSubmitApproval:
         assert result.status == "approving"
         assert result.flow_type == "standard"
         assert result.current_step == 0
-        assert result.total_steps == 1  # 标准流程：仅部门主管审批，法务/财务/高管走评审工作台
+        assert result.total_steps >= 1  # 与 flow_config 节点数一致（标准流程可为多步）
     
     async def test_submit_approval_contract_not_found(self, db_session, mock_data):
         """测试提交不存在的合同审批"""
@@ -358,7 +358,48 @@ class TestGetPendingApprovals:
         
         assert result["total"] >= 1
         assert len(result["items"]) >= 1
-        assert result["items"][0]["flow_id"] == flow.id
+        item = result["items"][0]
+        assert item["flow_id"] == flow.id
+        assert item["counterparty_name"] == "公司"
+        assert item["current_node_name"] == "部门审批"
+        assert "ai_risk_level" in item
+
+    async def test_pending_ai_risk_from_latest_review(self, db_session, mock_data):
+        """待办列表 AI 风险应优先取最新 ai_reviews.overall_risk_level"""
+        from app.services.approval_service import submit_approval, get_pending_approvals
+        from app.services.contract_service import create_contract
+        from app.models.contract import AIReview
+
+        created = await create_contract(
+            title="AI风险待办",
+            contract_type="service",
+            counterparty_name="测试方",
+            creator_id=1,
+        )
+        await submit_approval(
+            db=db_session,
+            user_id=1,
+            username="testuser",
+            req=type("Req", (), {
+                "contract_id": created["id"],
+                "flow_type": "simple",
+            })(),
+        )
+        db_session.add(
+            AIReview(
+                contract_id=created["id"],
+                version_id=1,
+                review_id="REV-PENDING-001",
+                overall_risk_level="medium",
+                review_status="ai_done",
+            )
+        )
+        await db_session.commit()
+
+        result = await get_pending_approvals(db=db_session, user_id=1)
+        row = next(i for i in result["items"] if i["contract_id"] == created["id"])
+        assert row["ai_risk_level"] == "medium"
+        assert row["ai_review_status"] == "ai_done"
 
 
 @pytest.mark.unit

@@ -28,7 +28,9 @@ test.describe('DEMO-01 简易流程', () => {
 
     await switchRole(page, '起草人')
     await gotoRoute(page, '/seal', '用印管理')
-    await page.getByRole('button', { name: /申请用印/ }).click()
+    await page.locator('.el-select').click()
+    await page.getByRole('option', { name: new RegExp(`#${contractId}`) }).click()
+    await page.getByRole('button', { name: '申请用印' }).click()
     await expect(page.getByText('用印申请已提交')).toBeVisible({ timeout: 10000 })
 
     await switchRole(page, '系统管理员')

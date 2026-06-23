@@ -27,9 +27,11 @@ async def assert_user_has_role(
     """校验用户角色，不匹配则 403。"""
     actual = await get_user_role_code(db, user)
     if actual != role_code:
+        labels = {"admin": "系统管理员", "legal": "法务专员"}
+        label = labels.get(role_code, role_code)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Requires role: {role_code}",
+            detail=f"需要角色：{label}",
         )
 
 
@@ -57,9 +59,11 @@ def require_any_role(*role_codes: str) -> Callable:
     ) -> User:
         actual = await get_user_role_code(db, user)
         if actual not in allowed:
+            labels = {"admin": "系统管理员", "legal": "法务专员", "drafter": "起草人", "approver": "部门主管"}
+            need = "、".join(labels.get(c, c) for c in sorted(allowed))
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Requires one of roles: {', '.join(sorted(allowed))}",
+                detail=f"需要以下角色之一：{need}",
             )
         return user
 

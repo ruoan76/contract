@@ -18,6 +18,7 @@ from app.services.ai_review.context_loader import load_review_context
 from app.services.ai_review.issue_schema import AiReviewIssue
 from app.services.ai_review.runner import apply_payload_to_ai_review, run_contract_ai_review
 from app.services.ai_review.orchestrator import build_mock_payload
+from app.services.ai_review.mlx_health import check_mlx_reachable, mlx_unavailable_detail
 from app.services.ai_review_issue_service import replace_review_issues
 
 logger = logging.getLogger(__name__)
@@ -157,6 +158,15 @@ async def start_review(
         if not text:
             raise HTTPException(status_code=400, detail="合同内容为空")
 
+        mlx_ok, mlx_reason = await check_mlx_reachable()
+        if not mlx_ok:
+            ai_review.review_status = "failed"
+            await db.flush()
+            raise HTTPException(
+                status_code=503,
+                detail=mlx_unavailable_detail(mlx_reason),
+            )
+
         ai_review.review_status = "reviewing"
         await db.flush()
         try:
@@ -177,8 +187,10 @@ async def start_review(
             await persist_review_result(
                 db, ai_review, payload, contract_id, version_id
             )
+        except HTTPException:
+            raise
         except Exception as exc:
-            logger.error("Sync AI review failed: %s", exc)
+            logger.error("Sync AI review failed: %s", exc, exc_info=True)
             ai_review.review_status = "failed"
             await db.flush()
             raise HTTPException(

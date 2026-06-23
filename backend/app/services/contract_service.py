@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.db.database import async_session
 from app.exceptions import BusinessError
 from app.models.contract import Contract, ContractVersion
+from app.services.audit_service import log_action
 from app.services.contract_parse_service import _guess_file_type, extract_bytes_to_text
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,9 @@ async def create_contract(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     content: Optional[str] = None,
+    template_id: Optional[int] = None,
+    template_version: Optional[int] = None,
+    template_values: Optional[dict] = None,
     risk_level: str = "low",
     file_path: Optional[str] = None,
     file_type: Optional[str] = None,
@@ -175,6 +179,12 @@ async def create_contract(
 
         contract_no = await _generate_contract_no(session)
 
+        template_values_json = None
+        if template_values:
+            import json as _json
+
+            template_values_json = _json.dumps(template_values, ensure_ascii=False)
+
         contract = Contract(
             contract_no=contract_no,
             title=title,
@@ -191,6 +201,9 @@ async def create_contract(
             end_date=end_date,
             risk_level=risk_level,
             content=content,
+            template_id=template_id,
+            template_version=template_version,
+            template_values=template_values_json,
             creator_id=creator_id,
             department_id=department_id,
         )
@@ -442,6 +455,8 @@ async def list_contracts(
             "creator_name": creator_name,
             "department_id": contract.department_id,
             "department_name": department_name,
+            "start_date": contract.start_date.isoformat() if contract.start_date else None,
+            "end_date": contract.end_date.isoformat() if contract.end_date else None,
             "created_at": contract.created_at.isoformat() if contract.created_at else None,
         })
     
@@ -536,14 +551,21 @@ async def update_contract(
             await session.close()
 
 
-async def delete_contract(contract_id: int, db: Optional[AsyncSession] = None) -> dict:
+async def delete_contract(
+    contract_id: int,
+    user_id: int,
+    is_admin: bool = False,
+    db: Optional[AsyncSession] = None,
+) -> dict:
     """
     软删除合同
     
     Args:
         contract_id: 合同ID
+        user_id: 操作用户 ID
+        is_admin: 是否为管理员
         db: 数据库会话（可选）
-        
+    
     Returns:
         dict 删除结果
     """
@@ -565,10 +587,22 @@ async def delete_contract(contract_id: int, db: Optional[AsyncSession] = None) -
         # 仅草稿可删除
         if contract.status != "draft":
             raise BusinessError(f"Contract {contract_id} status is {contract.status}, only draft can be deleted")
+
+        if not is_admin and contract.creator_id != user_id:
+            raise BusinessError("仅创建人或管理员可删除草稿")
         
         # 软删除
         contract.status = "deleted"
         await session.flush()
+
+        await log_action(
+            user_id=user_id,
+            action="delete_contract",
+            resource_type="contract",
+            resource_id=contract_id,
+            detail={"title": contract.title, "contract_no": contract.contract_no},
+            db=session,
+        )
         
         payload = {
             "success": True,
@@ -740,6 +774,65 @@ async def list_contract_versions(db: AsyncSession, contract_id: int) -> list[dic
         }
         for v in versions
     ]
+
+
+async def read_contract_attachment(
+    db: AsyncSession,
+    contract_id: int,
+) -> tuple[bytes, str, str] | None:
+    """读取合同最新附件字节流，返回 (content, filename, content_type)。"""
+    import os
+
+    result = await db.execute(select(Contract).where(Contract.id == contract_id))
+    contract = result.scalar_one_or_none()
+    if not contract:
+        raise BusinessError(f"Contract {contract_id} not found")
+
+    ver_result = await db.execute(
+        select(ContractVersion)
+        .where(ContractVersion.contract_id == contract_id, ContractVersion.file_path.isnot(None))
+        .order_by(ContractVersion.version.desc())
+        .limit(1)
+    )
+    version = ver_result.scalar_one_or_none()
+    if not version or not version.file_path:
+        return None
+
+    file_path = version.file_path
+    file_type = (version.file_type or "bin").lower()
+    mime_map = {
+        "pdf": "application/pdf",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "txt": "text/plain",
+    }
+    content_type = mime_map.get(file_type, "application/octet-stream")
+
+    if file_path.startswith("minio://"):
+        from app.utils.storage import get_storage
+
+        _, rest = file_path.split("minio://", 1)
+        bucket, object_name = rest.split("/", 1)
+        storage = get_storage()
+        if hasattr(storage, "client"):
+            response = await storage._run_in_executor(
+                storage.client.get_object, bucket, object_name
+            )
+            try:
+                content = response.read()
+            finally:
+                response.close()
+                response.release_conn()
+        else:
+            content = await storage.download_file(object_name)
+        filename = object_name.split("/")[-1]
+    else:
+        if not os.path.isfile(file_path):
+            return None
+        with open(file_path, "rb") as fh:
+            content = fh.read()
+        filename = os.path.basename(file_path)
+
+    return content, filename, content_type
 
 
 async def save_contract_upload(

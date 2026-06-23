@@ -33,17 +33,23 @@ def get_manifest() -> dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def get_risk_labels() -> dict[str, Any]:
-    return _read_json("risk_labels.json")
+    from app.services.ai_review.config_store import get_risk_labels as _cs_labels
+
+    return _cs_labels()
 
 
 @lru_cache(maxsize=1)
 def get_revision_routing() -> dict[str, Any]:
-    return _read_json("revision_routing.json")
+    from app.services.ai_review.config_store import get_revision_routing as _cs_routing
+
+    return _cs_routing()
 
 
 @lru_cache(maxsize=1)
 def get_review_checklists() -> dict[str, Any]:
-    return _read_json("review_checklists.json")
+    from app.services.ai_review.config_store import get_review_checklists as _cs_checklists
+
+    return _cs_checklists()
 
 
 @lru_cache(maxsize=1)

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { expectToast, gotoRoute, switchRole } from './helpers'
+import { expectToast, gotoRoute, switchRole, pickCreateMode, fillCreateStep1, goCreateStep2 } from './helpers'
 
 const API = 'http://127.0.0.1:8000'
 
@@ -47,10 +47,14 @@ test.describe('DEMO-04 黑名单拦截', () => {
     await gotoRoute(page, '/create', '新建合同')
     await cpResp
 
-    const cpSelect = page.locator('.el-form-item').filter({ hasText: '相对方' }).locator('.el-select')
-    await cpSelect.click()
-    await cpSelect.locator('input').fill(cpName)
-    await page.getByRole('option', { name: `${cpName}（黑名单）` }).click({ timeout: 15000 })
+    await pickCreateMode(page, '空白起草')
+    await fillCreateStep1(page, {
+      title: '黑名单测试合同',
+      counterparty: cpName,
+      amount: 100000,
+      exactOption: `${cpName}（黑名单）`,
+    })
+    await goCreateStep2(page)
 
     await page.getByRole('button', { name: '提交审批' }).click()
     const blockDialog = page.getByRole('dialog').filter({ hasText: '黑名单' })

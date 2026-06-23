@@ -378,7 +378,11 @@ class TestDeleteContract:
             creator_id=1,
         )
         
-        result = await delete_contract(contract_id=created["id"], db=db_session)
+        result = await delete_contract(
+            contract_id=created["id"],
+            user_id=1,
+            db=db_session,
+        )
         
         assert result["success"] is True
         assert "deleted" in result["message"]
@@ -410,7 +414,85 @@ class TestDeleteContract:
         await db_session.flush()
         
         with pytest.raises(BusinessError, match="only draft can be deleted"):
-            await delete_contract(contract_id=created["id"], db=db_session)
+            await delete_contract(
+                contract_id=created["id"],
+                user_id=1,
+                db=db_session,
+            )
+
+    async def test_delete_contract_not_creator(self, db_session, mock_data):
+        """非创建人删除草稿应拒绝"""
+        from app.services.contract_service import create_contract, delete_contract
+        from app.exceptions import BusinessError
+
+        created = await create_contract(
+            title="他人草稿",
+            contract_type="service",
+            counterparty_name="公司",
+            creator_id=1,
+        )
+
+        with pytest.raises(BusinessError, match="仅创建人或管理员可删除草稿"):
+            await delete_contract(
+                contract_id=created["id"],
+                user_id=2,
+                is_admin=False,
+                db=db_session,
+            )
+
+    async def test_delete_contract_admin(self, db_session, mock_data):
+        """管理员可删除他人草稿"""
+        from app.services.contract_service import create_contract, delete_contract, get_contract
+        from app.exceptions import BusinessError
+
+        created = await create_contract(
+            title="他人草稿",
+            contract_type="service",
+            counterparty_name="公司",
+            creator_id=1,
+        )
+
+        result = await delete_contract(
+            contract_id=created["id"],
+            user_id=99,
+            is_admin=True,
+            db=db_session,
+        )
+        assert result["success"] is True
+
+        with pytest.raises(BusinessError, match="not found"):
+            await get_contract(created["id"], db=db_session)
+
+    async def test_delete_contract_audit_log(self, db_session, mock_data):
+        """删除草稿应写入审计日志"""
+        from sqlalchemy import select
+
+        from app.models.contract import AuditLog
+        from app.services.contract_service import create_contract, delete_contract
+
+        created = await create_contract(
+            title="审计测试合同",
+            contract_type="service",
+            counterparty_name="公司",
+            creator_id=1,
+        )
+
+        await delete_contract(
+            contract_id=created["id"],
+            user_id=1,
+            db=db_session,
+        )
+
+        result = await db_session.execute(
+            select(AuditLog).where(
+                AuditLog.resource_type == "contract",
+                AuditLog.resource_id == created["id"],
+                AuditLog.action == "delete_contract",
+            )
+        )
+        log = result.scalar_one_or_none()
+        assert log is not None
+        assert log.user_id == 1
 
 
 @pytest.mark.unit

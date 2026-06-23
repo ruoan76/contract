@@ -7,7 +7,8 @@ from functools import lru_cache
 from typing import Any
 
 from app.services.ai_review.issue_schema import AiReviewIssue
-from app.services.ai_review.seed_store import get_cuad_bridge, get_revision_routing
+from app.services.ai_review.config_store import get_revision_routing
+from app.services.ai_review.seed_store import get_cuad_bridge
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,10 @@ _TRACK_CHANGE_KEYWORDS = (
     "排版",
     "名称错误",
 )
+
+
+def clear_routing_cache() -> None:
+    _routing_index.cache_clear()
 
 
 @lru_cache(maxsize=1)

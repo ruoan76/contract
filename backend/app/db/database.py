@@ -1,4 +1,6 @@
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+
 from app.core.config import settings
 
 _engine = None
@@ -41,6 +43,9 @@ async def get_db() -> AsyncSession:
         try:
             yield session
             await session.commit()
+        except HTTPException:
+            await session.rollback()
+            raise
         except Exception:
             await session.rollback()
             raise

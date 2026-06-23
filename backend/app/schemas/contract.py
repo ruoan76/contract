@@ -23,6 +23,9 @@ class ContractBase(BaseModel):
 class ContractCreate(ContractBase):
     """创建合同"""
     content: Optional[str] = Field(None, description="合同内容")
+    template_id: Optional[int] = Field(None, description="引用的合同模板 ID")
+    template_version: Optional[int] = Field(None, description="引用模板版本号")
+    template_values: Optional[dict[str, Any]] = Field(None, description="模板变量填充值")
 
 
 class ContractUpdate(BaseModel):
@@ -43,6 +46,8 @@ class ContractResponse(ContractBase):
     status: str
     approval_status: str
     risk_level: str
+    template_id: Optional[int] = None
+    template_version: Optional[int] = None
     sign_date: Optional[date] = None
     sign_method: Optional[str] = None
     archive_date: Optional[date] = None

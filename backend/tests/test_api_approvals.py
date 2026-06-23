@@ -104,3 +104,31 @@ class TestApprovalAPI:
             pl = await legal.get("/api/v1/approvals/pending")
         assert pa.json()["data"]["total"] >= 1
         assert pl.json()["data"]["total"] == 0
+
+    async def test_return_to_drafter(self, client_for_user):
+        async with await client_for_user("drafter") as drafter:
+            create_resp = await drafter.post(
+                "/api/v1/contracts/",
+                json={
+                    "title": "退回测试合同",
+                    "contract_type": "service",
+                    "counterparty_name": "公司",
+                    "amount": 50000,
+                    "content": "内容",
+                },
+            )
+        contract_id = create_resp.json()["data"]["id"]
+        async with await client_for_user("drafter") as drafter:
+            submit_resp = await drafter.post(
+                "/api/v1/approvals/submit",
+                json={"contract_id": contract_id, "flow_type": "simple"},
+            )
+        flow_id = submit_resp.json()["data"]["flow_id"]
+
+        async with await client_for_user("approver") as approver:
+            return_resp = await approver.post(
+                f"/api/v1/approvals/{flow_id}/approve",
+                json={"action": "return", "comment": "请补充附件"},
+            )
+        assert return_resp.status_code == 200
+        assert return_resp.json()["data"]["status"] == "returned"
