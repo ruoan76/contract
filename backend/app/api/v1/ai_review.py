@@ -5,6 +5,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, Response
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -86,6 +87,14 @@ async def review_contract(
         )
     except HTTPException:
         raise
+    except OperationalError as e:
+        if "database is locked" in str(e).lower():
+            raise HTTPException(
+                status_code=503,
+                detail="数据库繁忙（可能有审查正在进行），请稍后重试",
+            ) from e
+        logger.exception("AI 审查数据库错误 contract_id=%s", body.contract_id)
+        raise HTTPException(status_code=500, detail=f"AI 审查失败: {e}") from e
     except Exception as e:
         logger.exception("AI 审查未预期失败 contract_id=%s", body.contract_id)
         raise HTTPException(status_code=500, detail=f"AI 审查失败: {e}") from e

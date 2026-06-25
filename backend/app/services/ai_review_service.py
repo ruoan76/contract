@@ -4,7 +4,7 @@ AI审查服务 - 工作流协调层
 """
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import HTTPException
@@ -65,17 +65,50 @@ async def persist_review_result(
     await db.flush()
 
 
+async def _cleanup_stale_reviews(
+    db: AsyncSession,
+    contract_id: int,
+    version_id: int,
+    *,
+    max_minutes: int = 45,
+) -> None:
+    """将超时未完成的 pending/reviewing 标记为 failed，避免永久占锁。"""
+    cutoff = datetime.now() - timedelta(minutes=max_minutes)
+    result = await db.execute(
+        select(AIReview).where(
+            AIReview.contract_id == contract_id,
+            AIReview.version_id == version_id,
+            AIReview.review_status.in_(("reviewing", "pending")),
+            AIReview.created_at < cutoff,
+        )
+    )
+    stale = list(result.scalars().all())
+    if not stale:
+        return
+    for row in stale:
+        row.review_status = "failed"
+    await db.flush()
+    logger.warning(
+        "已清理 %d 条超时审查记录 contract_id=%s version_id=%s",
+        len(stale),
+        contract_id,
+        version_id,
+    )
+
+
 async def _ensure_no_parallel_review(
     db: AsyncSession,
     contract_id: int,
     version_id: int,
 ) -> None:
-    """同合同版本已有 reviewing 时拒绝重复触发。"""
+    """同合同版本已有 reviewing/pending 时拒绝重复触发。"""
+    await _cleanup_stale_reviews(db, contract_id, version_id)
+
     result = await db.execute(
         select(AIReview).where(
             AIReview.contract_id == contract_id,
             AIReview.version_id == version_id,
-            AIReview.review_status == "reviewing",
+            AIReview.review_status.in_(("reviewing", "pending")),
         )
     )
     if result.scalar_one_or_none():
@@ -167,16 +200,20 @@ async def start_review(
                 detail=mlx_unavailable_detail(mlx_reason),
             )
 
+        ctx = await load_review_context(
+            db,
+            contract_id=contract_id,
+            contract_type=contract.contract_type,
+            amount=contract.amount,
+            counterparty_name=contract.counterparty_name,
+        )
+
         ai_review.review_status = "reviewing"
         await db.flush()
+        # MLX 同步审查可达 1–2 分钟，先提交以释放 SQLite 写锁
+        await db.commit()
+
         try:
-            ctx = await load_review_context(
-                db,
-                contract_id=contract_id,
-                contract_type=contract.contract_type,
-                amount=contract.amount,
-                counterparty_name=contract.counterparty_name,
-            )
             payload = await run_contract_ai_review(
                 text,
                 contract_type=ctx.contract_type,
@@ -191,8 +228,17 @@ async def start_review(
             raise
         except Exception as exc:
             logger.error("Sync AI review failed: %s", exc, exc_info=True)
-            ai_review.review_status = "failed"
-            await db.flush()
+            try:
+                ai_review.review_status = "failed"
+                await db.flush()
+            except Exception as mark_err:
+                logger.warning("标记审查失败状态时出错: %s", mark_err)
+            detail = str(exc)
+            if "database is locked" in detail.lower():
+                raise HTTPException(
+                    status_code=503,
+                    detail="数据库繁忙（可能有审查正在进行），请稍后重试",
+                ) from exc
             raise HTTPException(
                 status_code=503,
                 detail=f"AI 审查失败，请确认 MLX 服务已启动（{settings.AI_BASE_URL}）: {exc}",

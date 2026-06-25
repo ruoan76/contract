@@ -45,4 +45,4 @@ export function getStoredUser(): ApiUser | null {
   }
 }
 
-export const authApi = { login, loginAsRole, clearAuthCache, getStoredUser }
+

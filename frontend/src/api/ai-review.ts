@@ -188,6 +188,7 @@ export const aiReviewApi = {
   checklistMatrix: (contractId: number) =>
     client.get<ChecklistMatrix>(`/api/v1/ai-review/contracts/${contractId}/checklist-matrix`),
 
+  /** @deprecated 此方法从未被调用，预留 API — 确认后应移除 */
   result: (reviewId: string) =>
     client.get<AiReviewPollResult>(`/api/v1/ai-review/${reviewId}/result`),
 

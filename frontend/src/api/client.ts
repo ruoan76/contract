@@ -1,4 +1,10 @@
 import { API_CONFIG } from './config'
+import {
+  getToken as readStoredToken,
+  clearToken,
+  clearUser,
+  STORAGE_KEYS,
+} from '@/services/storage'
 
 export class ApiError extends Error {
   status: number
@@ -12,12 +18,15 @@ export class ApiError extends Error {
   }
 }
 
-let token = sessionStorage.getItem('api_token') || ''
+let token = readStoredToken()
 
 export function setToken(value: string) {
   token = value || ''
-  if (token) sessionStorage.setItem('api_token', token)
-  else sessionStorage.removeItem('api_token')
+  if (value) {
+    sessionStorage.setItem(STORAGE_KEYS.TOKEN, value)
+  } else {
+    sessionStorage.removeItem(STORAGE_KEYS.TOKEN)
+  }
 }
 
 export function getToken() {
@@ -27,8 +36,8 @@ export function getToken() {
 /** 清除本地登录态（token 失效或 SECRET_KEY 变更后） */
 export function clearSession() {
   token = ''
-  sessionStorage.removeItem('api_token')
-  sessionStorage.removeItem('api_current_user')
+  clearToken()
+  clearUser()
 }
 
 async function parseResponse(res: Response) {
