@@ -84,7 +84,7 @@ function readFileAsText(file: File, target: 'left' | 'right') {
     <div class="page-toolbar">
       <div>
         <h2>条款比对</h2>
-        <p class="hint">对比上一版本与当前版本正文，辅助法务发现修订差异（非独立菜单，从合同/审查报告进入）。</p>
+        <p class="hint">对比上一版本与当前版本正文，辅助法务发现修订差异。</p>
       </div>
       <el-button type="primary" :loading="loading" @click="runCompare">开始比对</el-button>
     </div>

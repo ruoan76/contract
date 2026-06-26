@@ -51,7 +51,7 @@ def main() -> int:
     parser.add_argument("pdf", type=Path, help="PDF 路径")
     parser.add_argument("--api", default="http://127.0.0.1:8000", help="API 基址")
     parser.add_argument("--user", default="drafter1")
-    parser.add_argument("--password", default="123456")
+    parser.add_argument("--password", default="admin123")
     parser.add_argument("--json-out", type=Path, default=None, help="写入 JSON 报告")
     args = parser.parse_args()
 

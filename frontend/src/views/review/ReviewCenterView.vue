@@ -5,10 +5,12 @@ import { reviewsApi } from '@/api/reviews'
 import { contractsApi } from '@/api/contracts'
 import type { Contract } from '@/types/models'
 import { formatContractOptionLabel } from '@/utils/contractLabel'
-import { flowTypeLabel } from '@/utils/enumLabels'
+import { flowTypeLabel, reviewActionLabel, reviewRoleLabel } from '@/utils/enumLabels'
+import { formatDateTime } from '@/utils/formatDate'
 
 interface PendingItem {
   contract_id: number
+  contract_no?: string
   title?: string
   flow_type?: string
   pending_roles?: string[]
@@ -21,18 +23,6 @@ interface ReviewOpinion {
   comment?: string
   reviewer_name?: string
   created_at?: string
-}
-
-const ROLE_LABEL: Record<string, string> = {
-  legal: '法务',
-  finance: '财务',
-  executive: '高管',
-}
-
-const ACTION_LABEL: Record<string, string> = {
-  approve: '通过',
-  reject: '驳回',
-  return: '退回',
 }
 
 const router = useRouter()
@@ -65,11 +55,10 @@ async function loadContracts() {
   try {
     const res = await contractsApi.list({ page: 1, page_size: 100 })
     contracts.value = res.items || []
-    if (!selectedId.value && contracts.value.length) {
-      const q = route.query.contractId
-      const fromQuery = q ? Number(q) : 0
-      const match = fromQuery && contracts.value.some((c) => c.id === fromQuery)
-      selectedId.value = match ? fromQuery : contracts.value[0].id
+    const q = route.query.contractId
+    const fromQuery = q ? Number(q) : 0
+    if (fromQuery && contracts.value.some((c) => c.id === fromQuery)) {
+      selectedId.value = fromQuery
     }
   } catch (e) {
     console.error(e)
@@ -107,7 +96,7 @@ watch(centerTab, (tab) => {
 
 function formatPendingRoles(roles?: string[]) {
   if (!roles?.length) return '—'
-  return roles.map((r) => ROLE_LABEL[r] || r).join('、')
+  return roles.map((r) => reviewRoleLabel(r)).join('、')
 }
 
 function openWorkspace(row: PendingItem) {
@@ -120,11 +109,11 @@ function openDetail() {
 }
 
 function formatRole(role?: string) {
-  return ROLE_LABEL[role || ''] || role || '未知角色'
+  return reviewRoleLabel(role)
 }
 
 function formatAction(action?: string) {
-  return ACTION_LABEL[action || ''] || action || '—'
+  return reviewActionLabel(action)
 }
 </script>
 
@@ -139,9 +128,11 @@ function formatAction(action?: string) {
             <el-option label="高管" value="executive" />
           </el-select>
         </div>
-        <el-table v-loading="loading" :data="pendingItems" stripe @row-click="openWorkspace">
-          <el-table-column prop="contract_id" label="合同 ID" width="100" />
-          <el-table-column prop="title" label="标题" min-width="200" />
+        <el-table v-loading="loading" :data="pendingItems" stripe>
+          <el-table-column label="合同编号" width="140" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.contract_no || '—' }}</template>
+          </el-table-column>
+          <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
           <el-table-column label="流程" width="120">
             <template #default="{ row }">{{ flowTypeLabel(row.flow_type) }}</template>
           </el-table-column>
@@ -188,7 +179,7 @@ function formatAction(action?: string) {
               <el-timeline-item
                 v-for="(item, idx) in opinions"
                 :key="item.id ?? idx"
-                :timestamp="item.created_at || ''"
+                :timestamp="formatDateTime(item.created_at)"
                 placement="top"
               >
                 <div class="opinion-card">

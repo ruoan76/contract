@@ -75,6 +75,7 @@ export const RISK_LEVEL_LABELS: Record<string, string> = {
   medium: '中风险',
   high: '高风险',
   critical: '极高风险',
+  unknown: '未知',
 }
 
 export const AI_ISSUE_HUMAN_STATUS_LABELS: Record<string, string> = {
@@ -117,6 +118,96 @@ export function dimensionStatusTagType(status?: string | null): ElementTagType {
   if (status === 'failed') return 'danger'
   if (status === 'degraded') return 'warning'
   return ''
+}
+
+/** AI 审查五门禁 ID（与后端 report_pdf_theme 对齐） */
+export const AI_GATE_LABELS: Record<string, string> = {
+  gate_validity: '效力',
+  gate_subject: '主体',
+  gate_clause: '条款',
+  gate_consistency: '一致性',
+  gate_output: '输出',
+}
+
+/** 门禁卡片状态 */
+export const GATE_STATUS_LABELS: Record<string, string> = {
+  pass: '通过',
+  fail: '未通过',
+  warn: '需关注',
+  pending: '待处理',
+}
+
+/** 维度分析状态（ok / degraded / failed） */
+export const DIMENSION_ANALYSIS_STATUS_LABELS: Record<string, string> = {
+  ok: '正常',
+  degraded: '部分降级',
+  failed: '分析失败',
+}
+
+/** 评审工作台角色 */
+export const REVIEW_ROLE_LABELS: Record<string, string> = {
+  legal: '法务',
+  finance: '财务',
+  executive: '高管',
+}
+
+/** 评审动作 */
+export const REVIEW_ACTION_LABELS: Record<string, string> = {
+  approve: '通过',
+  reject: '驳回',
+  return: '退回',
+}
+
+/** 清单矩阵结论 */
+export const CHECKLIST_CONCLUSION_LABELS: Record<string, string> = {
+  pass: '通过',
+  fail: '未通过',
+  attention: '需关注',
+  unknown: '待确认',
+}
+
+export function gateIdLabel(value?: string | null): string {
+  if (!value) return '—'
+  return AI_GATE_LABELS[value] || value
+}
+
+export function gateStatusLabel(value?: string | null): string {
+  if (!value) return '—'
+  return GATE_STATUS_LABELS[value] || value
+}
+
+export function dimensionAnalysisStatusLabel(value?: string | null): string {
+  if (!value) return '—'
+  return DIMENSION_ANALYSIS_STATUS_LABELS[value] || value
+}
+
+export function reviewRoleLabel(value?: string | null): string {
+  if (!value) return '—'
+  return REVIEW_ROLE_LABELS[value] || value
+}
+
+export function reviewActionLabel(value?: string | null): string {
+  if (!value) return '—'
+  return REVIEW_ACTION_LABELS[value] || value
+}
+
+export function checklistConclusionLabel(value?: string | null): string {
+  if (!value) return '—'
+  return CHECKLIST_CONCLUSION_LABELS[value] || value
+}
+
+/** 审批历史节点动作 */
+export const APPROVAL_STEP_ACTION_LABELS: Record<string, string> = {
+  approve: '通过',
+  reject: '驳回',
+  return: '退回',
+  pending: '待处理',
+  delegate: '委托',
+}
+
+export function approvalStepActionLabel(value?: string | null): string {
+  if (!value) return '—'
+  return APPROVAL_STEP_ACTION_LABELS[value] || approvalFlowStatusLabel(value) || value
 }
 
 export const CONTRACT_TYPE_LABELS: Record<string, string> = {

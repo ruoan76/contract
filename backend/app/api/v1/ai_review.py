@@ -337,6 +337,7 @@ async def get_latest_review(
             "review_completeness": summary.get("review_completeness") if isinstance(summary, dict) else None,
             "completeness_detail": summary.get("completeness_detail") if isinstance(summary, dict) else None,
             "checklist_summary": summary.get("checklist_summary") if isinstance(summary, dict) else None,
+            "recommendation": review.recommendation,
             "review_time": review.created_at,
         },
     }

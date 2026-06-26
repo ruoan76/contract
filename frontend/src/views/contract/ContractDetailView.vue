@@ -25,7 +25,7 @@ import {
 } from '@/utils/contractLifecycle'
 import { formatDate, formatDateRange, formatDateTime } from '@/utils/formatDate'
 import ContractContentViewer from '@/components/ContractContentViewer.vue'
-import { contractTypeLabel } from '@/utils/enumLabels'
+import { contractTypeLabel, aiReviewStatusLabel, riskLevelLabel } from '@/utils/enumLabels'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -39,7 +39,7 @@ const lastUpload = ref<ContractUploadResult | null>(null)
 const aiSummary = ref<AiReviewSummary | null>(null)
 const flowHistory = ref<{ flow_type?: string; status?: string; steps?: unknown[] } | null>(null)
 const detailTab = ref('overview')
-const showTechInfo = ref<string[]>([])
+const showAdvancedContent = ref<string[]>([])
 const attachmentPreviewUrl = ref<string | null>(null)
 const attachmentPreviewLoading = ref(false)
 
@@ -179,15 +179,24 @@ function stepDesc(step: unknown) {
   return s.approver_name || ''
 }
 
-const aiRiskLabel = computed(() => {
-  const map: Record<string, string> = {
-    low: '低风险',
-    medium: '中风险',
-    high: '高风险',
-    critical: '极高风险',
-  }
-  return map[aiSummary.value?.risk_level || ''] || aiSummary.value?.risk_level || '—'
+const approvalActiveStep = computed(() => {
+  const steps = flowHistory.value?.steps as Array<{ status?: string; action?: string }> | undefined
+  if (!steps?.length) return 0
+  const pendingIdx = steps.findIndex(
+    (s) => s.status === 'pending' || (!s.action && s.status !== 'completed'),
+  )
+  if (pendingIdx >= 0) return pendingIdx
+  const inProgress = steps.findIndex((s) => s.status === 'in_progress')
+  if (inProgress >= 0) return inProgress
+  return steps.length
 })
+
+function attachmentFileName(path?: string | null) {
+  if (!path) return '—'
+  return path.split('/').pop() || path
+}
+
+const aiRiskLabel = computed(() => riskLevelLabel(aiSummary.value?.risk_level))
 
 const latestPdfAttachment = computed(() => {
   const row = attachmentVersions.value.find((v) => {
@@ -300,7 +309,7 @@ onBeforeUnmount(revokeAttachmentPreview)
             </el-descriptions>
           </template>
           <el-descriptions v-else :column="2" border>
-            <el-descriptions-item label="合同 ID">{{ contract.id }}</el-descriptions-item>
+            <el-descriptions-item label="合同编号">{{ contract.contract_no || '—' }}</el-descriptions-item>
             <el-descriptions-item label="类型">{{ contractTypeLabel(contract.contract_type) }}</el-descriptions-item>
             <el-descriptions-item label="相对方">{{ contract.counterparty_name }}</el-descriptions-item>
             <el-descriptions-item label="金额">¥{{ contract.amount?.toLocaleString() }}</el-descriptions-item>
@@ -356,40 +365,46 @@ onBeforeUnmount(revokeAttachmentPreview)
             >
               <el-button type="primary" :loading="uploading">选择文件上传</el-button>
             </el-upload>
-            <p v-if="lastUpload" class="upload-hint">已上传：{{ lastUpload.file_path?.split('/').pop() }}</p>
+            <p v-if="lastUpload" class="upload-hint">已上传：{{ attachmentFileName(lastUpload.file_path) }}</p>
           </el-card>
           <el-card shadow="never" style="margin-top: 12px">
-            <template #header>附件历史</template>
+            <template #header>附件列表</template>
             <el-table :data="attachmentVersions" stripe size="small" empty-text="暂无附件">
               <el-table-column prop="version" label="版本" width="70" />
               <el-table-column label="文件名" min-width="220">
-                <template #default="{ row }">{{ row.file_path?.split('/').pop() || '—' }}</template>
+                <template #default="{ row }">{{ attachmentFileName(row.file_path) }}</template>
               </el-table-column>
-              <el-table-column prop="created_at" label="上传时间" width="180" />
+              <el-table-column label="上传时间" width="180">
+                <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
+              </el-table-column>
             </el-table>
           </el-card>
-          <el-collapse v-model="showTechInfo" style="margin-top: 12px">
-            <el-collapse-item title="技术信息（文件路径与哈希）" name="tech">
+          <el-collapse v-model="showAdvancedContent" style="margin-top: 12px">
+            <el-collapse-item title="版本历史" name="versions">
+              <el-table :data="versions" stripe size="small" empty-text="暂无版本记录">
+                <el-table-column prop="version" label="版本" width="70" />
+                <el-table-column prop="change_description" label="说明" min-width="140" />
+                <el-table-column label="时间" width="180">
+                  <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
+                </el-table-column>
+              </el-table>
+            </el-collapse-item>
+            <el-collapse-item title="高级信息（路径与哈希）" name="tech">
               <el-table :data="attachmentVersions" stripe size="small" empty-text="暂无">
+                <el-table-column label="文件名" min-width="160">
+                  <template #default="{ row }">{{ attachmentFileName(row.file_path) }}</template>
+                </el-table-column>
                 <el-table-column prop="file_path" label="路径" min-width="220" show-overflow-tooltip />
                 <el-table-column prop="file_hash" label="哈希" min-width="160" show-overflow-tooltip />
               </el-table>
             </el-collapse-item>
           </el-collapse>
-          <el-card shadow="never" style="margin-top: 12px">
-            <template #header>版本历史</template>
-            <el-table :data="versions" stripe size="small" empty-text="暂无版本记录">
-              <el-table-column prop="version" label="版本" width="70" />
-              <el-table-column prop="change_description" label="说明" min-width="140" />
-              <el-table-column prop="created_at" label="时间" width="180" />
-            </el-table>
-          </el-card>
         </el-tab-pane>
 
         <el-tab-pane label="审批与评审" name="approval">
           <el-card v-if="flowHistory?.steps?.length" shadow="never">
             <template #header>审批进度</template>
-            <el-steps :active="flowHistory.steps.length" finish-status="success" align-center>
+            <el-steps :active="approvalActiveStep" finish-status="success" align-center>
               <el-step
                 v-for="(step, idx) in flowHistory.steps"
                 :key="idx"
@@ -406,7 +421,7 @@ onBeforeUnmount(revokeAttachmentPreview)
             <el-descriptions :column="3" size="small" border>
               <el-descriptions-item label="风险等级">{{ aiRiskLabel }}</el-descriptions-item>
               <el-descriptions-item label="风险分">{{ aiSummary.risk_score ?? '—' }}</el-descriptions-item>
-              <el-descriptions-item label="状态">{{ aiSummary.review_status || '—' }}</el-descriptions-item>
+              <el-descriptions-item label="状态">{{ aiReviewStatusLabel(aiSummary.review_status) }}</el-descriptions-item>
             </el-descriptions>
             <div style="margin-top: 12px">
               <el-button type="primary" plain @click="goAiReview">查看完整报告</el-button>

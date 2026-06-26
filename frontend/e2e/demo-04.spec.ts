@@ -4,7 +4,7 @@ import { expectToast, gotoRoute, switchRole, pickCreateMode, fillCreateStep1, go
 const API = 'http://127.0.0.1:8000'
 
 async function adminToken(request: import('@playwright/test').APIRequestContext) {
-  const login = await request.post(`${API}/api/v1/system/login?username=admin&password=123456`)
+  const login = await request.post(`${API}/api/v1/system/login?username=admin&password=admin123`)
   const token = (await login.json()).data?.token as string
   expect(token).toBeTruthy()
   return token

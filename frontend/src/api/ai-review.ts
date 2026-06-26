@@ -1,5 +1,6 @@
 import { client, getToken } from './client'
 import { API_CONFIG } from './config'
+import { aiDimensionLabel } from '@/utils/enumLabels'
 
 export interface AiClauseReview {
   clause?: string
@@ -87,19 +88,6 @@ export const LABEL_OPTIONS: { id: string; name: string }[] = [
   { id: 'RL-015', name: '其他风险' },
 ]
 
-const DIMENSION_LABELS: Record<string, string> = {
-  legal: '法律合规',
-  financial: '财务风险',
-  operational: '履约风险',
-  compliance: '合规审查',
-  compliance_check: '合规审查',
-  risk_assessment: '风险条款',
-  finance_check: '财务条款',
-  performance_check: '履约能力',
-  anomaly_detection: '异常检测',
-  commercial: '商业条款',
-}
-
 export function labelName(labelId?: string): string {
   if (!labelId) return '—'
   return LABEL_OPTIONS.find((l) => l.id === labelId)?.name || labelId
@@ -114,7 +102,7 @@ export function groupClausesByDimension(clauses: AiClauseReview[] = []) {
   }
   return Object.entries(groups).map(([key, items]) => ({
     key,
-    label: DIMENSION_LABELS[key] || key,
+    label: aiDimensionLabel(key),
     items,
   }))
 }

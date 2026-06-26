@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test'
 
 const API_BASE = 'http://127.0.0.1:8000'
+export const DEMO_PASSWORD = 'admin123'
 
 const ROLE_LABEL_TO_KEY: Record<string, string> = {
   起草人: 'drafter',
@@ -38,7 +39,7 @@ export async function switchRole(page: Page, roleLabel: string) {
   if (!username) throw new Error(`未知角色标签: ${roleLabel}`)
 
   const res = await page.request.post(
-    `${API_BASE}/api/v1/system/login?username=${username}&password=123456`,
+    `${API_BASE}/api/v1/system/login?username=${username}&password=${DEMO_PASSWORD}`,
   )
   const json = await res.json()
   expect(res.ok(), `登录失败 ${roleLabel}: ${JSON.stringify(json)}`).toBeTruthy()

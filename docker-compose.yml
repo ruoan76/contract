@@ -31,8 +31,10 @@ services:
       - contract-network
     restart: unless-stopped
 
-  # MinIO 文件存储
+  # MinIO 文件存储（可选，FILE_STORAGE=minio 时启用）
   minio:
+    profiles:
+      - minio
     image: minio/minio:latest
     container_name: contract-minio
     command: server /data --console-address ":9001"
@@ -53,6 +55,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: ${BACKEND_BASE_IMAGE:-python:3.11-slim}
     container_name: contract-backend
     environment:
       DATABASE_URL: mysql+asyncmy://${MYSQL_USER:-contract_user}:${MYSQL_PASSWORD:-contract_password}@mysql:3306/${MYSQL_DATABASE:-contract_db}
@@ -60,6 +64,9 @@ services:
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      AI_REVIEW_MOCK: "1"
+      FILE_STORAGE: local
+      FILE_STORAGE_PATH: /data/contract-files
     ports:
       - "8000:8000"
     volumes:
@@ -68,7 +75,6 @@ services:
     depends_on:
       - mysql
       - redis
-      - minio
     networks:
       - contract-network
     restart: unless-stopped
@@ -78,6 +84,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: ${BACKEND_BASE_IMAGE:-python:3.11-slim}
     container_name: contract-celery
     command: celery -A app.celery_app worker -l info
     environment:
@@ -85,6 +93,9 @@ services:
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/1
       CELERY_RESULT_BACKEND: redis://redis:6379/2
+      AI_REVIEW_MOCK: "1"
+      FILE_STORAGE: local
+      FILE_STORAGE_PATH: /data/contract-files
     volumes:
       - ./backend:/app
       - contract_files:/data/contract-files
@@ -99,24 +110,26 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile}
     container_name: contract-frontend
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       - backend
     networks:
       - contract-network
     restart: unless-stopped
 
-  # Nginx 反向代理
+  # 反向代理（在线: nginx:alpine；离线: NGINX_IMAGE=trendsight_01-backend:latest + NGINX_COMMAND=python /proxy/reverse_proxy.py）
   nginx:
-    image: nginx:alpine
+    image: ${NGINX_IMAGE:-nginx:alpine}
     container_name: contract-nginx
+    command: ${NGINX_COMMAND:-nginx -g 'daemon off;'}
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/reverse_proxy.py:/proxy/reverse_proxy.py:ro
     depends_on:
       - frontend
       - backend

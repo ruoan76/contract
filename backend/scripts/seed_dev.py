@@ -23,6 +23,9 @@ from app.core.security import get_password_hash
 from app.db.base import Base
 from app.models.contract import Role, Department, User
 
+# 开发/演示环境统一默认密码
+DEFAULT_DEV_PASSWORD = "admin123"
+
 
 async def seed() -> None:
     db_url = os.getenv("DATABASE_URL", settings.DATABASE_URL)
@@ -68,14 +71,16 @@ async def seed() -> None:
             ("finance1", "赵财务", "finance"),
             ("executive1", "刘高管", "executive"),
         ]
+        pwd_hash = get_password_hash(DEFAULT_DEV_PASSWORD)
         for username, real_name, role_code in users_data:
-            exists = await session.scalar(select(User).where(User.username == username))
-            if exists:
+            user = await session.scalar(select(User).where(User.username == username))
+            if user:
+                user.password_hash = pwd_hash
                 continue
             session.add(
                 User(
                     username=username,
-                    password_hash=get_password_hash("123456"),
+                    password_hash=pwd_hash,
                     real_name=real_name,
                     email=f"{username}@example.com",
                     department_id=dept.id,
@@ -200,7 +205,7 @@ async def seed() -> None:
                 )
             await session.commit()
 
-        print("种子数据写入完成。默认密码: 123456")
+        print(f"种子数据写入完成。默认密码: {DEFAULT_DEV_PASSWORD}")
 
     await engine.dispose()
 

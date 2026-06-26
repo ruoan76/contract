@@ -9,6 +9,8 @@ import type { DashboardBucketItem, DashboardData } from '@/types/models'
 const router = useRouter()
 const auth = useAuthStore()
 const loading = ref(true)
+const loadError = ref('')
+const draftCount = ref(0)
 const data = ref<DashboardData>({
   stats: {
     total: 0,
@@ -26,13 +28,16 @@ const stats = computed(() => data.value.stats ?? {})
 
 const heroCount = computed(() => {
   if (canAccessRoute(auth.role, 'approvals')) return stats.value.pending_approval ?? 0
-  if (['legal', 'finance', 'executive'].includes(auth.role)) return stats.value.pending_approval ?? 0
+  if (['legal', 'finance', 'executive'].includes(auth.role)) {
+    return stats.value.pending_approval ?? 0
+  }
+  if (canAccessRoute(auth.role, 'create')) return draftCount.value
   return stats.value.pending_approval ?? 0
 })
 
 const heroLabel = computed(() => {
   if (canAccessRoute(auth.role, 'approvals')) return '项待办审批'
-  if (['legal', 'finance', 'executive'].includes(auth.role)) return '项合同待处理'
+  if (['legal', 'finance', 'executive'].includes(auth.role)) return '项合同待评审'
   if (canAccessRoute(auth.role, 'create')) return '份草稿待提交'
   return '项待关注'
 })
@@ -44,21 +49,41 @@ const heroAction = computed(() => {
   if (['legal', 'finance', 'executive'].includes(auth.role)) {
     return { label: '前往评审中心', route: 'review-center' }
   }
+  if (canAccessRoute(auth.role, 'create') && draftCount.value > 0) {
+    return { label: '继续编辑草稿', route: 'contracts', query: { status: 'draft' } }
+  }
   if (canAccessRoute(auth.role, 'create')) {
     return { label: '新建合同', route: 'create' }
   }
   return { label: '查看合同列表', route: 'contracts' }
 })
 
-onMounted(async () => {
+async function loadDashboard() {
+  loading.value = true
+  loadError.value = ''
   try {
     data.value = await contractsApi.dashboard()
+    if (canAccessRoute(auth.role, 'create')) {
+      try {
+        const drafts = await contractsApi.list({
+          page: 1,
+          page_size: 1,
+          scope: 'mine',
+          status: 'draft',
+        })
+        draftCount.value = drafts.total ?? 0
+      } catch {
+        draftCount.value = 0
+      }
+    }
   } catch (e) {
-    console.error(e)
+    loadError.value = e instanceof Error ? e.message : '看板数据加载失败'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadDashboard)
 
 function go(name: string, query?: Record<string, string>) {
   router.push({ name, query })
@@ -69,7 +94,8 @@ function goPendingStat() {
 }
 
 function goHero() {
-  go(heroAction.value.route)
+  const action = heroAction.value
+  go(action.route, action.query)
 }
 
 function goExecutingStat() {
@@ -92,6 +118,17 @@ function formatAmount(amount?: number) {
 
 <template>
   <div v-loading="loading" class="page-card dashboard">
+    <el-alert
+      v-if="loadError"
+      type="error"
+      :title="loadError"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 16px"
+    >
+      <el-button size="small" type="primary" @click="loadDashboard">重试</el-button>
+    </el-alert>
+
     <el-card shadow="never" class="hero-card">
       <div class="hero-inner">
         <div>
@@ -131,70 +168,74 @@ function formatAmount(amount?: number) {
       </el-col>
     </el-row>
 
-    <el-row :gutter="16" class="kanban">
-      <el-col :xs="24" :md="8">
-        <div class="kanban-col">
-          <div class="kanban-title">执行中 <span class="count">{{ data.executing?.length ?? 0 }}</span></div>
-          <el-card
-            v-for="item in data.executing ?? []"
-            :key="item.id"
-            shadow="hover"
-            class="kanban-card"
-            @click="goDetail(item)"
-          >
-            <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
-            <div class="kc-meta">
-              <span>相对方：{{ item.counterparty_name }}</span>
-              <span v-if="item.end_date">交付：{{ item.end_date }}</span>
+    <el-collapse class="kanban-collapse">
+      <el-collapse-item title="执行与到期看板" name="kanban">
+        <el-row :gutter="16" class="kanban">
+          <el-col :xs="24" :md="8">
+            <div class="kanban-col">
+              <div class="kanban-title">执行中 <span class="count">{{ data.executing?.length ?? 0 }}</span></div>
+              <el-card
+                v-for="item in data.executing ?? []"
+                :key="item.id"
+                shadow="hover"
+                class="kanban-card"
+                @click="goDetail(item)"
+              >
+                <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
+                <div class="kc-meta">
+                  <span>相对方：{{ item.counterparty_name }}</span>
+                  <span v-if="item.end_date">交付：{{ item.end_date }}</span>
+                </div>
+                <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
+              </el-card>
+              <el-empty v-if="!(data.executing?.length)" description="暂无执行中合同" :image-size="64">
+                <el-button @click="go('contracts')">查看合同列表</el-button>
+              </el-empty>
             </div>
-            <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
-          </el-card>
-          <el-empty v-if="!(data.executing?.length)" description="暂无执行中合同" :image-size="64">
-            <el-button @click="go('contracts')">查看合同列表</el-button>
-          </el-empty>
-        </div>
-      </el-col>
-      <el-col :xs="24" :md="8">
-        <div class="kanban-col">
-          <div class="kanban-title warn">即将到期 <span class="count">{{ data.expiring_soon?.length ?? 0 }}</span></div>
-          <el-card
-            v-for="item in data.expiring_soon ?? []"
-            :key="item.id"
-            shadow="hover"
-            class="kanban-card border-warn"
-            @click="goDetail(item)"
-          >
-            <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
-            <div class="kc-meta">
-              <span>相对方：{{ item.counterparty_name }}</span>
-              <span v-if="item.end_date">到期：{{ item.end_date }}</span>
+          </el-col>
+          <el-col :xs="24" :md="8">
+            <div class="kanban-col">
+              <div class="kanban-title warn">即将到期 <span class="count">{{ data.expiring_soon?.length ?? 0 }}</span></div>
+              <el-card
+                v-for="item in data.expiring_soon ?? []"
+                :key="item.id"
+                shadow="hover"
+                class="kanban-card border-warn"
+                @click="goDetail(item)"
+              >
+                <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
+                <div class="kc-meta">
+                  <span>相对方：{{ item.counterparty_name }}</span>
+                  <span v-if="item.end_date">到期：{{ item.end_date }}</span>
+                </div>
+                <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
+              </el-card>
+              <el-empty v-if="!(data.expiring_soon?.length)" description="暂无即将到期合同" :image-size="64" />
             </div>
-            <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
-          </el-card>
-          <el-empty v-if="!(data.expiring_soon?.length)" description="暂无即将到期合同" :image-size="64" />
-        </div>
-      </el-col>
-      <el-col :xs="24" :md="8">
-        <div class="kanban-col">
-          <div class="kanban-title danger">已到期 <span class="count">{{ data.expired?.length ?? 0 }}</span></div>
-          <el-card
-            v-for="item in data.expired ?? []"
-            :key="item.id"
-            shadow="hover"
-            class="kanban-card border-danger"
-            @click="goDetail(item)"
-          >
-            <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
-            <div class="kc-meta">
-              <span>相对方：{{ item.counterparty_name }}</span>
-              <span v-if="item.end_date">到期：{{ item.end_date }}</span>
+          </el-col>
+          <el-col :xs="24" :md="8">
+            <div class="kanban-col">
+              <div class="kanban-title danger">已到期 <span class="count">{{ data.expired?.length ?? 0 }}</span></div>
+              <el-card
+                v-for="item in data.expired ?? []"
+                :key="item.id"
+                shadow="hover"
+                class="kanban-card border-danger"
+                @click="goDetail(item)"
+              >
+                <div class="kc-title">{{ item.contract_no }} {{ item.title }}</div>
+                <div class="kc-meta">
+                  <span>相对方：{{ item.counterparty_name }}</span>
+                  <span v-if="item.end_date">到期：{{ item.end_date }}</span>
+                </div>
+                <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
+              </el-card>
+              <el-empty v-if="!(data.expired?.length)" description="暂无已到期合同" :image-size="64" />
             </div>
-            <div class="kc-amount">{{ formatAmount(item.amount) }}</div>
-          </el-card>
-          <el-empty v-if="!(data.expired?.length)" description="暂无已到期合同" :image-size="64" />
-        </div>
-      </el-col>
-    </el-row>
+          </el-col>
+        </el-row>
+      </el-collapse-item>
+    </el-collapse>
   </div>
 </template>
 
@@ -239,7 +280,7 @@ function formatAmount(amount?: number) {
   color: #d97706;
 }
 .stat-card.primary .stat-value {
-  color: #1d4ed8;
+  color: var(--primary);
 }
 .stat-card.danger .stat-value {
   color: #dc2626;
@@ -253,6 +294,10 @@ function formatAmount(amount?: number) {
   font-weight: 700;
   margin-top: 8px;
   color: #111827;
+}
+.kanban-collapse {
+  border: none;
+  background: transparent;
 }
 .kanban-col {
   min-height: 200px;
@@ -298,6 +343,6 @@ function formatAmount(amount?: number) {
 .kc-amount {
   margin-top: 8px;
   font-weight: 600;
-  color: #1d4ed8;
+  color: var(--primary);
 }
 </style>

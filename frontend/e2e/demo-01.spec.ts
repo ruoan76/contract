@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { approveFirstPending, dismissFlowDialog, expectToast, gotoRoute, submitContract, switchRole } from './helpers'
 
 /**
- * DEMO-01 E2E：需 backend :8000 运行且已 seed（密码 123456）
+ * DEMO-01 E2E：需 backend :8000 运行且已 seed（密码 admin123）
  * 运行：cd frontend && npx playwright test
  */
 test.describe('DEMO-01 简易流程', () => {

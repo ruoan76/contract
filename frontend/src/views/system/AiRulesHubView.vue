@@ -106,6 +106,45 @@ async function loadAll() {
   }
 }
 
+/** 按 Tab 按需加载，避免切换时全量刷新 */
+async function loadTab(tab?: string | number) {
+  const name = String(tab || activeTab.value)
+  loading.value = true
+  try {
+    if (name === 'checklist') {
+      const [ver, cl] = await Promise.all([
+        aiReviewConfigApi.getVersion(),
+        aiReviewConfigApi.listChecklist({
+          gate_id: checklistFilter.value.gate_id || undefined,
+          auto_detectable: checklistFilter.value.auto_only || undefined,
+        }),
+      ])
+      configVersion.value = ver?.version ?? null
+      checklist.value = cl?.items ?? []
+    } else if (name === 'labels') {
+      labels.value = (await aiReviewConfigApi.listRiskLabels())?.items ?? []
+    } else if (name === 'routing') {
+      routing.value = (await aiReviewConfigApi.listRouting())?.items ?? []
+    } else if (name === 'hard') {
+      const hr = await aiReviewConfigApi.listHardRules()
+      hardRules.value = hr?.items ?? []
+      if (!sandboxRuleId.value && hardRules.value.length) {
+        sandboxRuleId.value = hardRules.value[0].rule_id
+      }
+    } else if (name === 'snippets') {
+      snippets.value = (await aiReviewConfigApi.listLegalSnippets())?.items ?? []
+    } else if (name === 'feedback') {
+      feedback.value = (await aiReviewConfigApi.feedbackStats(30))?.items ?? []
+    } else {
+      await loadAll()
+    }
+  } catch (e) {
+    ElMessage.error((e as Error).message || '加载失败')
+  } finally {
+    loading.value = false
+  }
+}
+
 async function initPage() {
   await auth.ensureAuth()
   if (!canAccessRulesHub.value) {
@@ -114,7 +153,7 @@ async function initPage() {
     return
   }
   accessDenied.value = false
-  await loadAll()
+  await loadTab(activeTab.value)
 }
 
 onMounted(initPage)
@@ -451,12 +490,12 @@ function fpBadge(ruleKey: string) {
       class="hub-alert"
     />
 
-    <el-tabs v-model="activeTab" @tab-change="loadAll">
+    <el-tabs v-model="activeTab" @tab-change="loadTab">
       <el-tab-pane label="审查清单" name="checklist">
         <div class="toolbar">
-          <el-input v-model="checklistFilter.gate_id" placeholder="gate_id 筛选" clearable style="width: 180px" />
-          <el-checkbox v-model="checklistFilter.auto_only">仅 auto_detectable</el-checkbox>
-          <el-button @click="loadAll">刷新</el-button>
+          <el-input v-model="checklistFilter.gate_id" placeholder="门禁筛选" clearable style="width: 180px" />
+          <el-checkbox v-model="checklistFilter.auto_only">仅自动检测项</el-checkbox>
+          <el-button @click="loadTab('checklist')">刷新</el-button>
         </div>
         <el-table :data="checklist" stripe max-height="520">
           <el-table-column prop="legacy_id" label="ID" width="60" />

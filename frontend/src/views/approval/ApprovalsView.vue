@@ -5,12 +5,15 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { approvalsApi } from '@/api/approvals'
 import { usersApi, type SystemUser } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
+import { isSkipAuth } from '@/utils/appEnv'
 import type { ApprovalPendingItem } from '@/types/models'
 import { formatDateTime } from '@/utils/formatDate'
 import {
   approvalNodeLabel,
   contractTypeLabel,
   flowTypeLabel,
+  riskLevelLabel,
+  riskLevelTagType,
 } from '@/utils/enumLabels'
 
 const route = useRoute()
@@ -38,24 +41,6 @@ function formatAmount(amount?: number): string {
 
 function currentNodeLabel(row: ApprovalPendingItem): string {
   return row.current_node_name || approvalNodeLabel(row.current_node)
-}
-
-function riskLabel(level?: string): string {
-  const map: Record<string, string> = {
-    low: '低',
-    medium: '中',
-    high: '高',
-    critical: '严重',
-    unknown: '未知',
-  }
-  return map[level || 'unknown'] || level || '未知'
-}
-
-function riskTagType(level?: string): 'success' | 'warning' | 'danger' | 'info' {
-  if (level === 'high' || level === 'critical') return 'danger'
-  if (level === 'medium') return 'warning'
-  if (level === 'low') return 'success'
-  return 'info'
 }
 
 function loadViewedIds(): Set<number> {
@@ -114,7 +99,7 @@ async function confirmRiskBeforeApprove(row: ApprovalPendingItem): Promise<boole
   if (level === 'high' || level === 'critical') {
     try {
       await ElMessageBox.confirm(
-        `合同「${rowTitle(row)}」AI 风险等级为「${riskLabel(level)}」，请确认已审阅 AI 审查报告后再通过。`,
+        `合同「${rowTitle(row)}」AI 风险等级为「${riskLevelLabel(level)}」，请确认已审阅 AI 审查报告后再通过。`,
         '高风险二次确认',
         { type: 'warning', confirmButtonText: '继续通过', cancelButtonText: '取消' },
       )
@@ -246,6 +231,15 @@ async function batchApprove() {
     ElMessage.warning('请先选择待办')
     return
   }
+  try {
+    await ElMessageBox.confirm(
+      `确认批量通过 ${selected.value.length} 项待办？此操作将跳过逐单材料审阅确认。`,
+      '批量通过确认',
+      { type: 'warning', confirmButtonText: '确认批量通过', cancelButtonText: '取消' },
+    )
+  } catch {
+    return
+  }
   const elevated = selected.value.filter((r) => isElevatedRisk(r.ai_risk_level))
   if (elevated.length) {
     const highCount = selected.value.filter(
@@ -277,6 +271,13 @@ async function batchApprove() {
   selected.value = []
   await load()
 }
+
+function handleMoreAction(command: string, row: ApprovalPendingItem) {
+  if (command === 'reject') void reject(row)
+  else if (command === 'return') void returnToDrafter(row)
+  else if (command === 'delegate') void openDelegate(row)
+  else if (command === 'ai') openAiReview(row)
+}
 </script>
 
 <template>
@@ -284,7 +285,7 @@ async function batchApprove() {
     <div class="page-toolbar">
       <h2>待办审批</h2>
       <div style="display: flex; gap: 8px">
-        <el-button type="primary" :disabled="!selected.length" @click="batchApprove">
+        <el-button plain :disabled="!selected.length" @click="batchApprove">
           批量通过 ({{ selected.length }})
         </el-button>
         <el-button @click="load">刷新</el-button>
@@ -327,35 +328,43 @@ async function batchApprove() {
       </el-table-column>
       <el-table-column label="AI 风险" width="88">
         <template #default="{ row }">
-          <el-tag :type="riskTagType(row.ai_risk_level)" size="small">
-            {{ riskLabel(row.ai_risk_level) }}
+          <el-tag :type="riskLevelTagType(row.ai_risk_level)" size="small">
+            {{ riskLevelLabel(row.ai_risk_level) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="360" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" size="small" @click="openDetail(row)">详情</el-button>
-          <el-button link type="primary" size="small" @click="openAiReview(row)">AI 报告</el-button>
+          <el-button link type="primary" size="small" @click="openDetail(row)">审阅</el-button>
           <el-button type="primary" size="small" @click="approve(row)">通过</el-button>
-          <el-button type="danger" size="small" plain @click="reject(row)">驳回</el-button>
-          <el-button size="small" plain @click="returnToDrafter(row)">退回</el-button>
-          <el-button size="small" plain @click="openDelegate(row)">委托</el-button>
+          <el-dropdown trigger="click" @command="(cmd: string) => handleMoreAction(cmd, row)">
+            <el-button size="small" plain>更多</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="ai">AI 报告</el-dropdown-item>
+                <el-dropdown-item command="reject" divided>驳回</el-dropdown-item>
+                <el-dropdown-item command="return">退回起草</el-dropdown-item>
+                <el-dropdown-item command="delegate">委托</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
 
     <el-empty v-if="!loading && !items.length" description="暂无待办审批">
-      <p class="empty-hint">
+      <p v-if="isSkipAuth" class="empty-hint">
         <template v-if="auth.role === 'drafter'">
-          起草人账号看不到审批待办。请使用「部门主管」账号登录，或从新建合同提交后点击「前往待办审批（部门主管）」自动切换角色。
+          起草人账号看不到审批待办。请切换为「部门主管」账号，或提交合同后使用演示入口切换角色。
         </template>
         <template v-else-if="auth.role === 'admin'">
-          当前无指派给管理员的待办；审批任务在各部门主管/法务/财务等审批人账号下。可切换为「部门主管」查看刚提交的合同。
+          管理员账号通常无审批待办；可切换为「部门主管」查看刚提交的合同。
         </template>
         <template v-else>
-          当前账号下没有待处理的审批任务。若刚提交合同，请确认已用对应审批节点角色登录。
+          当前账号下没有待处理的审批任务。
         </template>
       </p>
+      <p v-else class="empty-hint">当前没有需要您处理的审批事项。</p>
     </el-empty>
 
     <el-dialog v-model="delegateVisible" title="审批委托" width="420px">

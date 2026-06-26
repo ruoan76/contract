@@ -99,9 +99,10 @@ const router = createRouter({
         },
         {
           path: 'review-history',
-          name: 'review-history',
-          component: () => import('@/views/review/ReviewHistoryView.vue'),
-          meta: { title: '评审历史' },
+          redirect: (to) => ({
+            name: 'review-center',
+            query: { ...to.query, tab: 'history' },
+          }),
         },
         {
           path: 'approvals',

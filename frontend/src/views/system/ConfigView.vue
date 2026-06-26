@@ -180,6 +180,14 @@ const flowNodeRows = computed(() => {
 
 <template>
   <div v-loading="loading" class="page-card">
+    <el-alert
+      type="info"
+      :closable="false"
+      show-icon
+      title="金额阈值决定流程类型"
+      description="简易 / 标准 / 大额流程由上方阈值划分；审批人配置保存后会同步到「流程预览」。"
+      style="margin-bottom: 16px; max-width: 960px"
+    />
     <div class="page-toolbar">
       <el-button type="primary" :loading="saving" @click="save">保存阈值</el-button>
     </div>
@@ -308,19 +316,20 @@ const flowNodeRows = computed(() => {
         </p>
       </el-tab-pane>
 
-      <el-tab-pane label="运行时节点" name="runtime">
+      <el-tab-pane label="流程预览" name="runtime">
         <p class="config-hint">
-          提交审批时实际使用的节点顺序（由审批人配置自动生成，存于 flow_config.json）。
+          提交审批时实际使用的节点顺序（由审批人配置自动生成）。
         </p>
         <el-table :data="flowNodeRows" stripe size="small">
           <el-table-column label="流程类型" width="120">
             <template #default="{ row }">{{ flowTypeLabel(row.flow_type) }}</template>
           </el-table-column>
-          <el-table-column prop="node_id" label="节点 ID" width="160" />
-          <el-table-column prop="node_name" label="节点名称" min-width="120" />
-          <el-table-column prop="approver_role" label="角色标签" width="120" />
-          <el-table-column label="指定用户 ID" width="110">
-            <template #default="{ row }">{{ row.user_id ?? '—' }}</template>
+          <el-table-column prop="node_name" label="节点名称" min-width="140" />
+          <el-table-column label="审批角色" width="120">
+            <template #default="{ row }">{{ approverRoleLabel(row.approver_role) }}</template>
+          </el-table-column>
+          <el-table-column label="指定审批人" min-width="120">
+            <template #default="{ row }">{{ row.user_id ?? '按角色匹配' }}</template>
           </el-table-column>
         </el-table>
       </el-tab-pane>

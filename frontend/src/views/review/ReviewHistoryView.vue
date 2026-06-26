@@ -5,6 +5,8 @@ import { ElMessage } from 'element-plus'
 import { contractsApi } from '@/api/contracts'
 import { reviewsApi } from '@/api/reviews'
 import type { Contract } from '@/types/models'
+import { reviewActionLabel, reviewRoleLabel } from '@/utils/enumLabels'
+import { formatDateTime } from '@/utils/formatDate'
 
 interface ReviewOpinion {
   id?: number
@@ -13,18 +15,6 @@ interface ReviewOpinion {
   comment?: string
   reviewer_name?: string
   created_at?: string
-}
-
-const ROLE_LABEL: Record<string, string> = {
-  legal: '法务',
-  finance: '财务',
-  executive: '高管',
-}
-
-const ACTION_LABEL: Record<string, string> = {
-  approve: '通过',
-  reject: '驳回',
-  return: '退回',
 }
 
 const router = useRouter()
@@ -90,11 +80,11 @@ function openDetail() {
 }
 
 function formatRole(role?: string) {
-  return ROLE_LABEL[role || ''] || role || '未知角色'
+  return reviewRoleLabel(role)
 }
 
 function formatAction(action?: string) {
-  return ACTION_LABEL[action || ''] || action || '—'
+  return reviewActionLabel(action)
 }
 </script>
 
@@ -133,7 +123,7 @@ function formatAction(action?: string) {
           <el-timeline-item
             v-for="(item, idx) in opinions"
             :key="item.id ?? idx"
-            :timestamp="item.created_at || ''"
+            :timestamp="formatDateTime(item.created_at)"
             placement="top"
           >
             <div class="opinion-card">

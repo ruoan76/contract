@@ -27,6 +27,7 @@ import { useAuthStore } from '@/stores/auth'
 import { getToken } from '@/api/client'
 import { isDemoNav, isSkipAuth } from '@/utils/appEnv'
 import { ROLE_LABELS } from '@/api/config'
+import BrandIcon from '@/components/BrandIcon.vue'
 import type { AppRole } from '@/types/models'
 
 const route = useRoute()
@@ -78,8 +79,20 @@ const breadcrumb = computed(() => {
   return ROUTE_TITLES[name]?.[1] || ''
 })
 
+const DRILLDOWN_MENU: Record<string, string> = {
+  'contract-detail': '/contracts',
+  'approval-history': '/contracts',
+  'revision-workspace': '/contracts',
+  'clause-compare': '/clause-compare',
+  'ai-review': '/ai-review',
+  'review-workspace': '/review-center',
+  'review-history': '/review-center',
+}
+
 const activeMenu = computed(() => {
-  if (route.meta.drilldown) return ''
+  const name = route.name as string
+  if (DRILLDOWN_MENU[name]) return DRILLDOWN_MENU[name]
+  if (route.meta.drilldown) return route.path.replace(/\/[^/]+$/, '') || route.path
   return route.path
 })
 
@@ -129,17 +142,17 @@ function handleNavSelect(index: string) {
   <el-container class="app-shell">
     <el-aside width="240px" class="sidebar">
       <div class="sidebar-brand">
-        <div class="logo">合</div>
-        <div>
-          <div class="brand-title">合同审批平台</div>
-          <div class="brand-sub">Contract Lifecycle</div>
+        <BrandIcon :size="36" />
+        <div class="brand-text">
+          <div class="brand-title">浪潮</div>
+          <div class="brand-product">inContract</div>
         </div>
       </div>
       <el-menu
         :default-active="activeMenu"
         background-color="#111827"
         text-color="#d1d5db"
-        active-text-color="#60a5fa"
+        active-text-color="#0066CC"
         class="sidebar-menu"
         @select="handleNavSelect"
       >
@@ -217,7 +230,7 @@ function handleNavSelect(index: string) {
 }
 
 .sidebar {
-  background: #111827;
+  background: var(--gray-900);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -231,15 +244,9 @@ function handleNavSelect(index: string) {
   border-bottom: 1px solid #374151;
 }
 
-.logo {
-  width: 36px;
-  height: 36px;
-  background: var(--primary);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
+.brand-text {
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .brand-title {
@@ -247,9 +254,10 @@ function handleNavSelect(index: string) {
   font-weight: 600;
 }
 
-.brand-sub {
+.brand-product {
   font-size: 11px;
   color: #9ca3af;
+  letter-spacing: 0.3px;
 }
 
 .sidebar-menu {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { reviewsApi } from '@/api/reviews'
 import { aiReviewApi, labelName } from '@/api/ai-review'
 import { ApiError } from '@/api/client'
@@ -15,6 +15,8 @@ import type { Contract } from '@/types/models'
 import {
   aiDimensionLabel,
   aiIssueHumanStatusLabel,
+  reviewActionLabel,
+  reviewRoleLabel,
   riskLevelLabel,
   riskLevelTagType,
 } from '@/utils/enumLabels'
@@ -60,6 +62,7 @@ const activeTab = ref('legal')
 const comment = ref('审核通过')
 const loading = ref(false)
 const aiRetrying = ref(false)
+const showHistory = ref<string[]>([])
 
 const AI_READY = new Set(['ai_done', 'reviewed', 'confirmed'])
 
@@ -157,7 +160,7 @@ async function retryAiReview() {
   aiRetrying.value = true
   try {
     await aiReviewApi.review(contractId.value)
-    ElMessage.success('已重新触发 AI 审查，请稍候刷新')
+    ElMessage.success('已重新触发 AI 审查，正在生成报告…')
     for (let i = 0; i < 24; i++) {
       await new Promise((r) => setTimeout(r, 5000))
       await load()
@@ -199,7 +202,16 @@ async function submitOpinion() {
     ElMessage.success(`${ROLE_TABS.find((t) => t.key === role)?.label} 评审已通过`)
     await load()
     if (role === 'legal' && (workspace.value?.required_roles || []).length === 1) {
-      router.push({ name: 'seal' })
+      try {
+        await ElMessageBox.confirm('法务评审已通过，是否前往用印管理？', '确认下一步', {
+          confirmButtonText: '前往用印',
+          cancelButtonText: '留在此页',
+          type: 'info',
+        })
+        router.push({ name: 'seal' })
+      } catch {
+        /* 用户选择留在此页 */
+      }
     }
   } catch (e) {
     const msg = e instanceof ApiError ? e.message : e instanceof Error ? e.message : '提交失败'
@@ -329,17 +341,20 @@ async function returnForRevision() {
       <el-empty v-else description="当前账号无可操作的评审角色">
         <el-button @click="router.push({ name: 'review-center' })">返回评审中心</el-button>
       </el-empty>
-      <el-table
-        v-if="workspace?.opinions?.length"
-        :data="workspace.opinions"
-        stripe
-        style="margin-top: 20px"
-      >
-        <el-table-column prop="role" label="角色" width="100" />
-        <el-table-column prop="reviewer_name" label="评审人" width="120" />
-        <el-table-column prop="action" label="动作" width="100" />
-        <el-table-column prop="comment" label="意见" min-width="200" />
-      </el-table>
+      <el-collapse v-if="workspace?.opinions?.length" v-model="showHistory" style="margin-top: 20px">
+        <el-collapse-item title="历史评审意见" name="history">
+          <el-table :data="workspace.opinions" stripe size="small">
+            <el-table-column label="角色" width="100">
+              <template #default="{ row }">{{ reviewRoleLabel(row.role) }}</template>
+            </el-table-column>
+            <el-table-column prop="reviewer_name" label="评审人" width="120" />
+            <el-table-column label="动作" width="100">
+              <template #default="{ row }">{{ reviewActionLabel(row.action) }}</template>
+            </el-table-column>
+            <el-table-column prop="comment" label="意见" min-width="200" />
+          </el-table>
+        </el-collapse-item>
+      </el-collapse>
     </template>
   </div>
 </template>

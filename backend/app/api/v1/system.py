@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_, and_
+from sqlalchemy.exc import OperationalError
 from typing import Optional
 
 from app.core.rbac import require_any_role
@@ -281,11 +282,17 @@ async def list_departments(db: AsyncSession = Depends(get_db)):
 @router.post("/login", summary="用户登录")
 async def login(username: str, password: str, db: AsyncSession = Depends(get_db)):
     """用户登录"""
-    result = await db.execute(
-        select(User, Role.code.label("role_code"), Role.name.label("role_name"))
-        .outerjoin(Role, User.role_id == Role.id)
-        .where(User.username == username, User.status == 1)
-    )
+    try:
+        result = await db.execute(
+            select(User, Role.code.label("role_code"), Role.name.label("role_name"))
+            .outerjoin(Role, User.role_id == Role.id)
+            .where(User.username == username, User.status == 1)
+        )
+    except OperationalError:
+        raise HTTPException(
+            status_code=503,
+            detail="数据库不可用，请确认 MySQL 已启动（docker compose up -d mysql）",
+        )
     row = result.fetchone()
     if not row:
         raise HTTPException(status_code=400, detail="用户名或密码错误")

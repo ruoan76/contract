@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { notificationsApi, type NotificationItem } from '@/api/notifications'
+import { formatDateTime } from '@/utils/formatDate'
 
 const router = useRouter()
 const loading = ref(true)
@@ -89,7 +90,9 @@ function rowClassName({ row }: { row: NotificationItem }) {
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="created_at" label="时间" width="180" />
+      <el-table-column label="时间" width="180">
+        <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
+      </el-table-column>
       <el-table-column label="操作" width="100">
         <template #default="{ row }">
           <el-button link type="primary" @click.stop="markRead(row)">标记已读</el-button>

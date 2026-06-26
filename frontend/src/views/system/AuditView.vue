@@ -3,12 +3,18 @@ import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { auditApi, type AuditLogItem } from '@/api/audit'
 import { downloadCsv } from '@/utils/exportCsv'
-import { auditActionLabel, auditResourceLabel, contractStatusLabel } from '@/utils/enumLabels'
+import { auditActionLabel, auditResourceLabel, contractStatusLabel, AUDIT_ACTION_LABELS } from '@/utils/enumLabels'
+import { formatDateTime } from '@/utils/formatDate'
 
 const loading = ref(true)
 const items = ref<AuditLogItem[]>([])
 const actionFilter = ref('')
 const dateRange = ref<[string, string] | null>(null)
+
+const actionOptions = Object.entries(AUDIT_ACTION_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}))
 
 async function load() {
   loading.value = true
@@ -36,8 +42,8 @@ function exportCsv() {
     ['用户', '动作', '资源类型', '资源', '状态', '时间'],
     items.value.map((r) => [
       r.username ?? '',
-      r.action ?? '',
-      r.resource_type ?? '',
+      auditActionLabel(r.action),
+      auditResourceLabel(r.resource_type),
       r.resource_name ?? String(r.resource_id ?? ''),
       r.status ?? '',
       String(r.created_at ?? ''),
@@ -51,13 +57,20 @@ function exportCsv() {
     <div class="page-toolbar">
       <h2>审计日志</h2>
       <div class="filters">
-        <el-input
+        <el-select
           v-model="actionFilter"
           placeholder="动作筛选"
           clearable
-          style="width: 160px"
-          @keyup.enter="load"
-        />
+          style="width: 180px"
+          @change="load"
+        >
+          <el-option
+            v-for="opt in actionOptions"
+            :key="opt.value"
+            :label="opt.label"
+            :value="opt.value"
+          />
+        </el-select>
         <el-date-picker
           v-model="dateRange"
           type="daterange"
@@ -82,7 +95,9 @@ function exportCsv() {
       <el-table-column label="状态" width="100">
         <template #default="{ row }">{{ contractStatusLabel(row.status) }}</template>
       </el-table-column>
-      <el-table-column prop="created_at" label="时间" width="180" />
+      <el-table-column label="时间" width="180">
+        <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
+      </el-table-column>
     </el-table>
     <el-empty v-if="!loading && !items.length" description="暂无审计记录" />
   </div>

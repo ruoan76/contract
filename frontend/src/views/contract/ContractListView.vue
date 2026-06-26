@@ -53,8 +53,8 @@ const scope = ref('mine')
 const bucketFilter = ref('')
 
 const BUCKET_LABELS: Record<string, string> = {
-  executing: '执行中（看板口径）',
-  expiring_soon: '即将到期（≤30天）',
+  executing: '执行中',
+  expiring_soon: '即将到期（30 天内）',
   expired: '已到期',
 }
 
@@ -111,9 +111,22 @@ watch(
   },
 )
 
+watch([typeFilter, riskFilter, statusFilter], () => {
+  page.value = 1
+  load()
+})
+
+function goCreate() {
+  router.push({ name: 'create' })
+}
+
 function onSearch() {
   page.value = 1
   load()
+}
+
+function onKeywordEnter() {
+  onSearch()
 }
 
 function onPageChange(p: number) {
@@ -132,7 +145,10 @@ function openApprovalHistory(row: Contract, e: Event) {
 
 function openReviewHistory(row: Contract, e: Event) {
   e.stopPropagation()
-  router.push({ name: 'review-history', query: { contractId: String(row.id) } })
+  router.push({
+    name: 'review-center',
+    query: { tab: 'history', contractId: String(row.id) },
+  })
 }
 
 function rowCanDelete(row: Contract) {
@@ -183,7 +199,7 @@ async function deleteDraft(row: Contract, e: Event) {
           placeholder="搜索标题/相对方"
           clearable
           style="width: 220px"
-          @keyup.enter="onSearch"
+          @keyup.enter="onKeywordEnter"
         />
         <el-select v-model="typeFilter" placeholder="类型" clearable style="width: 120px">
           <el-option v-for="opt in TYPE_OPTIONS" :key="opt.value || 'all'" :label="opt.label" :value="opt.value" />
@@ -199,7 +215,7 @@ async function deleteDraft(row: Contract, e: Event) {
             :value="opt.value"
           />
         </el-select>
-        <el-button type="primary" @click="onSearch">查询</el-button>
+        <el-button type="primary" plain @click="goCreate">新建合同</el-button>
       </div>
     </div>
     <el-alert
@@ -212,8 +228,14 @@ async function deleteDraft(row: Contract, e: Event) {
       @close="clearBucketFilter"
     />
     <el-table v-loading="loading" :data="items" stripe @row-click="openDetail">
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="title" label="标题" min-width="200" />
+      <el-table-column label="合同编号" width="140" show-overflow-tooltip>
+        <template #default="{ row }">
+          <el-link type="primary" underline="never" @click.stop="openDetail(row)">
+            {{ row.contract_no || '—' }}
+          </el-link>
+        </template>
+      </el-table-column>
+      <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
       <el-table-column prop="counterparty_name" label="相对方" width="140" />
       <el-table-column prop="amount" label="金额" width="120">
         <template #default="{ row }">¥{{ row.amount?.toLocaleString() }}</template>

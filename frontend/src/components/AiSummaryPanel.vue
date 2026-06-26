@@ -4,6 +4,7 @@ import { buildDimensionBlocks, type DimensionBlock } from '@/utils/aiRecommendat
 import type { AiSummaryPanelData } from '@/utils/aiRecommendation'
 import {
   aiReviewStatusLabel,
+  dimensionAnalysisStatusLabel,
   dimensionStatusTagType,
   riskLevelLabel,
   riskLevelTagType,
@@ -11,6 +12,8 @@ import {
 const props = defineProps<{
   summary: AiSummaryPanelData
   showConfirmButton?: boolean
+  /** 报告页嵌入模式：隐藏标题与结论行，仅展示五维摘要与优先条款 */
+  embedded?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -45,25 +48,18 @@ function isExpanded(key: string) {
 function needsExpand(block: DimensionBlock) {
   return block.content.length > 180
 }
-
-function statusLabel(status?: string) {
-  if (status === 'failed') return '分析失败'
-  if (status === 'degraded') return '部分降级'
-  if (status === 'ok') return '正常'
-  return status || ''
-}
 </script>
 
 <template>
   <el-card shadow="never" class="ai-summary-panel">
-    <template #header>
+    <template v-if="!embedded" #header>
       <div class="panel-header">
         <span>AI 初筛摘要</span>
         <el-button link type="primary" @click="emit('viewReport')">查看完整报告</el-button>
       </div>
     </template>
 
-    <div class="conclusion-row">
+    <div v-if="!embedded" class="conclusion-row">
       <el-tag :type="riskTagType" size="large">{{ riskLevelLabel(summary.risk_level) }}</el-tag>
       <span class="conclusion-meta">
         <span class="meta-item">风险分 <strong>{{ summary.risk_score ?? '—' }}</strong></span>
@@ -98,13 +94,16 @@ function statusLabel(status?: string) {
           <div class="dimension-card">
             <div class="dimension-card-head">
               <span class="dimension-title">{{ block.label }}</span>
-              <span v-if="block.score != null" class="dimension-score">{{ block.score }} 分</span>
+              <span
+                v-if="block.score != null && block.status !== 'failed'"
+                class="dimension-score"
+              >{{ block.score }} 分</span>
               <el-tag
                 v-if="block.status && block.status !== 'ok'"
                 :type="dimensionStatusTagType(block.status)"
                 size="small"
               >
-                {{ statusLabel(block.status) }}
+                {{ dimensionAnalysisStatusLabel(block.status) }}
               </el-tag>
             </div>
             <p
@@ -112,6 +111,9 @@ function statusLabel(status?: string) {
               :class="{ collapsed: needsExpand(block) && !isExpanded(block.key) }"
             >
               {{ block.content }}
+            </p>
+            <p v-if="block.status === 'failed'" class="dimension-failed-hint">
+              可重新触发审查或在条款明细中人工核对
             </p>
             <el-button
               v-if="needsExpand(block)"
@@ -215,6 +217,12 @@ function statusLabel(status?: string) {
 }
 
 .dimension-score {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.dimension-failed-hint {
+  margin: 8px 0 0;
   font-size: 12px;
   color: var(--el-text-color-secondary);
 }

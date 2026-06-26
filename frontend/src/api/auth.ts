@@ -4,11 +4,22 @@ import { setToken } from './client'
 
 const cache: Partial<Record<AppRole, { token: string; user: ApiUser }>> = {}
 
+/** 解析登录响应，兼容非 JSON 错误体（如纯文本 500） */
+async function parseLoginResponse(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text()
+  if (!text) return {}
+  try {
+    return JSON.parse(text) as Record<string, unknown>
+  } catch {
+    throw new Error(text || '登录失败')
+  }
+}
+
 export async function login(username: string, password = API_CONFIG.password) {
   const qs = new URLSearchParams({ username, password })
   const base = (API_CONFIG.baseUrl || '').replace(/\/$/, '')
   const res = await fetch(`${base}/api/v1/system/login?${qs}`, { method: 'POST' })
-  const json = await res.json()
+  const json = await parseLoginResponse(res)
   if (!res.ok || json.code !== 200) {
     throw new Error(String(json.detail || json.message || '登录失败'))
   }

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 40" fill="none">
+  <rect x="0" y="0" width="40" height="40" rx="10" fill="#0066CC"/>
+  <text x="20" y="27" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">潮</text>
+  <text x="52" y="18" fill="#0066CC" font-size="16" font-weight="700" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">浪潮</text>
+  <text x="52" y="34" fill="#004C99" font-size="11" font-weight="500" font-family="system-ui, -apple-system, sans-serif" letter-spacing="0.4">Inspur inContract</text>
+</svg>

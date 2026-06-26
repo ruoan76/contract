@@ -4,7 +4,7 @@ import { client } from './client'
 export const API_CONFIG = {
   baseUrl: import.meta.env.VITE_API_BASE_URL || '',
   // 演示模式默认密码，建议通过 VITE_DEMO_PASSWORD 环境变量配置
-  password: import.meta.env.VITE_DEMO_PASSWORD || '123456',
+  password: import.meta.env.VITE_DEMO_PASSWORD || 'admin123',
   roleUsers: {
     drafter: 'drafter1',
     approver: 'approver1',

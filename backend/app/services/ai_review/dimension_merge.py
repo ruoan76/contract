@@ -50,12 +50,16 @@ def merge_dimension_scores(
                 existing.checklist_coverage,
                 ds.checklist_coverage,
             )
+            if merged.status == "failed":
+                merged.score = 0.0
             by_dim[ds.dimension] = merged
 
     order = ["compliance", "risk", "financial", "capability", "anomaly"]
     ordered = [by_dim[d] for d in order if d in by_dim]
     for d, v in by_dim.items():
         if d not in order:
+            if v.status == "failed":
+                v.score = 0.0
             ordered.append(v)
     return ordered
 

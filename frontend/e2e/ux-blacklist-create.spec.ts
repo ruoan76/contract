@@ -9,7 +9,7 @@ test.describe('UX 黑名单起草拦截', () => {
     const suffix = Date.now()
     const cpName = `UX黑名单${suffix}`
 
-    const login = await request.post(`${API}/api/v1/system/login?username=admin&password=123456`)
+    const login = await request.post(`${API}/api/v1/system/login?username=admin&password=admin123`)
     const token = (await login.json()).data?.token as string
 
     const created = await request.post(`${API}/api/v1/counterparties/`, {

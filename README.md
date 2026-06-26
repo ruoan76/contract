@@ -163,7 +163,7 @@ contract/
 
 ## 本地快速启动（V1 Runbook）
 
-### Seed 用户（密码均为 `123456`）
+### Seed 用户（密码均为 `admin123`）
 
 | 角色 | 用户名 | 典型页面 |
 |------|--------|----------|
@@ -186,7 +186,7 @@ alembic upgrade head && python scripts/seed_dev.py
 # 2. 后端 :8000
 uvicorn main:app --reload
 
-# 3. 前端 :8080（代理 /api → :8000）
+# 3. 前端 :5151（代理 /api → :8000）
 cd ../frontend && npm ci && npm run dev
 ```
 

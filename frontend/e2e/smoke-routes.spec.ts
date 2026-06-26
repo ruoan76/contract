@@ -53,6 +53,24 @@ function attachCollectors(page: import('@playwright/test').Page) {
 test.describe('路由冒烟：控制台与 API 错误', () => {
   test.setTimeout(60000)
 
+  test('登录页展示浪潮品牌元素', async ({ page }) => {
+    await page.context().clearCookies()
+    await page.addInitScript(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
+    await page.goto('/login')
+    await page.waitForLoadState('domcontentloaded')
+
+    await expect(page.locator('.login-sheet')).toBeVisible()
+    await expect(page.locator('.login-hero')).toBeVisible()
+    await expect(page.getByRole('heading', { name: /浪潮/ })).toBeVisible()
+    await expect(page.getByText('inContract')).toBeVisible()
+    await expect(page.getByText('智能合同管理解决方案')).toBeVisible()
+    await expect(page.locator('.brand-icon')).toBeVisible()
+    await expect(page.getByText('合同审批平台')).toHaveCount(0)
+  })
+
   for (const route of STATIC_ROUTES) {
     test(`打开 ${route}`, async ({ page }) => {
       const { consoleErrors, apiErrors } = attachCollectors(page)
@@ -73,7 +91,7 @@ test.describe('路由冒烟：控制台与 API 错误', () => {
 
   test('带合同 ID 的详情页', async ({ page, request }) => {
     const login = await request.post(
-      'http://127.0.0.1:8000/api/v1/system/login?username=drafter1&password=123456',
+      'http://127.0.0.1:8000/api/v1/system/login?username=drafter1&password=admin123',
     )
     const loginJson = await login.json()
     const token = loginJson.data?.token as string
@@ -98,6 +116,14 @@ test.describe('路由冒烟：控制台与 API 错误', () => {
       await page.waitForLoadState('networkidle').catch(() => {})
       await page.waitForTimeout(800)
 
+      if (route.includes('/ai-review/')) {
+        await expect(page.getByRole('button', { name: /触发审查|确认 AI 报告|提交法务评审|进入评审工作台|重新审查/ })).toBeVisible()
+        const tabs = page.locator('.report-tabs')
+        if (await tabs.count()) {
+          await expect(page.getByRole('tab', { name: '待办与结论' })).toBeVisible()
+        }
+      }
+
       expect(consoleErrors, `控制台 error @ ${route}`).toEqual([])
       expect(apiErrors, `API 失败 @ ${route}`).toEqual([])
     }
@@ -105,7 +131,7 @@ test.describe('路由冒烟：控制台与 API 错误', () => {
 
   test('无 AI 审查记录的合同：latest-review 不得 404', async ({ page, request }) => {
     const login = await request.post(
-      'http://127.0.0.1:8000/api/v1/system/login?username=drafter1&password=123456',
+      'http://127.0.0.1:8000/api/v1/system/login?username=drafter1&password=admin123',
     )
     const token = (await login.json()).data?.token as string
     expect(token).toBeTruthy()
@@ -143,7 +169,7 @@ test.describe('路由冒烟：控制台与 API 错误', () => {
 
   test('合同详情页上传附件不得 500', async ({ page, request }) => {
     const login = await request.post(
-      'http://127.0.0.1:8000/api/v1/system/login?username=drafter1&password=123456',
+      'http://127.0.0.1:8000/api/v1/system/login?username=drafter1&password=admin123',
     )
     const token = (await login.json()).data?.token as string
     expect(token).toBeTruthy()

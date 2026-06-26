@@ -1,0 +1,31 @@
+/* Element Plus Inspur 主题覆盖 */
+:root {
+  --el-color-primary: #0066CC;
+  --el-color-primary-light-3: #3399FF;
+  --el-color-primary-light-5: #66B3FF;
+  --el-color-primary-light-7: #99CCFF;
+  --el-color-primary-light-8: #B3D9FF;
+  --el-color-primary-light-9: #CCE5FF;
+  --el-color-primary-dark-2: #004C99;
+  --el-color-success: #00C853;
+  --el-color-warning: #FFAB00;
+  --el-color-danger: #D50000;
+  --el-color-white: #ffffff;
+}
+
+/* 仅实心主按钮渐变；plain/link/text 由 EP 变量驱动，避免蓝字蓝底 */
+.el-button--primary:not(.is-plain):not(.is-link):not(.is-text):not(.is-dashed) {
+  background: linear-gradient(135deg, #0066CC 0%, #004C99 100%);
+  border-color: #0066CC;
+  color: #fff;
+}
+
+.el-button--primary:not(.is-plain):not(.is-link):not(.is-text):not(.is-dashed):hover {
+  background: #004C99;
+  border-color: #004C99;
+  color: #fff;
+}
+
+.el-menu--horizontal > .el-menu-item.is-active {
+  border-bottom-color: #0066CC;
+}

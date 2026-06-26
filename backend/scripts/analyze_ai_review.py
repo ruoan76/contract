@@ -20,7 +20,7 @@ import httpx
 
 BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 USERNAME = os.environ.get("API_USER", "drafter1")
-PASSWORD = os.environ.get("API_PASSWORD", "123456")
+PASSWORD = os.environ.get("API_PASSWORD", "admin123")
 
 
 def _login(client: httpx.Client) -> str:

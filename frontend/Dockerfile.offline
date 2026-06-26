@@ -1,0 +1,9 @@
+# 离线构建：先在本机执行 npm run build，再 docker build -f Dockerfile.offline .
+FROM trendsight_01-frontend:latest
+
+WORKDIR /srv
+COPY dist ./dist
+COPY docker-serve.mjs ./
+
+EXPOSE 80
+CMD ["node", "docker-serve.mjs"]

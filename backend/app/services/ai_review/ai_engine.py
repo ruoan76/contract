@@ -22,6 +22,25 @@ from app.services.ai_review.seed_store import get_contract_type_map
 
 logger = logging.getLogger(__name__)
 
+# 各维度失败时摘要中的复核提示
+_DIMENSION_REVIEW_HINTS: dict[str, str] = {
+    "compliance": "合规条款",
+    "risk": "风险条款",
+    "financial": "财务条款",
+    "capability": "履约条款",
+    "anomaly": "异常检测项",
+}
+
+
+def dimension_failure_summary(error_type: str | None, dimension: str = "") -> str:
+    """维度 LLM 失败时返回用户可读摘要（error_type 仅用于日志，不拼进文案）。"""
+    hint = _DIMENSION_REVIEW_HINTS.get(dimension, "相关条款")
+    if error_type == "json_parse":
+        return f"该维度 AI 未能生成结构化结论，请稍后重新审查或人工复核{hint}。"
+    if error_type == "timeout":
+        return "该维度分析超时，请稍后重试。"
+    return "该维度分析未完成，请人工复核。"
+
 
 # ---------------------------------------------------------------------------
 # 模块常量 — Prompt 模板
@@ -238,7 +257,7 @@ class AIReviewEngine:
                         dimension=dim_name,
                         score=0.0,
                         issues=[],
-                        summary="维度审查失败",
+                        summary=dimension_failure_summary(type(result).__name__, dim_name),
                         status="failed",
                         error_type=type(result).__name__,
                     )
@@ -329,7 +348,7 @@ class AIReviewEngine:
             return DimensionScore(
                 dimension=dimension,
                 score=0.0,
-                summary=f"LLM 调用失败: {e.error_type}",
+                summary=dimension_failure_summary(e.error_type, dimension),
                 status="failed",
                 error_type=e.error_type,
             )
@@ -338,7 +357,7 @@ class AIReviewEngine:
             return DimensionScore(
                 dimension=dimension,
                 score=0.0,
-                summary="审查过程中发生错误",
+                summary=dimension_failure_summary(type(e).__name__, dimension),
                 status="failed",
                 error_type=type(e).__name__,
             )

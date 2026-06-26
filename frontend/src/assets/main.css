@@ -1,9 +1,11 @@
+/* Inspur 浪潮品牌色 */
 :root {
-  --primary: #1d4ed8;
-  --primary-light: #3b82f6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  --primary: #0066CC;
+  --primary-light: #3399FF;
+  --primary-dark: #004C99;
+  --success: #00C853;
+  --warning: #FFAB00;
+  --danger: #D50000;
   --gray-50: #f9fafb;
   --gray-200: #e5e7eb;
   --gray-500: #6b7280;

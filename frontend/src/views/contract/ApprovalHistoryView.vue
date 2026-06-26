@@ -5,7 +5,8 @@ import { contractsApi } from '@/api/contracts'
 import { approvalsApi } from '@/api/approvals'
 import ContractContextBar from '@/components/ContractContextBar.vue'
 import StatusTag from '@/components/StatusTag.vue'
-import { flowTypeLabel } from '@/utils/enumLabels'
+import { flowTypeLabel, approvalStepActionLabel } from '@/utils/enumLabels'
+import { formatDateTime } from '@/utils/formatDate'
 import type { Contract } from '@/types/models'
 
 interface ApprovalStep {
@@ -29,12 +30,6 @@ const history = ref<{
   total_steps?: number
   steps?: ApprovalStep[]
 } | null>(null)
-
-const ACTION_LABEL: Record<string, string> = {
-  approve: '通过',
-  reject: '驳回',
-  pending: '待处理',
-}
 
 async function load() {
   if (!contractId.value) return
@@ -69,7 +64,7 @@ function stepType(step: ApprovalStep) {
 }
 
 function formatAction(step: ApprovalStep) {
-  return ACTION_LABEL[step.action || step.status || ''] || step.action || step.status || '节点'
+  return approvalStepActionLabel(step.action || step.status) || step.node_name || '节点'
 }
 </script>
 
@@ -93,7 +88,7 @@ function formatAction(step: ApprovalStep) {
           v-for="(step, idx) in history.steps || []"
           :key="idx"
           :type="stepType(step)"
-          :timestamp="step.completed_at || `步骤 ${step.step ?? idx + 1}`"
+          :timestamp="step.completed_at ? formatDateTime(step.completed_at) : `步骤 ${step.step ?? idx + 1}`"
           placement="top"
         >
           <div class="step-card">

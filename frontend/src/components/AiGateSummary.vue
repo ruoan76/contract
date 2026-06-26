@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import type { AiGateItem } from '@/api/ai-review'
+import { gateIdLabel, gateStatusLabel } from '@/utils/enumLabels'
 
 defineProps<{
   gates?: Record<string, AiGateItem>
 }>()
 
-const labels: Record<string, string> = {
-  gate_validity: '效力',
-  gate_subject: '主体',
-  gate_clause: '条款',
-  gate_consistency: '一致性',
-  gate_output: '输出',
+function gateStatusText(item: AiGateItem): string {
+  if (item.summary?.trim()) return item.summary.trim()
+  return gateStatusLabel(item.status)
 }
 </script>
 
@@ -24,8 +22,8 @@ const labels: Record<string, string> = {
         class="gate-cell"
         :class="`gate-${item.status || 'pending'}`"
       >
-        <div class="gate-label">{{ labels[key] || key }}</div>
-        <div class="gate-status">{{ item.summary || item.status || '—' }}</div>
+        <div class="gate-label">{{ gateIdLabel(String(key)) }}</div>
+        <div class="gate-status">{{ gateStatusText(item) }}</div>
       </div>
     </div>
   </el-card>
